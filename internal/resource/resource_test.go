@@ -2,13 +2,14 @@ package resource_test
 
 import (
 	"testing"
+	"time"
 
 	"github.com/cardiacsociety/web-services/testdata"
 	"github.com/cardiacsociety/web-services/internal/resource"
 	"gopkg.in/mgo.v2/bson"
 	"github.com/matryer/is"
 	"github.com/cardiacsociety/web-services/internal/platform/datastore"
-	)
+)
 
 var data = testdata.NewDataStore()
 
@@ -29,6 +30,10 @@ func TestResources(t *testing.T) {
 		t.Run("testDocResourcesLimit", testDocResourcesLimit)
 		t.Run("testDocResourcesOne", testDocResourcesOne)
 		t.Run("testQueryResourcesCollection", testQueryResourcesCollection)
+		t.Run("testFetchResources", testFetchResources)
+		t.Run("testSyncResource", testSyncResource)
+		t.Run("testSaveNewResource", testSaveNewResource)
+		t.Run("testSaveExistingResource", testSaveExistingResource)
 	})
 }
 
@@ -140,4 +145,83 @@ func testQueryResourcesCollection(t *testing.T) {
 		}
 		is.Equal(c.doi, doi) // incorrect resource url
 	}
+}
+func testFetchResources(t *testing.T) {
+	is := is.New(t)
+	cases := []struct {
+		query       map[string]interface{}
+		expectCount int
+	}{
+		{
+			query:       map[string]interface{}{"id": 2000},
+			expectCount: 1,
+		},
+		{
+			query:       map[string]interface{}{},
+			expectCount: 5,
+		},
+	}
+
+	for _, c := range cases {
+		xr, err := resource.FetchResources(data.Store, c.query, 0) // limit = 0
+		is.NoErr(err)                                              // query error
+		is.Equal(len(xr), c.expectCount)                           // unexpected results count
+	}
+}
+
+func testSyncResource(t *testing.T) {
+	is := is.New(t)
+	r, err := resource.ByID(data.Store, 6576) // this id is present in mysql but NOT in mongo test set
+	is.NoErr(err)                             // error fetching resource from mysql
+	resource.SyncResource(data.Store, r)      // run in a go routine so no error to check...
+	time.Sleep(1 * time.Second)               // bad... but needs to time to sync to mono
+	rd, err := resource.DocResourcesOne(data.Store, bson.M{"id": 6576})
+	is.NoErr(err)         // error fetching sync'd resource from mongo
+	is.Equal(r.ID, rd.ID) // sync'd resource has a different id?
+}
+
+func testSaveNewResource(t *testing.T) {
+	is := is.New(t)
+
+	r := resource.Resource{
+		Name:        "test resource",
+		ResourceURL: "http://csanz.io/abcd1234",
+	}
+	newId, err := r.Save(data.Store)
+	is.NoErr(err) // error saving resource
+
+	r2, err := resource.ByID(data.Store, newId)
+	is.NoErr(err)                           // error fetching new resource
+	is.Equal(r.Name, r2.Name)               // New resource name does not match
+	is.Equal(r.ResourceURL, r2.ResourceURL) // New resource url does not match
+}
+
+func testSaveExistingResource(t *testing.T) {
+	is := is.New(t)
+
+	// this one already exists in test mysql db (id 6578) so should error as nothing to change
+	r := resource.Resource{
+		ResourceURL: "https://doi.org/10.1016/j.jaci.2017.03.020",
+	}
+	id, err := r.Save(data.Store)
+	is.NoErr(err)        // save should not return an error if nothing is updated
+	is.Equal(id, 6578)   // expect existing resource id to be returned
+	is.Equal(r.ID, 6578) // r.ID should be set to id
+
+	// Same again, only this time change the title
+	r = resource.Resource{
+		Name:        "New name",
+		ResourceURL: "https://doi.org/10.1016/j.jaci.2017.03.020",
+	}
+	id, err = r.Save(data.Store)
+	is.NoErr(err)                            // save should not return an error when record was modified
+	is.Equal(id, 6578)                       // expect existing resource id to be returned
+	r2, err := resource.ByID(data.Store, id) // re-fetch update resource
+	is.NoErr(err)                            // error fetching the updated record
+	is.Equal(r.Name, r2.Name)                // name was not updated
+
+	//r2, err := resource.ByID(data.Store, newId)
+	//is.NoErr(err)                           // error fetching new resource
+	//is.Equal(r.Name, r2.Name)               // New resource name does not match
+	//is.Equal(r.ResourceURL, r2.ResourceURL) // New resource url does not match
 }
