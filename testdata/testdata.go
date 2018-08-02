@@ -22,6 +22,7 @@ var schemaQueries = goyesql.MustParseFile(path + "schema.sql")
 var tableQueries = goyesql.MustParseFile(path + "tables.sql")
 var dataQueries = goyesql.MustParseFile(path + "data.sql")
 var memberDocs = path + "members.json"
+var resourcesDocs = path + "resources.json"
 
 type TestStore struct {
 	Name  string
@@ -107,20 +108,37 @@ func (t *TestStore) SetupMongoDB() error {
 		return errors.Wrap(err, "Error pinging MongoDB")
 	}
 
+	// Import member data
 	m := bson.M{}
 	f, err := ioutil.ReadFile(memberDocs)
 	if err != nil {
-		return errors.Wrap(err, "File error")
+		return errors.Wrap(err, "Error reading members json file")
 	}
-
 	err = json.Unmarshal(f, &m)
 	if err != nil {
-		return errors.Wrap(err, "Unmarshal error")
+		return errors.Wrap(err, "Unmarshal error - members")
 	}
-
 	err = t.Store.MongoDB.Session.DB(t.Store.MongoDB.DBName).C("Members").Insert(m)
 	if err != nil {
-		return errors.Wrap(err, "Error inserting test member record")
+		return errors.Wrap(err, "Error inserting member document")
+	}
+
+	// Import resources data
+	var xr []bson.M
+	f, err = ioutil.ReadFile(resourcesDocs)
+	if err != nil {
+		return errors.Wrap(err, "Error reading resources json file")
+	}
+	err = json.Unmarshal(f, &xr)
+	if err != nil {
+		return errors.Wrap(err, "Unmarshal error - resources")
+	}
+
+	for _, r := range xr {
+		err = t.Store.MongoDB.Session.DB(t.Store.MongoDB.DBName).C("Resources").Insert(r)
+		if err != nil {
+			return errors.Wrap(err, "Error inserting resource document")
+		}
 	}
 
 	return nil

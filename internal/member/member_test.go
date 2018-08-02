@@ -27,7 +27,7 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	//defer data.TearDownMongoDB()
+	defer data.TearDownMongoDB()
 
 	m.Run()
 }

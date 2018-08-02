@@ -32,7 +32,7 @@ func ResourcesID(w http.ResponseWriter, req *http.Request) {
 	default:
 		p.Message = Message{http.StatusOK, "success", "Data retrieved from ???"}
 		p.Data = r
-		// Sync from MySQLConnection -> MongoDB
+		// Sync from MySQLConnection -> MongoDB - runs ina  separate go routine
 		resource.SyncResource(DS, r)
 	}
 
