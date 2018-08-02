@@ -48,7 +48,7 @@ type PubDate struct {
 
 type Resources []Resource
 
-// ByID fetches a resource by id, from the MySQL db
+// ByID fetches a resource by id, from the MySQL data
 func ByID(ds datastore.Datastore, id int) (*Resource, error) {
 
 	// Set up a new empty Member
@@ -176,7 +176,7 @@ func ByID(ds datastore.Datastore, id int) (*Resource, error) {
 	return &r, nil
 }
 
-// DocResourcesAll searches the Resource collection. Receives query(q) and projection(p)
+// DocResourcesAll searches the Resource collection. Receives query(query) and projection(p)
 // It returns []interface{} so that only the projected fields are present. The down side of
 // this is that the fields are returned in alphabetical order so it is not as readable
 // as the Member struct. Option might be to use the Member struct when no projection
@@ -500,7 +500,7 @@ func (r *Resource) Update(ds datastore.Datastore, id int) error {
 
 // SetShortURL sets the short_url fields in MySQL ol_resource.short_url. This is here for convenience so that when
 // a Resource is added via the API, and we don't yet have an ID, we can set the short url without making another API call.
-// This is a bit "hackish", however the current MappCPD application will send a user to the short url if it exists in the db
+// This is a bit "hackish", however the current MappCPD application will send a user to the short url if it exists in the data
 // -e, if there is a value in ol_resource.short_url. So BEFORE we set this value we need to make sure a record exists in the Links
 // collection in MongoDB as this is what the short url service (linkr) refers to when doing short link redirecting
 func (r *Resource) SetShortURL(ds datastore.Datastore) error {
@@ -546,7 +546,7 @@ func (r *Resource) SetShortURL(ds datastore.Datastore) error {
 	return nil
 }
 
-// DuplicateResourceURL checks the MySQL db for the existence of a resource_url, and returns the FIRST id or 0
+// DuplicateResourceURL checks the MySQL data for the existence of a resource_url, and returns the FIRST id or 0
 // This is here to help prevent the addition of duplicate resources. In the .Save() func if a duplicate is found,
 // that is, a duplicate resource_url, .Update() will be run instead. This means the id is required so we know which record
 // to update. It is possible there could be more than one duplicate so, for now, return the FIRST duplicate with QueryRow()
