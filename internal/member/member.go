@@ -69,7 +69,7 @@ type Contact struct {
 type Location struct {
 	Preference  int    `json:"preference,omitempty" bson:"preference"`
 	Description string `json:"type,omitempty" bson:"type"`
-	Address     string `json:"address,omitempty" bson:"address"`
+	Address     []string `json:"address,omitempty" bson:"address"`
 	City        string `json:"city,omitempty" bson:"city"`
 	State       string `json:"state,omitempty" bson:"state"`
 	Postcode    string `json:"postcode,omitempty" json:"postcode"`
@@ -164,11 +164,12 @@ func (m *Member) SetContactLocations(ds datastore.Datastore) error {
 
 	for rows.Next() {
 
-		l := Location{}
+		var l Location
+		var address string
 
 		err := rows.Scan(
 			&l.Description,
-			&l.Address,
+			&address,
 			&l.City,
 			&l.State,
 			&l.Postcode,
@@ -180,10 +181,17 @@ func (m *Member) SetContactLocations(ds datastore.Datastore) error {
 			&l.Preference,
 		)
 		if err != nil {
-			return errors.Wrap(err, "SetContactLocations scan error")
+			return errors.Wrap(err, "SetContactLocations scan")
 		}
 
-		l.Address = strings.Trim(l.Address, "\n") // Trim newlines at end
+		// split address string into array of lines
+		xa := strings.Split(address, "\n")
+		for _, a := range xa {
+			if len(a) > 0 {
+				l.Address = append(l.Address, a)
+			}
+		}
+
 		m.Contact.Locations = append(m.Contact.Locations, l)
 	}
 
