@@ -9,6 +9,7 @@ import (
 	"gopkg.in/couchbase/gocb.v1"
 	"github.com/cardiacsociety/web-services/internal/generic"
 	"github.com/cardiacsociety/web-services/internal/member"
+	"time"
 )
 
 const (
@@ -23,20 +24,27 @@ var cb *gocb.Bucket
 
 // MemberDoc stores a couchbase member doc
 type MemberDoc struct {
-	Type          string                    `json:"type"`
-	Gender        string                    `json:"gender,omitempty"`
-	PreNom        string                    `json:"preNom,omitempty"`
-	FirstName     string                    `json:"firstName,omitempty"`
-	LastName      string                    `json:"lastName,omitempty"`
-	PostNom       string                    `json:"postNom,omitempty"`
-	Email         string                    `json:"email,omitempty"`
-	Email2        string                    `json:"email2,omitempty"`
-	Mobile        string                    `json:"mobile,omitempty"`
-	Locations     []member.Location         `json:"locations,omitempty"`
-	Title         string                    `json:"title,omitempty"`
-	TitleHistory  []member.MembershipTitle  `json:"titleHistory,omitempty"`
-	Status        string                    `json:"status,omitempty"`
-	StatusHistory []member.MembershipStatus `json:"statusHistory,omitempty"`
+	Type           string                    `json:"type"`
+	Created        time.Time                 `json:"created"`
+	Updated        time.Time                 `json:"updated"`
+	Status         string                    `json:"status,omitempty"`
+	Title          string                    `json:"title,omitempty"`
+	Gender         string                    `json:"gender,omitempty"`
+	PreNom         string                    `json:"preNom,omitempty"`
+	FirstName      string                    `json:"firstName,omitempty"`
+	MiddleNames    []string                  `json:"middleNames,omitempty"`
+	LastName       string                    `json:"lastName,omitempty"`
+	PostNom        string                    `json:"postNom,omitempty"`
+	Email          string                    `json:"email,omitempty"`
+	Email2         string                    `json:"email2,omitempty"`
+	Mobile         string                    `json:"mobile,omitempty"`
+	Directory      bool                      `json:"directoryConsent"`
+	Consent        bool                      `json:"contactConsent"`
+	Locations      []member.Location         `json:"locations,omitempty"`
+	TitleHistory   []member.MembershipTitle  `json:"titleHistory,omitempty"`
+	StatusHistory  []member.MembershipStatus `json:"statusHistory,omitempty"`
+	Qualifications []member.Qualification    `json:"qualifications,omitempty"`
+	Position       []member.Position         `json:"positions,omitempty"`
 }
 
 func init() {
@@ -165,18 +173,26 @@ func mapMember(m member.Member) MemberDoc {
 	}
 
 	return MemberDoc{
-		Type:          "member",
-		PreNom:        m.Title,
-		FirstName:     m.FirstName,
-		LastName:      m.LastName,
-		PostNom:       m.PostNominal,
-		Email:         m.Contact.EmailPrimary,
-		Email2:        m.Contact.EmailSecondary,
-		Mobile:        m.Contact.Mobile,
-		Locations:     locations,
-		Title:         title,
-		TitleHistory:  titleHistory,
-		Status:        status,
-		StatusHistory: statusHistory,
+		Type:           "member",
+		Created:        m.CreatedAt,
+		Updated:        m.UpdatedAt,
+		Gender:         m.Gender,
+		PreNom:         m.Title,
+		FirstName:      m.FirstName,
+		MiddleNames:    m.MiddleNames,
+		LastName:       m.LastName,
+		PostNom:        m.PostNominal,
+		Email:          m.Contact.EmailPrimary,
+		Email2:         m.Contact.EmailSecondary,
+		Mobile:         m.Contact.Mobile,
+		Directory:      m.Contact.Directory,
+		Consent:        m.Contact.Consent,
+		Locations:      locations,
+		Title:          title,
+		TitleHistory:   titleHistory,
+		Status:         status,
+		StatusHistory:  statusHistory,
+		Qualifications: m.Qualifications,
+		Position:       m.Positions,
 	}
 }

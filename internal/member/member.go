@@ -12,6 +12,7 @@ import (
 	"github.com/pkg/errors"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
+	"strconv"
 )
 
 // Note trying to scan NULL db values into strings throws an error. This is discussed here:
@@ -36,7 +37,7 @@ type Member struct {
 	Active         bool            `json:"active" bson:"active"`
 	Title          string          `json:"title" bson:"title"`
 	FirstName      string          `json:"firstName" bson:"firstName"`
-	MiddleNames    string          `json:"middleNames" bson:"middleNames"`
+	MiddleNames    []string        `json:"middleNames" bson:"middleNames"`
 	LastName       string          `json:"lastName" bson:"lastName"`
 	PostNominal    string          `json:"postNominal" bson:"postNominal"`
 	Gender         string          `json:"gender" bson:"gender"`
@@ -67,17 +68,17 @@ type Contact struct {
 
 // Location defines a Contact place or Contact 'card'
 type Location struct {
-	Preference  int    `json:"preference,omitempty" bson:"preference"`
-	Description string `json:"type,omitempty" bson:"type"`
+	Preference  int      `json:"preference,omitempty" bson:"preference"`
+	Description string   `json:"type,omitempty" bson:"type"`
 	Address     []string `json:"address,omitempty" bson:"address"`
-	City        string `json:"city,omitempty" bson:"city"`
-	State       string `json:"state,omitempty" bson:"state"`
-	Postcode    string `json:"postcode,omitempty" json:"postcode"`
-	Country     string `json:"country,omitempty" bson:"country"`
-	Phone       string `json:"phone,omitempty" bson:"phone"`
-	Fax         string `json:"fax,omitempty" bson:"fax"`
-	Email       string `json:"email,omitempty" bson:"email"`
-	URL         string `json:"url,omitempty" bson:"url"`
+	City        string   `json:"city,omitempty" bson:"city"`
+	State       string   `json:"state,omitempty" bson:"state"`
+	Postcode    string   `json:"postcode,omitempty" json:"postcode"`
+	Country     string   `json:"country,omitempty" bson:"country"`
+	Phone       string   `json:"phone,omitempty" bson:"phone"`
+	Fax         string   `json:"fax,omitempty" bson:"fax"`
+	Email       string   `json:"email,omitempty" bson:"email"`
+	URL         string   `json:"url,omitempty" bson:"url"`
 }
 
 // Membership holds all of the details for membership to an organisation
@@ -95,35 +96,35 @@ type Membership struct {
 type MembershipTitle struct {
 	Date        string `json:"date" bson:"date"`
 	Name        string `json:"title" bson:"title"`
-	Description string `json:"description" bson:"description"`
-	Comment     string `json:"comment" bson:"comment"`
+	Description string `json:"description,omitempty" bson:"description"`
+	Comment     string `json:"comment,omitempty" bson:"comment"`
 }
 
 // MembershipStatus refers to the membership status - eg active, lapsed, retired etc, of a membership within an organisation
 type MembershipStatus struct {
 	Date        string `json:"date" bson:"date"`
 	Name        string `json:"status" bson:"status"`
-	Description string `json:"description" bson:"description"`
-	Comment     string `json:"comment" bson:"comment"`
+	Description string `json:"description,omitempty" bson:"description"`
+	Comment     string `json:"comment,omitempty" bson:"comment"`
 }
 
 // Qualification is a formal qualification such as a degree, Masters, PHD etc
 type Qualification struct {
 	Code        string `json:"code" bson:"code"`
 	Name        string `json:"name" bson:"name"`
-	Description string `json:"description" bson:"description"`
-	Year        string `json:"year" bson:"year"`
+	Description string `json:"description,omitempty" bson:"description"`
+	Year        int    `json:"year,omitempty" bson:"year"`
 }
 
 // Position is an appointment to a board, council or similar
 type Position struct {
 	OrgCode     string `json:"orgCode" bson:"orgCode"`
 	OrgName     string `json:"orgName" bson:"orgName"`
-	Code        string `json:"code" bson:"code"`
+	Code        string `json:"code,omitempty" bson:"code"`
 	Name        string `json:"name" bson:"name"`
-	Description string `json:"description" bson:"description"`
-	Start       string `json:"start" bson:"start"`
-	End         string `json:"end" bson:"end"`
+	Description string `json:"description,omitempty" bson:"description"`
+	Start       string `json:"start,omitempty" bson:"start"`
+	End         string `json:"end,omitempty" bson:"end"`
 }
 
 // Speciality are particular areas of professional expertise or interest
@@ -347,16 +348,24 @@ func (m *Member) SetQualifications(ds datastore.Datastore) error {
 
 	for rows.Next() {
 
-		q := Qualification{}
+		var q Qualification
+		var year string
 
 		err := rows.Scan(
 			&q.Code,
 			&q.Name,
 			&q.Description,
-			&q.Year,
+			&year,
 		)
 		if err != nil {
 			return errors.Wrap(err, "SetQualifications scan error")
+		}
+
+		if len(year) > 0 {
+			q.Year, err = strconv.Atoi(year)
+			if err != nil {
+				return errors.Wrap(err, "SetQualifications could not convert year to integer")
+			}
 		}
 
 		m.Qualifications = append(m.Qualifications, q)
@@ -481,13 +490,14 @@ func ByID(ds datastore.Datastore, id int) (*Member, error) {
 	var active int
 	var createdAt string
 	var updatedAt string
+	var middleNames string
 
 	err := ds.MySQL.Session.QueryRow(query, id).Scan(
 		&active,
 		&createdAt,
 		&updatedAt,
 		&m.FirstName,
-		&m.MiddleNames,
+		&middleNames,
 		&m.LastName,
 		&m.PostNominal,
 		&m.Gender,
@@ -523,6 +533,13 @@ func ByID(ds datastore.Datastore, id int) (*Member, error) {
 	err = m.SetHonorific(ds)
 	if err != nil {
 		return &m, errors.Wrap(err, "SetHonorific")
+	}
+
+	if len(middleNames) > 0 {
+		xmn := strings.Split(middleNames, " ")
+		for _, mn := range xmn {
+			m.MiddleNames = append(m.MiddleNames, mn)
+		}
 	}
 
 	err = m.SetContactLocations(ds)
