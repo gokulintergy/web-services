@@ -1,14 +1,16 @@
 package member
 
 var Queries = map[string]string{
-	"select-member":                   selectMember,
-	"select-member-honorific":         selectMemberHonorific,
-	"select-member-contact-locations": selectMemberContactLocations,
-	"select-membership-title":         selectMembershipTitle,
-	"select-membership-title-history": selectMembershipTitleHistory,
-	"select-member-qualifications":    selectMemberQualifications,
-	"select-member-positions":         selectMemberPositions,
-	"select-member-specialities":      selectMemberSpecialities,
+	"select-member":                    selectMember,
+	"select-member-honorific":          selectMemberHonorific,
+	"select-member-contact-locations":  selectMemberContactLocations,
+	"select-membership-title":          selectMembershipTitle,
+	"select-membership-title-history":  selectMembershipTitleHistory,
+	"select-membership-status":         selectMembershipStatus,
+	"select-membership-status-history": selectMembershipStatusHistory,
+	"select-member-qualifications":     selectMemberQualifications,
+	"select-member-positions":          selectMemberPositions,
+	"select-member-specialities":       selectMemberSpecialities,
 }
 
 const selectMember = `SELECT 
@@ -72,7 +74,6 @@ LIMIT 1`
 
 const selectMembershipTitleHistory = `SELECT 
     COALESCE(mmt.granted_on, ''),
-    'no code',
     COALESCE(mt.name, ''),
     COALESCE(mt.description, ''),
     COALESCE(mmt.comment, '')
@@ -83,6 +84,30 @@ FROM
 WHERE
     mmt.member_id = ?
 ORDER BY mmt.id DESC`
+
+const selectMembershipStatus = `SELECT 
+    COALESCE(ms.name, '')
+FROM
+    ms_status ms
+        INNER JOIN
+    ms_m_status mms ON ms.id = mms.ms_status_id
+WHERE
+	current = 1 AND mms.member_id = ? 
+ORDER BY mms.id DESC
+LIMIT 1`
+
+const selectMembershipStatusHistory = `SELECT
+	mms.created_at as Date,
+    COALESCE(ms.name, ''),
+    COALESCE(ms.description, ''),
+    COALESCE(mms.comment, '')
+FROM
+    ms_status ms
+        INNER JOIN
+    ms_m_status mms ON ms.id = mms.ms_status_id
+WHERE
+    mms.member_id = ?
+ORDER BY mms.id DESC`
 
 const selectMemberQualifications = `SELECT 
     COALESCE(mq.short_name, ''),

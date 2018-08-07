@@ -67,33 +67,42 @@ type Contact struct {
 
 // Location defines a Contact place or Contact 'card'
 type Location struct {
-	Preference  int    `json:"order" bson:"order"`
-	Description string `json:"type" bson:"type"`
-	Address     string `json:"address" bson:"address"`
-	City        string `json:"city" bson:"city"`
-	State       string `json:"state" bson:"state"`
-	Postcode    string `json:"postcode" json:"postcode"`
-	Country     string `json:"country" bson:"country"`
-	Phone       string `json:"phone" bson:"phone"`
-	Fax         string `json:"fax" bson:"fax"`
-	Email       string `json:"email" bson:"email"`
-	URL         string `json:"url" bson:"url"`
+	Preference  int    `json:"preference,omitempty" bson:"preference"`
+	Description string `json:"type,omitempty" bson:"type"`
+	Address     string `json:"address,omitempty" bson:"address"`
+	City        string `json:"city,omitempty" bson:"city"`
+	State       string `json:"state,omitempty" bson:"state"`
+	Postcode    string `json:"postcode,omitempty" json:"postcode"`
+	Country     string `json:"country,omitempty" bson:"country"`
+	Phone       string `json:"phone,omitempty" bson:"phone"`
+	Fax         string `json:"fax,omitempty" bson:"fax"`
+	Email       string `json:"email,omitempty" bson:"email"`
+	URL         string `json:"url,omitempty" bson:"url"`
 }
 
 // Membership holds all of the details for membership to an organisation
 type Membership struct {
-	OrgID        string            `json:"orgId" bson:"orgId"`
-	OrgCode      string            `json:"orgCode" bson:"orgCode"`
-	OrgName      string            `json:"orgName" bson:"orgName"`
-	Title        string            `json:"title" bson:"title"`
-	TitleHistory []MembershipTitle `json:"titleHistory" bson:"titleHistory"`
+	OrgID         string             `json:"orgId" bson:"orgId"`
+	OrgCode       string             `json:"orgCode" bson:"orgCode"`
+	OrgName       string             `json:"orgName" bson:"orgName"`
+	Title         string             `json:"title" bson:"title"`
+	TitleHistory  []MembershipTitle  `json:"titleHistory" bson:"titleHistory"`
+	Status        string             `json:"status" bson:"status"`
+	StatusHistory []MembershipStatus `json:"statusHistory" bson:"statusHistory"`
 }
 
 // MembershipTitle refers to the standing, rank or type of membership within an organisation
 type MembershipTitle struct {
 	Date        string `json:"date" bson:"date"`
-	Code        string `json:"code" bson:"code"`
-	Name        string `json:"name" bson:"name"`
+	Name        string `json:"title" bson:"title"`
+	Description string `json:"description" bson:"description"`
+	Comment     string `json:"comment" bson:"comment"`
+}
+
+// MembershipStatus refers to the membership status - eg active, lapsed, retired etc, of a membership within an organisation
+type MembershipStatus struct {
+	Date        string `json:"date" bson:"date"`
+	Name        string `json:"status" bson:"status"`
 	Description string `json:"description" bson:"description"`
 	Comment     string `json:"comment" bson:"comment"`
 }
@@ -202,7 +211,7 @@ func (m *Member) SetMemberships() error {
 	return nil
 }
 
-// GetTitle populates the MembershipTitle field for a particular Membership.
+// SetMembershipTitle populates the MembershipTitle field for a particular Membership.
 // It receives the Membership index (mi) which points to the relevant item in []Membership
 func (m *Member) SetMembershipTitle(ds datastore.Datastore, mi int) error {
 
@@ -250,7 +259,6 @@ func (m *Member) SetMembershipTitleHistory(ds datastore.Datastore, mi int) error
 		t := MembershipTitle{}
 		err := rows.Scan(
 			&t.Date,
-			&t.Code,
 			&t.Name,
 			&t.Description,
 			&t.Comment,
@@ -260,6 +268,58 @@ func (m *Member) SetMembershipTitleHistory(ds datastore.Datastore, mi int) error
 		}
 
 		m.Memberships[mi].TitleHistory = append(m.Memberships[mi].TitleHistory, t)
+	}
+
+	return nil
+}
+
+// SetMembershipStatus populates the MembershipStatus field for a particular Membership.
+// It receives the Membership index (mi) which points to the relevant item in []Membership
+func (m *Member) SetMembershipStatus(ds datastore.Datastore, mi int) error {
+
+	s := ""
+	query := Queries["select-membership-status"]
+	err := ds.MySQL.Session.QueryRow(query, m.ID).Scan(&s)
+	if err == sql.ErrNoRows {
+		// remove the default membership as there is no status
+		m.Memberships = []Membership{}
+		return nil
+	}
+	if err != nil {
+		return errors.Wrap(err, "SetMembershipStatus error")
+	}
+
+	m.Memberships[mi].Status = s
+	return nil
+}
+
+// SetMembershipStatusHistory populates the Member.StatusHistory field for the Membership at index mi.
+func (m *Member) SetMembershipStatusHistory(ds datastore.Datastore, mi int) error {
+
+	query := Queries["select-membership-status-history"]
+	rows, err := ds.MySQL.Session.Query(query, m.ID)
+	if err == sql.ErrNoRows {
+		return nil
+	}
+	if err != nil {
+		return errors.Wrap(err, "SetMembershipStatusHistory query")
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+
+		t := MembershipStatus{}
+		err := rows.Scan(
+			&t.Date,
+			&t.Name,
+			&t.Description,
+			&t.Comment,
+		)
+		if err != nil {
+			return errors.Wrap(err, "SetMembershipStatusHistory scan")
+		}
+
+		m.Memberships[mi].StatusHistory = append(m.Memberships[mi].StatusHistory, t)
 	}
 
 	return nil
@@ -438,6 +498,7 @@ func ByID(ds datastore.Datastore, id int) (*Member, error) {
 		return &m, errors.Wrap(err, "SQL error")
 	}
 
+	// Note - this is soft-delete active NOT membership active
 	if active == 1 {
 		m.Active = true
 	}
@@ -453,35 +514,48 @@ func ByID(ds datastore.Datastore, id int) (*Member, error) {
 
 	err = m.SetHonorific(ds)
 	if err != nil {
-		return &m, errors.Wrap(err, "SetHonorific error")
+		return &m, errors.Wrap(err, "SetHonorific")
 	}
 
 	err = m.SetContactLocations(ds)
 	if err != nil {
-		return &m, errors.Wrap(err, "SetContactLocations error")
+		return &m, errors.Wrap(err, "SetContactLocations")
 	}
 
 	// TODO: There are no multiple memberships at this stage
 	err = m.SetMemberships()
 	if err != nil {
-		return &m, errors.Wrap(err, "SetMemberships error")
+		return &m, errors.Wrap(err, "SetMemberships")
 	}
 	for i := range m.Memberships {
 
 		err = m.SetMembershipTitle(ds, i)
 		if err != nil {
-			return &m, errors.Wrap(err, "SetMembershipTitle error")
+			return &m, errors.Wrap(err, "SetMembershipTitle")
 		}
 
 		err = m.SetMembershipTitleHistory(ds, i)
 		if err != nil {
-			return &m, errors.Wrap(err, "SetMembershipTitleHistory error")
+			return &m, errors.Wrap(err, "SetMembershipTitleHistory")
+		}
+	}
+
+	for i := range m.Memberships {
+
+		err = m.SetMembershipStatus(ds, i)
+		if err != nil {
+			return &m, errors.Wrap(err, "SetMembershipStatus")
+		}
+
+		err = m.SetMembershipStatusHistory(ds, i)
+		if err != nil {
+			return &m, errors.Wrap(err, "SetMembershipStatusHistory")
 		}
 	}
 
 	err = m.SetQualifications(ds)
 	if err != nil {
-		return &m, errors.Wrap(err, "SetQualifications error")
+		return &m, errors.Wrap(err, "SetQualifications")
 	}
 
 	err = m.SetPositions(ds)
