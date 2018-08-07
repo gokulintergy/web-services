@@ -10,6 +10,7 @@ import (
 	"github.com/cardiacsociety/web-services/internal/generic"
 	"github.com/cardiacsociety/web-services/internal/member"
 	"time"
+	"github.com/cardiacsociety/web-services/internal/cpd"
 )
 
 const (
@@ -47,6 +48,18 @@ type MemberDoc struct {
 	Specialities   []member.Speciality       `json:"specialities"`
 	TitleHistory   []member.MembershipTitle  `json:"titleHistory,omitempty"`
 	StatusHistory  []member.MembershipStatus `json:"statusHistory,omitempty"`
+	CPD            []CPD                     `json:"cpd,omitempty"`
+}
+
+type CPD struct {
+	Date       string  `json:"date"`
+	Category   string  `json:"category"`
+	Activity   string  `json:"activity"`
+	Type       string  `json:"type"`
+	Quantity   float64 `json:"quantity"`
+	Unit       string  `json:"unit"`
+	UnitCredit float64 `json:"creditPerUnit"`
+	Credit     float64 `json:"credit"`
 }
 
 func init() {
@@ -94,47 +107,36 @@ func connectCouchDB() {
 	if err != nil {
 		log.Fatalln("Could not get bucket", err)
 	}
-
-	//bucket.Manager("", "").CreatePrimaryIndex("", true, false)
-
-	//bucket.Upsert("u:kingarthur",
-	//	User{
-	//		Id: "kingarthur",
-	//		Email: "kingarthur@couchbase.com",
-	//		Interests: []string{"Holy Grail", "African Swallows"},
-	//	}, 0)
-	//
-	//// Get the value back
-	//var inUser User
-
-	//var brewery Brewery
-	//bucket.Get("abbey_wright_brewing_valley_inn", &brewery)
-	//fmt.Printf("Brewery: %v\n", brewery)
-	//
-	//// Use query
-	//query := gocb.NewN1qlQuery("SELECT * FROM " + bucketName)
-	//rows, _ := bucket.ExecuteN1qlQuery(query, []interface{}{})
-	//var row interface{}
-	//for rows.Next(&row) {
-	//	fmt.Printf("Row: %v", row)
-	//}
 }
 
 func syncMembers() {
 
-	// get all member ids
 	xi, err := generic.GetIDs(ds, "member", "")
 	if err != nil {
 		log.Fatalln("mysql err", err)
 	}
 
-	for _, i := range xi {
-		fmt.Println("Syncing member id", i)
-		m, err := member.ByID(ds, i)
+	for _, id := range xi {
+
+		md := &MemberDoc{}
+
+		fmt.Print("Syncing member id ", id)
+		m, err := member.ByID(ds, id)
 		if err != nil {
-			log.Fatalln("Could not get member id", i, "-", err)
+			log.Fatalln("Could not get member id ", id, "-", err)
 		}
-		md := mapMember(*m)
+		md.mapMemberProfile(*m)
+
+		fmt.Print("... fetching cpd\n")
+
+		xa, err := cpd.ByMemberID(ds, id)
+		if err != nil {
+			log.Fatalln("Could not get CPD for member id", id, "-", err)
+		}
+		if len(xa) > 0 {
+			md.mapCPD(xa)
+		}
+
 		id := fmt.Sprintf("%v::%v", memberIdPrefix, m.ID)
 		_, err = cb.Upsert(id, md, 0)
 		if err != nil {
@@ -143,8 +145,8 @@ func syncMembers() {
 	}
 }
 
-// mapMember maps member.Member to couchbase memberDoc
-func mapMember(m member.Member) MemberDoc {
+// mapMemberProfile maps profile data from member.Member to couchbase memberDoc
+func (md *MemberDoc) mapMemberProfile(m member.Member) {
 
 	var title string
 	var titleHistory []member.MembershipTitle
@@ -174,29 +176,45 @@ func mapMember(m member.Member) MemberDoc {
 		}
 	}
 
-	return MemberDoc{
-		Type:           "member",
-		Created:        m.CreatedAt,
-		Updated:        m.UpdatedAt,
-		Gender:         m.Gender,
-		PreNom:         m.Title,
-		FirstName:      m.FirstName,
-		MiddleNames:    m.MiddleNames,
-		LastName:       m.LastName,
-		PostNom:        m.PostNominal,
-		Email:          m.Contact.EmailPrimary,
-		Email2:         m.Contact.EmailSecondary,
-		Mobile:         m.Contact.Mobile,
-		Directory:      m.Contact.Directory,
-		Consent:        m.Contact.Consent,
-		Locations:      locations,
-		Title:          title,
-		TitleHistory:   titleHistory,
-		Status:         status,
-		StatusHistory:  statusHistory,
-		Qualifications: m.Qualifications,
-		Accreditations: m.Accreditations,
-		Specialities:   m.Specialities,
-		Positions:      m.Positions,
+	md.Type = "member"
+	md.Created = m.CreatedAt
+	md.Updated = m.UpdatedAt
+	md.Gender = m.Gender
+	md.PreNom = m.Title
+	md.FirstName = m.FirstName
+	md.MiddleNames = m.MiddleNames
+	md.LastName = m.LastName
+	md.PostNom = m.PostNominal
+	md.Email = m.Contact.EmailPrimary
+	md.Email2 = m.Contact.EmailSecondary
+	md.Mobile = m.Contact.Mobile
+	md.Directory = m.Contact.Directory
+	md.Consent = m.Contact.Consent
+	md.Locations = locations
+	md.Title = title
+	md.TitleHistory = titleHistory
+	md.Status = status
+	md.StatusHistory = statusHistory
+	md.Qualifications = m.Qualifications
+	md.Accreditations = m.Accreditations
+	md.Specialities = m.Specialities
+	md.Positions = m.Positions
+}
+
+// mapCPD maps cpd.CPD values to local, simpler version
+func (md *MemberDoc) mapCPD(cpd []cpd.CPD) {
+
+	for _, c := range cpd {
+		ca := CPD{}
+		ca.Date = c.Date
+		ca.Category = c.Category.Name
+		ca.Activity = c.Activity.Name
+		ca.Type = c.Type.Name
+		ca.Quantity = c.CreditData.Quantity
+		ca.UnitCredit = c.CreditData.UnitCredit
+		ca.Unit = c.CreditData.UnitName
+		ca.Credit = c.Credit
+
+		md.CPD = append(md.CPD, ca)
 	}
 }
