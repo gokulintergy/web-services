@@ -9,6 +9,7 @@ var Queries = map[string]string{
 	"select-membership-status":         selectMembershipStatus,
 	"select-membership-status-history": selectMembershipStatusHistory,
 	"select-member-qualifications":     selectMemberQualifications,
+	"select-member-accreditations":     selectMemberAccreditations,
 	"select-member-positions":          selectMemberPositions,
 	"select-member-specialities":       selectMemberSpecialities,
 }
@@ -121,6 +122,20 @@ FROM
 WHERE
     mmq.member_id = ?
 ORDER BY year DESC`
+
+const selectMemberAccreditations = `SELECT 
+    COALESCE(ma.short_name, ''),
+    COALESCE(ma.name, ''),
+    COALESCE(ma.description, ''),
+    COALESCE(mma.start_on, ''),
+    COALESCE(mma.end_on, '')
+FROM
+    mp_m_accreditation mma
+        LEFT JOIN
+    mp_accreditation ma ON mma.mp_accreditation_id = ma.id
+WHERE
+    mma.member_id = ?
+ORDER BY mma.start_on DESC`
 
 const selectMemberPositions = `SELECT 
     COALESCE(organisation.short_name, ''),

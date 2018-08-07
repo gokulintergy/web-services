@@ -41,10 +41,12 @@ type MemberDoc struct {
 	Directory      bool                      `json:"directoryConsent"`
 	Consent        bool                      `json:"contactConsent"`
 	Locations      []member.Location         `json:"locations,omitempty"`
+	Qualifications []member.Qualification    `json:"qualifications,omitempty"`
+	Accreditations []member.Accreditation    `json:"accreditations,omitempty"`
+	Positions      []member.Position         `json:"positions,omitempty"`
+	Specialities   []member.Speciality       `json:"specialities"`
 	TitleHistory   []member.MembershipTitle  `json:"titleHistory,omitempty"`
 	StatusHistory  []member.MembershipStatus `json:"statusHistory,omitempty"`
-	Qualifications []member.Qualification    `json:"qualifications,omitempty"`
-	Position       []member.Position         `json:"positions,omitempty"`
 }
 
 func init() {
@@ -193,6 +195,8 @@ func mapMember(m member.Member) MemberDoc {
 		Status:         status,
 		StatusHistory:  statusHistory,
 		Qualifications: m.Qualifications,
-		Position:       m.Positions,
+		Accreditations: m.Accreditations,
+		Specialities:   m.Specialities,
+		Positions:      m.Positions,
 	}
 }

@@ -45,6 +45,7 @@ type Member struct {
 	Memberships    []Membership    `json:"memberships" bson:"memberships"`
 	Contact        Contact         `json:"contact" bson:"contact"`
 	Qualifications []Qualification `json:"qualifications" bson:"qualifications"`
+	Accreditations []Accreditation `json:"accreditations" bson:"accreditations"`
 	Positions      []Position      `json:"positions" bson:"positions"`
 	Specialities   []Speciality    `json:"specialities" bson:"specialities"`
 
@@ -116,6 +117,15 @@ type Qualification struct {
 	Year        int    `json:"year,omitempty" bson:"year"`
 }
 
+// Accreditation is an industry-approval for a particular practice or process
+type Accreditation struct {
+	Code        string `json:"code" bson:"code"`
+	Name        string `json:"name" bson:"name"`
+	Description string `json:"description,omitempty" bson:"description"`
+	Start       string `json:"start,omitempty" bson:"start"`
+	End         string `json:"end,omitempty" bson:"end"`
+}
+
 // Position is an appointment to a board, council or similar
 type Position struct {
 	OrgCode     string `json:"orgCode" bson:"orgCode"`
@@ -130,8 +140,8 @@ type Position struct {
 // Speciality are particular areas of professional expertise or interest
 type Speciality struct {
 	Name        string `json:"name" bson:"name"`
-	Description string `json:"description" bson:"description"`
-	Start       string `json:"start" bson:"start"`
+	Description string `json:"description,omitempty" bson:"description"`
+	Start       string `json:"start,omitempty" bson:"start"`
 }
 
 // SetHonorific sets the title (Mr, Prof, Dr) and Post nominal, if any
@@ -334,6 +344,7 @@ func (m *Member) SetMembershipStatusHistory(ds datastore.Datastore, mi int) erro
 	return nil
 }
 
+// SetQualifications sets the qualifications
 func (m *Member) SetQualifications(ds datastore.Datastore) error {
 
 	query := Queries["select-member-qualifications"]
@@ -369,6 +380,38 @@ func (m *Member) SetQualifications(ds datastore.Datastore) error {
 		}
 
 		m.Qualifications = append(m.Qualifications, q)
+	}
+
+	return nil
+}
+
+// SetAccreditations adds member accreditations
+func (m *Member) SetAccreditations(ds datastore.Datastore) error {
+
+	query := Queries["select-member-accreditations"]
+	rows, err := ds.MySQL.Session.Query(query, m.ID)
+	if err == sql.ErrNoRows {
+		return nil
+	}
+	if err != nil {
+		return errors.Wrap(err, "SetAccreditations query")
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var a Accreditation
+		err := rows.Scan(
+			&a.Code,
+			&a.Name,
+			&a.Description,
+			&a.Start,
+			&a.End,
+		)
+		if err != nil {
+			return errors.Wrap(err, "SetAccreditation scan")
+		}
+
+		m.Accreditations = append(m.Accreditations, a)
 	}
 
 	return nil
@@ -581,6 +624,11 @@ func ByID(ds datastore.Datastore, id int) (*Member, error) {
 	err = m.SetQualifications(ds)
 	if err != nil {
 		return &m, errors.Wrap(err, "SetQualifications")
+	}
+
+	err = m.SetAccreditations(ds)
+	if err != nil {
+		return &m, errors.Wrap(err, "SetAccreditations")
 	}
 
 	err = m.SetPositions(ds)
