@@ -55,3 +55,26 @@ CPD Activity Doc from current system
     "updatedAt": "0001-01-01T00:00:00Z"
 }
 ```
+
+
+New version:
+
+```json
+{
+    "type": "cpd",
+    "created": "2017-02-01T00:00:00Z",
+    "updated": "2017-02-01T00:00:00Z"
+    
+    "domain": "RACP",
+    "category": "Other Learning Activities",
+    "activity": "Reading journals and texts",
+    "unit": "hours",
+    "creditPerUnit": 1,
+    
+    "date": "2018-01-08",
+    "description": "review papers on cardiovascular genetics for JAHA and JCDD",
+    "evidence": true,
+    "quantity": 2,
+    "credit": 2
+}
+```
