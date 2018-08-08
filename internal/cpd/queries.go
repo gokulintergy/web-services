@@ -10,7 +10,7 @@ const selectMemberActivity = `SELECT
   cma.member_id                        AS 'memberId',
   cma.activity_on                      AS 'memberActivityDate',
   COALESCE(cma.description, '')        AS 'memberActivityDescription',
-  cma.evidence                         AS 'evidence',
+  COALESCE(cma.evidence, 0)            AS 'evidence',
   (cma.quantity * cma.points_per_unit) AS 'activityCredit',
   cma.quantity                         AS 'quantity',
   COALESCE(cau.name, '')               AS 'unit',

@@ -135,13 +135,14 @@ func cpdByMemberID(ds datastore.Datastore, id int) ([]CPD, error) {
 	for rows.Next() {
 
 		c := CPD{}
+		var evidence int // stored as 0/1 in db - translate to bool
 
 		err := rows.Scan(
 			&c.ID,
 			&c.MemberID,
 			&c.Date,
 			&c.Description,
-			&c.Evidence,
+			&evidence,
 			&c.Credit,
 			&c.CreditData.Quantity,
 			&c.CreditData.UnitName,
@@ -158,6 +159,10 @@ func cpdByMemberID(ds datastore.Datastore, id int) ([]CPD, error) {
 		)
 		if err != nil {
 			fmt.Println(err)
+		}
+
+		if evidence == 1 {
+			c.Evidence = true
 		}
 
 		xc = append(xc, c)
@@ -180,13 +185,14 @@ func cpdQuery(ds datastore.Datastore, clause string) ([]CPD, error) {
 	for rows.Next() {
 
 		c := CPD{}
+		var evidence int // stored as 0/1 in db - translate to bool
 
 		err := rows.Scan(
 			&c.ID,
 			&c.MemberID,
 			&c.Date,
 			&c.Description,
-			&c.Evidence,
+			&evidence,
 			&c.Credit,
 			&c.CreditData.Quantity,
 			&c.CreditData.UnitName,
@@ -203,6 +209,10 @@ func cpdQuery(ds datastore.Datastore, clause string) ([]CPD, error) {
 		)
 		if err != nil {
 			fmt.Println(err)
+		}
+
+		if evidence == 1 {
+			c.Evidence = true
 		}
 
 		xc = append(xc, c)
