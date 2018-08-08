@@ -131,11 +131,14 @@ func ByID(ds datastore.Datastore, id int) (*Resource, error) {
 		fmt.Println(msg, err)
 		//os.Exit(1)
 	}
-	r.PubDate.Date, err = time.Parse("2006-01-02", presentedOn)
-	if err != nil {
-		msg := fmt.Sprintf("ByID() record %v - could not Parse presented_on", id)
-		fmt.Println(msg, err)
-		//os.Exit(1)
+
+	if presentedOn != "" && presentedOn != "0000-00-00" {
+		r.PubDate.Date, err = time.Parse("2006-01-02", presentedOn)
+		if err != nil {
+			msg := fmt.Sprintf("ByID() record %v - could not Parse presented_on", id)
+			fmt.Println(msg, err)
+			//os.Exit(1)
+		}
 	}
 
 	// Convert year, month and day strings to int
