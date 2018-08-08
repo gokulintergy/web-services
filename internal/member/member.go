@@ -13,7 +13,7 @@ import (
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 	"strconv"
-)
+	)
 
 // Note trying to scan NULL db values into strings throws an error. This is discussed here:
 // https://github.com/go-sql-driver/mysql/issues/34
@@ -209,14 +209,8 @@ func (m *Member) SetContactLocations(ds datastore.Datastore) error {
 	return nil
 }
 
-// GetMemberships populates the Memberships field with one or more
-// Membership values
+// GetMemberships populates the Memberships field with one or more Membership values - hard coded to CSANZ for now
 func (m *Member) SetMemberships() error {
-
-	// TODO: SQL to fetch memberships - requires db changes
-
-	// Force selection of more that one membership now for testing
-	// Hard coded to CSANZ for now
 
 	// TODO: Add a field called CustomData for any JSON specific to the Membership
 	csanz := Membership{
@@ -338,7 +332,9 @@ func (m *Member) SetMembershipStatusHistory(ds datastore.Datastore, mi int) erro
 			return errors.Wrap(err, "SetMembershipStatusHistory scan")
 		}
 
-		m.Memberships[mi].StatusHistory = append(m.Memberships[mi].StatusHistory, t)
+		if len(m.Memberships) > 0 {
+			m.Memberships[mi].StatusHistory = append(m.Memberships[mi].StatusHistory, t)
+		}
 	}
 
 	return nil
@@ -516,11 +512,18 @@ func (m *Member) SyncUpdated(ds datastore.Datastore) error {
 		return errors.New(fmt.Sprintf("SyncUpdated found %v sync targets - should only be one!", len(xm)))
 	}
 
-	if m.UpdatedAt.Equal(xm[0].UpdatedAt) {
-		return nil
+	if err == mgo.ErrNotFound {
+		return m.SaveDocDB(ds)
 	}
 
-	return m.SaveDocDB(ds)
+	if len(xm) > 0 {
+		if m.UpdatedAt.After(xm[0].UpdatedAt) {
+			return m.SaveDocDB(ds)
+		}
+	}
+
+	// do nothing
+	return nil
 }
 
 // ByID returns a pointer to a populated Member value
@@ -590,7 +593,6 @@ func ByID(ds datastore.Datastore, id int) (*Member, error) {
 		return &m, errors.Wrap(err, "SetContactLocations")
 	}
 
-	// TODO: There are no multiple memberships at this stage
 	err = m.SetMemberships()
 	if err != nil {
 		return &m, errors.Wrap(err, "SetMemberships")
@@ -654,9 +656,13 @@ func SearchDocDB(ds datastore.Datastore, query bson.M) ([]Member, error) {
 		return nil, err
 	}
 
+	// .All(0 never returns ErrNotFound so need to check for results length = 0
 	err = members.Find(query).All(&xm)
 	if err != nil {
 		return nil, err
+	}
+	if len(xm) == 0 {
+		return nil, mgo.ErrNotFound
 	}
 
 	return xm, nil
