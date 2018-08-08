@@ -33,8 +33,8 @@ func main() {
 
 	connectDatastore()
 	connectCouchDB()
-	syncMembers()
-	//syncResources()
+	//syncMembers()
+	syncResources()
 }
 
 // connect the global datastore

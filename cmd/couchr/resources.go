@@ -15,17 +15,18 @@ type ResourceDoc struct {
 	Type        string    `json:"type"`
 	Created     time.Time `json:"created"`
 	Updated     time.Time `json:"updated"`
+	Complete    bool      `json:"complete"`
 	Date        string    `json:"date,omitempty"`
 	Category    string    `json:"category,omitempty"`
 	Title       string    `json:"title"`
 	Description string    `json:"description,omitempty"`
 	Keywords    []string  `json:"keywords,omitempty"`
-	URL         string    `json:"url"`
+	URL         string    `json:"url,omitempty"`
 }
 
 func syncResources() {
 
-	xi, err := generic.GetIDs(ds, "ol_resource", "where id > 20000 limit 100")
+	xi, err := generic.GetIDs(ds, "ol_resource", "WHERE active = 1 LIMIT 10000")
 	if err != nil {
 		log.Fatalln("mysql err", err)
 	}
@@ -50,16 +51,26 @@ func syncResources() {
 
 func (rd *ResourceDoc) mapResource(r resource.Resource) {
 
-	// get yyyy-mm-dd part of date
-	date := strings.Fields(r.PubDate.Date.String())[0]
+	// get yyyy-mm-dd part of date, and assume it is invalid if it is before epoch
+	var date string
+	if !r.PubDate.Date.IsZero() {
+		date = strings.Fields(r.PubDate.Date.String())[0]
+	}
+
+	// keywords array always comes back with at least one element, an empty string - so ensure these are ignored
+	var keywords []string
+	if len(r.Keywords[0]) > 0 {
+		keywords = r.Keywords
+	}
 
 	rd.Type = "resource"
 	rd.Created = r.CreatedAt
 	rd.Updated = r.UpdatedAt
+	rd.Complete = r.Primary
 	rd.Date = date
 	rd.Category = r.Type
 	rd.Title = r.Name
 	rd.Description = r.Description
-	rd.Keywords = r.Keywords
+	rd.Keywords = keywords
 	rd.URL = r.ResourceURL
 }
