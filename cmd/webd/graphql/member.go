@@ -6,12 +6,12 @@ import (
 
 // memberData is a local representation of member.Member
 type memberData struct {
-	ID             int                     `json:"id"`
-	Token          string                  `json:"token"`
+	ID             int                    `json:"id"`
+	Token          string                 `json:"token"`
 	Active         bool                   `json:"active"`
 	Title          string                 `json:"title"`
 	FirstName      string                 `json:"firstName"`
-	MiddleNames    string                 `json:"middleNames"`
+	MiddleNames    []string               `json:"middleNames"`
 	LastName       string                 `json:"lastName"`
 	PostNominal    string                 `json:"postNominal"`
 	DateOfBirth    string                 `json:"dateOfBirth"`
