@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/gorilla/mux"
 	"github.com/cardiacsociety/web-services/internal/attachments"
 	"github.com/cardiacsociety/web-services/internal/fileset"
 	"github.com/cardiacsociety/web-services/internal/generic"
@@ -15,6 +14,7 @@ import (
 	"github.com/cardiacsociety/web-services/internal/note"
 	"github.com/cardiacsociety/web-services/internal/platform/s3"
 	"github.com/cardiacsociety/web-services/internal/resource"
+	"github.com/gorilla/mux"
 )
 
 // AdminTest is a test endpoint
@@ -78,7 +78,7 @@ func AdminMembersSearchPost(w http.ResponseWriter, r *http.Request) {
 	// create a binding struct for the JSON request body
 	// ie. this is what we are expecting
 	type Find struct {
-		Query      map[string]interface{} `json:"query"`
+		Query map[string]interface{} `json:"query"`
 	}
 
 	p := NewResponder(UserAuthToken.Encoded)

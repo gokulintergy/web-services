@@ -1,16 +1,16 @@
 package main
 
 import (
-	"log"
-		"github.com/cardiacsociety/web-services/internal/platform/datastore"
 	"github.com/34South/envr"
+	"github.com/cardiacsociety/web-services/internal/platform/datastore"
 	"gopkg.in/couchbase/gocb.v1"
-			)
+	"log"
+)
 
 const (
-	couchUser      = "admin"
-	couchPass      = "password"
-	bucketName     = "csanz"
+	couchUser  = "admin"
+	couchPass  = "password"
+	bucketName = "csanz"
 )
 
 var ds datastore.Datastore
@@ -63,4 +63,3 @@ func connectCouchDB() {
 		log.Fatalln("Could not get bucket", err)
 	}
 }
-

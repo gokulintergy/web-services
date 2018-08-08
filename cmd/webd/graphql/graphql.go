@@ -6,8 +6,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/graphql-go/handler"
 	"github.com/cardiacsociety/web-services/internal/platform/datastore"
+	"github.com/graphql-go/handler"
 	"github.com/rs/cors"
 )
 

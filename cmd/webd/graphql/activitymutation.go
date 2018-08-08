@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/graphql-go/graphql"
 	"github.com/cardiacsociety/web-services/internal/cpd"
 	"github.com/cardiacsociety/web-services/internal/platform/jwt"
+	"github.com/graphql-go/graphql"
 	"github.com/pkg/errors"
 )
 

@@ -35,8 +35,8 @@ type Message struct {
 // DocMeta stores the meta information from a query to MongoDB
 // todo replace DocMeta with MongoMeta
 type DocMeta struct {
-	Count      int                    `json:"count" bson:"count"`
-	Query      map[string]interface{} `json:"query" bson:"query"`
+	Count int                    `json:"count" bson:"count"`
+	Query map[string]interface{} `json:"query" bson:"query"`
 }
 
 // MongoMeta stores the meta information from a query to MongoDB

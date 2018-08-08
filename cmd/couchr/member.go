@@ -1,14 +1,14 @@
 package main
 
 import (
-	"time"
-	"log"
 	"fmt"
+	"log"
+	"time"
 
-	"github.com/cardiacsociety/web-services/internal/member"
+	"github.com/cardiacsociety/web-services/internal/activity"
 	"github.com/cardiacsociety/web-services/internal/cpd"
 	"github.com/cardiacsociety/web-services/internal/generic"
-	"github.com/cardiacsociety/web-services/internal/activity"
+	"github.com/cardiacsociety/web-services/internal/member"
 )
 
 const memberIdPrefix = "member"

@@ -4,11 +4,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cardiacsociety/web-services/testdata"
-	"github.com/cardiacsociety/web-services/internal/resource"
-	"gopkg.in/mgo.v2/bson"
-	"github.com/matryer/is"
 	"github.com/cardiacsociety/web-services/internal/platform/datastore"
+	"github.com/cardiacsociety/web-services/internal/resource"
+	"github.com/cardiacsociety/web-services/testdata"
+	"github.com/matryer/is"
+	"gopkg.in/mgo.v2/bson"
 )
 
 var data = testdata.NewDataStore()

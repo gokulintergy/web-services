@@ -3,8 +3,8 @@ package graphql
 import (
 	"os"
 
-	"github.com/graphql-go/graphql"
 	"github.com/cardiacsociety/web-services/internal/platform/jwt"
+	"github.com/graphql-go/graphql"
 )
 
 // Mutation handles mutations for member data

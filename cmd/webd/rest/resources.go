@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/gorilla/mux"
 	"github.com/cardiacsociety/web-services/internal/platform/datastore"
 	"github.com/cardiacsociety/web-services/internal/resource"
+	"github.com/gorilla/mux"
 )
 
 // ResourcesID fetches a single resource from the MySQLConnection db

@@ -3,8 +3,8 @@ package graphql
 import (
 	"os"
 
-	"github.com/graphql-go/graphql"
 	"github.com/cardiacsociety/web-services/internal/platform/jwt"
+	"github.com/graphql-go/graphql"
 )
 
 // Query resolves member queries, is a 'viewer' field for the member (user) identified by the token

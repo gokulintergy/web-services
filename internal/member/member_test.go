@@ -104,7 +104,7 @@ func TestSyncUpdated(t *testing.T) {
 	memUpdate := member.Member{
 		ID:          2,
 		CreatedAt:   time.Now().Add(-10 * time.Duration(time.Minute)), // 10 mins ago
-		UpdatedAt:   time.Now(), // should trigger update
+		UpdatedAt:   time.Now(),                                       // should trigger update
 		Active:      false,
 		Title:       "Mr",
 		FirstName:   "Barry",
@@ -118,9 +118,9 @@ func TestSyncUpdated(t *testing.T) {
 	q := bson.M{"lastName": "White"}
 	xm, err := member.SearchDocDB(data.Store, q)
 	m := xm[0]
-	is.NoErr(err)             // Error querying MongoDB
-	is.Equal(m.ID, 2)         // ID should be 2
-	is.Equal(m.Active, false) // Active should be false
+	is.NoErr(err)                         // Error querying MongoDB
+	is.Equal(m.ID, 2)                     // ID should be 2
+	is.Equal(m.Active, false)             // Active should be false
 	is.Equal(m.DateOfBirth, "1948-03-15") // DateOfBirth incorrect
 }
 

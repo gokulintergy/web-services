@@ -117,7 +117,6 @@ func attachments(ds datastore.Datastore, noteID int) ([]Attachment, error) {
 	return xa, nil
 }
 
-
 // GetNotes fetches notes relating, optionally those that relate to
 // a particular entity 'e'. An 'entity' is a value in the db that
 // describes the table (entity) to which the note is linked. For example,

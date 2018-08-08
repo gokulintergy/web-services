@@ -8,13 +8,13 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/gorilla/mux"
-	"github.com/imdario/mergo"
 	"github.com/cardiacsociety/web-services/internal/activity"
 	"github.com/cardiacsociety/web-services/internal/attachments"
 	"github.com/cardiacsociety/web-services/internal/cpd"
 	"github.com/cardiacsociety/web-services/internal/fileset"
 	"github.com/cardiacsociety/web-services/internal/platform/s3"
+	"github.com/gorilla/mux"
+	"github.com/imdario/mergo"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )

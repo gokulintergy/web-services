@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/gorilla/mux"
 	"github.com/cardiacsociety/web-services/internal/organisation"
+	"github.com/gorilla/mux"
 )
 
 // AllOrganisations handles requests for Organisation records

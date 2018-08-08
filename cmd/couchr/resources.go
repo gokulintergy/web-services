@@ -1,12 +1,12 @@
 package main
 
 import (
-	"log"
 	"fmt"
 	"github.com/cardiacsociety/web-services/internal/generic"
 	"github.com/cardiacsociety/web-services/internal/resource"
-	"time"
+	"log"
 	"strings"
+	"time"
 )
 
 const resourceIdPrefix = "resource"
