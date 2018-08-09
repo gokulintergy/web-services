@@ -212,13 +212,11 @@ func (m *Member) SetContactLocations(ds datastore.Datastore) error {
 // GetMemberships populates the Memberships field with one or more Membership values - hard coded to CSANZ for now
 func (m *Member) SetMemberships() error {
 
-	// TODO: Add a field called CustomData for any JSON specific to the Membership
 	csanz := Membership{
 		OrgID:   "csanz",
 		OrgCode: "CSANZ",
 		OrgName: "Cardiac Society of Australia and New Zealand",
 	}
-
 	m.Memberships = append(m.Memberships, csanz)
 
 	return nil
@@ -249,7 +247,6 @@ func (m *Member) SetMembershipTitle(ds datastore.Datastore, mi int) error {
 
 	m.Memberships[mi].Title = t
 	return nil
-
 }
 
 // GetTitleHistory populates the Member.TitleHistory field for the Membership
@@ -598,16 +595,15 @@ func ByID(ds datastore.Datastore, id int) (*Member, error) {
 		return &m, errors.Wrap(err, "SetMemberships")
 	}
 	for i := range m.Memberships {
-
 		err = m.SetMembershipTitle(ds, i)
 		if err != nil {
 			return &m, errors.Wrap(err, "SetMembershipTitle")
 		}
-
-		err = m.SetMembershipTitleHistory(ds, i)
-		if err != nil {
-			return &m, errors.Wrap(err, "SetMembershipTitleHistory")
-		}
+		//
+		//err = m.SetMembershipTitleHistory(ds, i)
+		//if err != nil {
+		//	return &m, errors.Wrap(err, "SetMembershipTitleHistory")
+		//}
 	}
 
 	for i := range m.Memberships {

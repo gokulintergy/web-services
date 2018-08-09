@@ -16,7 +16,8 @@ import (
 var data = testdata.NewDataStore()
 var helper = testdata.NewHelper()
 
-func TestMain(m *testing.M) {
+func TestMember(t *testing.T) {
+
 	err := data.SetupMySQL()
 	if err != nil {
 		log.Fatalln(err)
@@ -29,21 +30,29 @@ func TestMain(m *testing.M) {
 	}
 	defer data.TearDownMongoDB()
 
-	m.Run()
+	t.Run("member", func(t *testing.T) {
+		t.Run("testPingDatabase", testPingDatabase)
+		t.Run("testByID", testByID)
+		t.Run("testSearchDocDB", testSearchDocDB)
+		t.Run("testSaveDocDB", testSaveDocDB)
+		t.Run("testSyncUpdated", testSyncUpdated)
+
+	})
 }
 
-func TestPingDatabase(t *testing.T) {
+func testPingDatabase(t *testing.T) {
 	is := is.New(t)
 	err := data.Store.MySQL.Session.Ping()
 	is.NoErr(err) // Could not ping test database
 }
 
-func TestByID(t *testing.T) {
+func testByID(t *testing.T) {
 	is := is.New(t)
 	m, err := member.ByID(data.Store, 1)
-	is.NoErr(err)                                              // Error fetching member by id
-	is.True(m.Active)                                          // Active should be true
-	is.Equal(m.LastName, "Donnici")                            // Last name incorrect
+	is.NoErr(err)                   // Error fetching member by id
+	is.True(m.Active)               // Active should be true
+	is.Equal(m.LastName, "Donnici") // Last name incorrect
+	is.True(len(m.Memberships) > 0) // No memberships
 	is.Equal(m.Memberships[0].Title, "Associate")              // Incorrect membership title
 	is.Equal(m.Contact.EmailPrimary, "michael@mesa.net.au")    // Email incorrect
 	is.Equal(m.Contact.Mobile, "0402123123")                   // Mobile incorrect
@@ -53,7 +62,7 @@ func TestByID(t *testing.T) {
 	//printJSON(*m)
 }
 
-func TestSearchDocDB(t *testing.T) {
+func testSearchDocDB(t *testing.T) {
 	is := is.New(t)
 	q := bson.M{"id": 7821}
 	m, err := member.SearchDocDB(data.Store, q)
@@ -61,7 +70,7 @@ func TestSearchDocDB(t *testing.T) {
 	is.Equal(m[0].LastName, "Rousos") // Last name incorrect
 }
 
-func TestSaveDocDB(t *testing.T) {
+func testSaveDocDB(t *testing.T) {
 	is := is.New(t)
 	mem := member.Member{
 		ID:          1,
@@ -70,7 +79,7 @@ func TestSaveDocDB(t *testing.T) {
 		Active:      true,
 		Title:       "Mr",
 		FirstName:   "Michael",
-		MiddleNames: "Peter",
+		MiddleNames: []string{"Peter"},
 		LastName:    "Donnici",
 		Gender:      "M",
 		DateOfBirth: "1970-11-03",
@@ -85,7 +94,7 @@ func TestSaveDocDB(t *testing.T) {
 	is.Equal(m.ID, 1) // ID should be 1
 }
 
-func TestSyncUpdated(t *testing.T) {
+func testSyncUpdated(t *testing.T) {
 	is := is.New(t)
 	mem := member.Member{
 		ID:          2,

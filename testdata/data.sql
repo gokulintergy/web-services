@@ -438,26 +438,14 @@ INSERT INTO `%s`.`ms_m_application_meeting` VALUES
 -- insert-data-ms_m_permission
 
 -- name: insert-data-ms_m_status
-INSERT INTO `%s`.`ms_m_status` VALUES (1, 1, 1, 0, 1, 0, '2015-08-30 17:10:57', NOW(), NULL),
-  (2, 2, 1, NULL, 1, 1, '2015-08-30 17:10:57', NOW(), NULL),
-  (3, 3, 1, NULL, 1, 1, '2015-08-30 17:10:57', NOW(), NULL),
-  (4, 4, 1, NULL, 1, 1, '2015-08-30 17:10:57', NOW(), NULL),
-  (5, 5, 1, NULL, 1, 1, '2015-08-30 17:10:57', NOW(), NULL),
-  (6, 6, 1, NULL, 1, 1, '2015-08-30 17:10:57', NOW(), NULL),
-  (7, 7, 1, NULL, 1, 1, '2015-08-30 17:10:57', NOW(), NULL),
-  (8, 8, 1, NULL, 1, 1, '2015-08-30 17:10:57', NOW(), NULL),
-  (9, 9, 1, NULL, 1, 1, '2015-08-30 17:10:57', NOW(), NULL);
+INSERT INTO `%s`.`ms_m_status` VALUES
+  (1, 1, 1, 0, 1, 1, '2015-08-30 17:10:57', NOW(), NULL);
 
 -- name: insert-data-ms_m_title
 INSERT INTO `%s`.`ms_m_title` VALUES
   (1, 1, 2, NULL, 1, 1, '2015-08-30 17:10:57', NOW(), '2015-08-31',
-   'Test data does will not show historic titles'),
-  (2, 2, 2, NULL, 1, 1, '2015-08-30 17:10:57', NOW(), '2015-08-31',
-   'Test data does will not show historic titles'),
-  (3, 3, 2, NULL, 1, 1, '2015-08-30 17:10:57', NOW(), '2015-08-31',
-   'Test data does will not show historic titles'),
-  (4, 4, 2, NULL, 1, 1, '2015-08-30 17:10:57', NOW(), '2015-08-31',
    'Test data does will not show historic titles');
+
 
 -- insert-data-ms_permission
 
