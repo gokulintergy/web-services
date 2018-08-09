@@ -11,24 +11,31 @@ import (
 var db = testdata.NewDataStore()
 var helper = testdata.NewHelper()
 
-func TestMain(m *testing.M) {
+func TestActivity(t *testing.T) {
+
 	err := db.SetupMySQL()
 	if err != nil {
 		log.Fatalln(err)
 	}
 	defer db.TearDownMySQL()
 
-	m.Run()
+	t.Run("activity", func(t *testing.T) {
+		t.Run("testPingDatabase", testPingDatabase)
+		t.Run("testActivityCount", testActivityCount)
+		t.Run("testActivityTypesCount", testActivityTypesCount)
+		t.Run("testActivityByID", testActivityByID)
+		t.Run("testActivityByTypeID", testActivityByTypeID)
+	})
 }
 
-func TestPingDatabase(t *testing.T) {
+func testPingDatabase(t *testing.T) {
 	err := db.Store.MySQL.Session.Ping()
 	if err != nil {
 		t.Fatal("Could not ping database")
 	}
 }
 
-func TestActivityCount(t *testing.T) {
+func testActivityCount(t *testing.T) {
 	xa, err := activity.All(db.Store)
 	if err != nil {
 		t.Fatalf("Database error: %s", err)
@@ -36,7 +43,7 @@ func TestActivityCount(t *testing.T) {
 	helper.Result(t, 5, len(xa))
 }
 
-func TestActivityTypesCount(t *testing.T) {
+func testActivityTypesCount(t *testing.T) {
 
 	cases := []struct {
 		id    int
@@ -57,7 +64,7 @@ func TestActivityTypesCount(t *testing.T) {
 	}
 }
 
-func TestActivityByID(t *testing.T) {
+func testActivityByID(t *testing.T) {
 	cases := []struct {
 		id   int
 		name string
@@ -75,7 +82,7 @@ func TestActivityByID(t *testing.T) {
 	}
 }
 
-func TestActivityByTypeID(t *testing.T) {
+func testActivityByTypeID(t *testing.T) {
 	cases := []struct {
 		typeID     int
 		activityID int
