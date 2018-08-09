@@ -12,24 +12,30 @@ import (
 var db = testdata.NewDataStore()
 var helper = testdata.NewHelper()
 
-func TestMain(m *testing.M) {
+func TestOrganisation(t *testing.T) {
 	err := db.SetupMySQL()
 	if err != nil {
 		log.Fatalln(err)
 	}
 	defer db.TearDownMySQL()
 
-	m.Run()
+	t.Run("organisation", func(t *testing.T){
+		t.Run("testPingDatabase", testPingDatabase)
+		t.Run("testOrganisationByID", testOrganisationByID)
+		t.Run("testOrganisationDeepEqual", testOrganisationDeepEqual)
+		t.Run("testOrganisationCount", testOrganisationCount)
+		t.Run("testChildOrganisationCount", testChildOrganisationCount)
+	})
 }
 
-func TestPingDatabase(t *testing.T) {
+func testPingDatabase(t *testing.T) {
 	err := db.Store.MySQL.Session.Ping()
 	if err != nil {
 		t.Fatal("Could not ping database")
 	}
 }
 
-func TestOrganisationByID(t *testing.T) {
+func testOrganisationByID(t *testing.T) {
 	org, err := organisation.ByID(db.Store, 1)
 	if err != nil {
 		t.Fatalf("Database error: %s", err)
@@ -37,7 +43,7 @@ func TestOrganisationByID(t *testing.T) {
 	helper.Result(t, "ABC Organisation", org.Name)
 }
 
-func TestOrganisationDeepEqual(t *testing.T) {
+func testOrganisationDeepEqual(t *testing.T) {
 
 	exp := organisation.Organisation{
 		ID:   1,
@@ -60,7 +66,7 @@ func TestOrganisationDeepEqual(t *testing.T) {
 }
 
 // Test data has 2 parent organisations
-func TestOrganisationCount(t *testing.T) {
+func testOrganisationCount(t *testing.T) {
 	xo, err := organisation.All(db.Store)
 	if err != nil {
 		t.Fatalf("Database error: %s", err)
@@ -69,7 +75,7 @@ func TestOrganisationCount(t *testing.T) {
 }
 
 // Test data has 3 child organisations belonging to parent id 1
-func TestChildOrganisationCount(t *testing.T) {
+func testChildOrganisationCount(t *testing.T) {
 	o, err := organisation.ByID(db.Store, 1)
 	if err != nil {
 		t.Fatalf("Database error: %s", err)
