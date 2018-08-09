@@ -470,7 +470,7 @@ func (r *Resource) Update(ds datastore.Datastore, id int) error {
 
 	err = r.SetShortURL(ds)
 	if err != nil {
-		msg := fmt.Sprintf("setShortURL error:", err)
+		msg := fmt.Sprintf("setShortURL error: %v", err)
 		return errors.New(msg)
 	}
 
