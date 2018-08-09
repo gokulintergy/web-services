@@ -11,24 +11,33 @@ import (
 var db = testdata.NewDataStore()
 var helper = testdata.NewHelper()
 
-func TestMain(m *testing.M) {
+func TestCPD(t *testing.T) {
 	err := db.SetupMySQL()
 	if err != nil {
 		log.Fatalln(err)
 	}
 	defer db.TearDownMySQL()
 
-	m.Run()
+	t.Run("CPD", func(t *testing.T){
+		t.Run("testPingDatabase", testPingDatabase)
+		t.Run("testCPDByID", testCPDByID)
+		t.Run("testCPDByMemberID", testCPDByMemberID)
+		t.Run("testCPDQuery", testCPDQuery)
+		t.Run("testAddCPD", testAddCPD)
+		t.Run("testUpdateCPD", testUpdateCPD)
+		t.Run("testDuplicateOf", testDuplicateOf)
+		t.Run("testDelete", testDelete)
+	})
 }
 
-func TestPingDatabase(t *testing.T) {
+func testPingDatabase(t *testing.T) {
 	err := db.Store.MySQL.Session.Ping()
 	if err != nil {
 		t.Fatal("Could not ping database")
 	}
 }
 
-func TestCPDByID(t *testing.T) {
+func testCPDByID(t *testing.T) {
 
 	cases := []struct {
 		id   int
@@ -48,7 +57,7 @@ func TestCPDByID(t *testing.T) {
 	}
 }
 
-func TestCPDByMemberID(t *testing.T) {
+func testCPDByMemberID(t *testing.T) {
 	xcpd, err := cpd.ByMemberID(db.Store, 1)
 	if err != nil {
 		t.Fatalf("Database error: %s", err)
@@ -56,7 +65,7 @@ func TestCPDByMemberID(t *testing.T) {
 	helper.Result(t, 3, len(xcpd))
 }
 
-func TestCPDQuery(t *testing.T) {
+func testCPDQuery(t *testing.T) {
 	xcpd, err := cpd.Query(db.Store, "WHERE cma.description LIKE '%Bruno%'")
 	if err != nil {
 		t.Fatalf("Database error: %s", err)
@@ -64,7 +73,7 @@ func TestCPDQuery(t *testing.T) {
 	helper.Result(t, 1, len(xcpd))
 }
 
-func TestAddCPD(t *testing.T) {
+func testAddCPD(t *testing.T) {
 	c := cpd.Input{
 		MemberID:    1,
 		ActivityID:  24,
@@ -88,7 +97,7 @@ func TestAddCPD(t *testing.T) {
 	helper.Result(t, c.Description, r.Description)
 }
 
-func TestUpdateCPD(t *testing.T) {
+func testUpdateCPD(t *testing.T) {
 	c := cpd.Input{
 		ID:          2,
 		MemberID:    1,
@@ -112,7 +121,7 @@ func TestUpdateCPD(t *testing.T) {
 	helper.Result(t, c.Description, r.Description)
 }
 
-func TestDuplicateOf(t *testing.T) {
+func testDuplicateOf(t *testing.T) {
 
 	// Fetch first cpd record and then try to insert it - should get '1' returned
 	a, err := cpd.ByID(db.Store, 1)
@@ -139,7 +148,7 @@ func TestDuplicateOf(t *testing.T) {
 	helper.Result(t, 1, dupID)
 }
 
-func TestDelete(t *testing.T) {
+func testDelete(t *testing.T) {
 
 	// get count, delete record id 3, count should be count - 1
 	xcpd, err := cpd.Query(db.Store, "")
