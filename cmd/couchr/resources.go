@@ -26,7 +26,7 @@ type ResourceDoc struct {
 
 func syncResources() {
 
-	xi, err := generic.GetIDs(ds, "ol_resource", "WHERE active = 1 LIMIT 10000")
+	xi, err := generic.GetIDs(ds, "ol_resource", "WHERE active = 1")
 	if err != nil {
 		log.Fatalln("mysql err", err)
 	}

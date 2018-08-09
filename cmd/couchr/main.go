@@ -8,8 +8,8 @@ import (
 )
 
 const (
-	couchUser  = "admin"
-	couchPass  = "password"
+	couchUser  = "miked"
+	couchPass  = "d1sc0man"
 	bucketName = "csanz"
 )
 
@@ -33,7 +33,7 @@ func main() {
 
 	connectDatastore()
 	connectCouchDB()
-	//syncMembers()
+	syncMembers()
 	syncResources()
 }
 
@@ -49,7 +49,7 @@ func connectDatastore() {
 // connect the global couchbase bucket
 func connectCouchDB() {
 
-	cluster, err := gocb.Connect("couchbase://localhost")
+	cluster, err := gocb.Connect("couchbase://159.65.137.62")
 	if err != nil {
 		log.Fatalln("Could not connect to couchbase", err)
 	}
