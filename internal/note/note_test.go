@@ -11,24 +11,30 @@ import (
 var db = testdata.NewDataStore()
 var helper = testdata.NewHelper()
 
-func TestMain(m *testing.M) {
+func TestNote(t *testing.T) {
 	err := db.SetupMySQL()
 	if err != nil {
 		log.Fatalln(err)
 	}
 	defer db.TearDownMySQL()
 
-	m.Run()
+	t.Run("note", func(t *testing.T){
+		t.Run("testPingDatabase", testPingDatabase)
+		t.Run("testNoteContent", testNoteContent)
+		t.Run("testNoteType", testNoteType)
+		t.Run("testMemberNote", testMemberNote)
+		t.Run("testNoteFirstAttachmentUrl", testNoteFirstAttachmentUrl)
+	})
 }
 
-func TestPingDatabase(t *testing.T) {
+func testPingDatabase(t *testing.T) {
 	err := db.Store.MySQL.Session.Ping()
 	if err != nil {
 		t.Fatal("Could not ping database")
 	}
 }
 
-func TestNoteContent(t *testing.T) {
+func testNoteContent(t *testing.T) {
 
 	cases := []struct {
 		ID     int
@@ -47,7 +53,7 @@ func TestNoteContent(t *testing.T) {
 	}
 }
 
-func TestNoteType(t *testing.T) {
+func testNoteType(t *testing.T) {
 
 	cases := []struct {
 		ID     int
@@ -66,7 +72,7 @@ func TestNoteType(t *testing.T) {
 	}
 }
 
-func TestMemberNote(t *testing.T) {
+func testMemberNote(t *testing.T) {
 
 	xn, err := note.ByMemberID(db.Store, 1)
 	if err != nil {
@@ -75,7 +81,7 @@ func TestMemberNote(t *testing.T) {
 	helper.Result(t, 3, len(xn))
 }
 
-func TestNoteFirstAttachmentUrl(t *testing.T) {
+func testNoteFirstAttachmentUrl(t *testing.T) {
 
 	cases := []struct {
 		ID     int
