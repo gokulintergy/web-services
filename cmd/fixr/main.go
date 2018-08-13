@@ -465,33 +465,9 @@ func updatePubmedData() {
 			fmt.Println("Last keyword does not appear to be an id")
 			os.Exit(1)
 		}
-		// hack sanity check - all pubmed ids are between 20000000 and 300000000
-		if pubmedId < 20000000 || pubmedId > 30000000 {
-			fmt.Println("Pubmed ID appears out of range:", pubmedId)
-			os.Exit(1)
-		}
 
 		// set Attributes related to pubmed data
 		r.pubmedData(strconv.Itoa(pubmedId))
-
-		// Find best publish date
-		//r.PubDate = "YYYY-MM-DD"
-		//r.PubYear = "YYYY"
-		//r.PubMonth = "MM"
-		//r.PubDay = "DD"
-
-		// Don't need to Marshal back to a string?
-		//rxb, err := json.Marshal(r)
-		//if err != nil {
-		//	fmt.Println("Could not marshal new Attributes value")
-		//	os.Exit(1)
-		//}
-
-		// update ol_resource.Attributes
-		//if err = updateAttributes(r); err != nil {
-		//	fmt.Println(err)
-		//	os.Exit(1)
-		//}
 	}
 }
 
