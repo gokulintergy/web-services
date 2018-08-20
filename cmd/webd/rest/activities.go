@@ -19,7 +19,7 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-// All fetches list of activity types
+// Activities fetches list of activity types
 func Activities(w http.ResponseWriter, _ *http.Request) {
 
 	p := NewResponder(UserAuthToken.Encoded)
