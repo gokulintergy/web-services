@@ -7,7 +7,7 @@ type Qualification struct {
 	ID          int    `json:"id" bson:"id"`
 	Code        string `json:"code" bson:"code"`
 	Name        string `json:"name" bson:"name"`
-	Description string `json:"description,omitempty" bson:"description"`
+	Description string `json:"description,omitempty" bson:"description,omitempty"`
 }
 
 // All returns all the active Qualifications
