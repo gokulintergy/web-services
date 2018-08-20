@@ -49,10 +49,10 @@ func testPingDatabase(t *testing.T) {
 func testByID(t *testing.T) {
 	is := is.New(t)
 	m, err := member.ByID(data.Store, 1)
-	is.NoErr(err)                   // Error fetching member by id
-	is.True(m.Active)               // Active should be true
-	is.Equal(m.LastName, "Donnici") // Last name incorrect
-	is.True(len(m.Memberships) > 0) // No memberships
+	is.NoErr(err)                                              // Error fetching member by id
+	is.True(m.Active)                                          // Active should be true
+	is.Equal(m.LastName, "Donnici")                            // Last name incorrect
+	is.True(len(m.Memberships) > 0)                            // No memberships
 	is.Equal(m.Memberships[0].Title, "Associate")              // Incorrect membership title
 	is.Equal(m.Contact.EmailPrimary, "michael@mesa.net.au")    // Email incorrect
 	is.Equal(m.Contact.Mobile, "0402123123")                   // Mobile incorrect

@@ -1,11 +1,11 @@
 package qualification_test
 
 import (
-	"testing"
 	"log"
+	"testing"
 
-	"github.com/cardiacsociety/web-services/testdata"
 	"github.com/cardiacsociety/web-services/internal/qualification"
+	"github.com/cardiacsociety/web-services/testdata"
 )
 
 var db = testdata.NewDataStore()
@@ -18,7 +18,7 @@ func TestQualification(t *testing.T) {
 	}
 	defer db.TearDownMySQL()
 
-	t.Run("Qualifications", func(t *testing.T){
+	t.Run("Qualifications", func(t *testing.T) {
 		t.Run("testPingDatabase", testPingDatabase)
 		t.Run("testAll", testAll)
 	})
@@ -39,4 +39,3 @@ func testAll(t *testing.T) {
 	}
 	helper.Result(t, 29, len(xq))
 }
-

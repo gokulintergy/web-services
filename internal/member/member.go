@@ -3,17 +3,17 @@ package member
 import (
 	"database/sql"
 	"fmt"
-	"strings"
-	"time"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 	"strconv"
+	"strings"
+	"time"
 
 	"github.com/cardiacsociety/web-services/internal/cpd"
 	"github.com/cardiacsociety/web-services/internal/date"
 	"github.com/cardiacsociety/web-services/internal/platform/datastore"
-	"github.com/pkg/errors"
 	"github.com/cardiacsociety/web-services/internal/qualification"
+	"github.com/pkg/errors"
 )
 
 // Note trying to scan NULL db values into strings throws an error. This is discussed here:
@@ -37,7 +37,7 @@ type Member struct {
 	// In this model this really belongs in the memberships, however is here from simplicity.
 	Active         bool            `json:"active" bson:"active"`
 	Title          string          `json:"title" bson:"title"`
-	FirstName      string                `json:"firstName" bson:"firstName"`
+	FirstName      string          `json:"firstName" bson:"firstName"`
 	MiddleNames    []string        `json:"middleNames" bson:"middleNames"`
 	LastName       string          `json:"lastName" bson:"lastName"`
 	PostNominal    string          `json:"postNominal" bson:"postNominal"`
@@ -113,7 +113,7 @@ type MembershipStatus struct {
 // Qualification represents a member's attainment of a Qualification
 type Qualification struct {
 	qualification.Qualification
-	Year        int    `json:"year,omitempty" bson:"year"`
+	Year int `json:"year,omitempty" bson:"year"`
 }
 
 // Accreditation is an industry-approval for a particular practice or process

@@ -18,7 +18,7 @@ func TestNote(t *testing.T) {
 	}
 	defer db.TearDownMySQL()
 
-	t.Run("note", func(t *testing.T){
+	t.Run("note", func(t *testing.T) {
 		t.Run("testPingDatabase", testPingDatabase)
 		t.Run("testNoteContent", testNoteContent)
 		t.Run("testNoteType", testNoteType)

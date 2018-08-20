@@ -18,7 +18,7 @@ func TestCPD(t *testing.T) {
 	}
 	defer db.TearDownMySQL()
 
-	t.Run("CPD", func(t *testing.T){
+	t.Run("CPD", func(t *testing.T) {
 		t.Run("testPingDatabase", testPingDatabase)
 		t.Run("testCPDByID", testCPDByID)
 		t.Run("testCPDByMemberID", testCPDByMemberID)

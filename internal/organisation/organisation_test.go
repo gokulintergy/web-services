@@ -19,7 +19,7 @@ func TestOrganisation(t *testing.T) {
 	}
 	defer db.TearDownMySQL()
 
-	t.Run("organisation", func(t *testing.T){
+	t.Run("organisation", func(t *testing.T) {
 		t.Run("testPingDatabase", testPingDatabase)
 		t.Run("testOrganisationByID", testOrganisationByID)
 		t.Run("testOrganisationDeepEqual", testOrganisationDeepEqual)

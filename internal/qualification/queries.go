@@ -13,4 +13,3 @@ FROM
     mp_qualification mq
 WHERE
 	active = 1`
-
