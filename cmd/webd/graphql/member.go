@@ -9,7 +9,7 @@ type memberData struct {
 	ID             int                    `json:"id"`
 	Token          string                 `json:"token"`
 	Active         bool                   `json:"active"`
-	Title          string                 `json:"title"`
+	Title          string                       `json:"title"`
 	FirstName      string                 `json:"firstName"`
 	MiddleNames    []string               `json:"middleNames"`
 	LastName       string                 `json:"lastName"`

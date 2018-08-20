@@ -5,15 +5,16 @@ import (
 	"fmt"
 	"strings"
 	"time"
+	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
+	"strconv"
 
 	"github.com/cardiacsociety/web-services/internal/cpd"
 	"github.com/cardiacsociety/web-services/internal/date"
 	"github.com/cardiacsociety/web-services/internal/platform/datastore"
 	"github.com/pkg/errors"
-	"gopkg.in/mgo.v2"
-	"gopkg.in/mgo.v2/bson"
-	"strconv"
-	)
+	"github.com/cardiacsociety/web-services/internal/qualification"
+)
 
 // Note trying to scan NULL db values into strings throws an error. This is discussed here:
 // https://github.com/go-sql-driver/mysql/issues/34
@@ -36,7 +37,7 @@ type Member struct {
 	// In this model this really belongs in the memberships, however is here from simplicity.
 	Active         bool            `json:"active" bson:"active"`
 	Title          string          `json:"title" bson:"title"`
-	FirstName      string          `json:"firstName" bson:"firstName"`
+	FirstName      string                `json:"firstName" bson:"firstName"`
 	MiddleNames    []string        `json:"middleNames" bson:"middleNames"`
 	LastName       string          `json:"lastName" bson:"lastName"`
 	PostNominal    string          `json:"postNominal" bson:"postNominal"`
@@ -109,11 +110,9 @@ type MembershipStatus struct {
 	Comment     string `json:"comment,omitempty" bson:"comment"`
 }
 
-// Qualification is a formal qualification such as a degree, Masters, PHD etc
+// Qualification represents a member's attainment of a Qualification
 type Qualification struct {
-	Code        string `json:"code" bson:"code"`
-	Name        string `json:"name" bson:"name"`
-	Description string `json:"description,omitempty" bson:"description"`
+	qualification.Qualification
 	Year        int    `json:"year,omitempty" bson:"year"`
 }
 
