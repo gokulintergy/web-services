@@ -193,12 +193,12 @@ func updateQualificationIndex() {
 		return
 	}
 
+	// Always atomic because this index has no mongo collection and hence no Object IDs. Any other type
+	// of index update will result in duplicate records.
 	var ut updateType
 	switch sched {
-	case monthly:
-		ut = atomic
 	default:
-		ut = full
+		ut = atomic
 	}
 	updateLogMessage(qualificationIndexName, ut)
 
