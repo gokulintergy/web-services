@@ -49,7 +49,7 @@ func main() {
 	}
 	defer f.Close()
 
-	fmt.Printf("Copying %s to DropBox...\n", filename)
+	fmt.Printf("Copying %s to Dropbox...\n", filename)
 	client := dropy.New(dropbox.New(dropbox.NewConfig(os.Getenv("DROPBOX_ACCESS_TOKEN"))))
 	err = client.Upload("/"+filename, f)
 	if err != nil {

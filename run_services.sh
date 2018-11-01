@@ -15,4 +15,7 @@ fixr -b 1 -t "pubmedData,fixResources"
 echo "Running algr #####################################################################"
 algr -c all
 
+echo "Running backupdb ##################################################################"
+backupdb
+
 echo "All done!"
