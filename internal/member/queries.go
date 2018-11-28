@@ -1,8 +1,10 @@
 package member
 
+// Queries contains a set of SQL queries for member records
 var Queries = map[string]string{
 	"select-member":                    selectMember,
 	"select-member-honorific":          selectMemberHonorific,
+	"select-member-country":            selectMemberCountry,
 	"select-member-contact-locations":  selectMemberContactLocations,
 	"select-membership-title":          selectMembershipTitle,
 	"select-membership-title-history":  selectMembershipTitleHistory,
@@ -23,10 +25,13 @@ const selectMember = `SELECT
     COALESCE(last_name, '') as LastName,
     CONCAT(COALESCE(suffix, ''), ' ', COALESCE(qualifications_other, '')) as PostNom,
     COALESCE(gender, '') as Gender,
-    COALESCE(date_of_birth, '') as DOB,
+    COALESCE(date_of_birth, '') as DateOfBirth,
+    COALESCE(date_of_entry, '') as DateOfEntry,
     COALESCE(primary_email, '') as Email,
     COALESCE(secondary_email, '') as Email2,
     COALESCE(mobile_phone, '') as Mobile,
+    COALESCE(journal_number, '') as JournalNumber,
+    COALESCE(bpay_number, '') as BpayNumber,
     consent_directory as ConsentDirectory,
     consent_contact as ConsentContact
 FROM
@@ -37,6 +42,11 @@ WHERE
 const selectMemberHonorific = `SELECT
 	COALESCE(a.name, '') FROM a_name_prefix a
 	RIGHT JOIN member m ON m.a_name_prefix_id = a.id
+    WHERE m.id = ?`
+
+const selectMemberCountry = `SELECT
+	COALESCE(c.name, '') FROM country c
+	RIGHT JOIN member m ON m.country_id = c.id
 	WHERE m.id = ?`
 
 const selectMemberContactLocations = `SELECT 
@@ -163,4 +173,5 @@ FROM
         LEFT JOIN
     mp_speciality s ON ms.mp_speciality_id = s.id
 WHERE
-    ms.member_id = ?`
+    ms.member_id = ?
+ORDER BY ms.preference ASC`

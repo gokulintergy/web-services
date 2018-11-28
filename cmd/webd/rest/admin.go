@@ -6,15 +6,18 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"time"
+
+	"github.com/gorilla/mux"
 
 	"github.com/cardiacsociety/web-services/internal/attachments"
 	"github.com/cardiacsociety/web-services/internal/fileset"
 	"github.com/cardiacsociety/web-services/internal/generic"
 	"github.com/cardiacsociety/web-services/internal/member"
 	"github.com/cardiacsociety/web-services/internal/note"
+	"github.com/cardiacsociety/web-services/internal/platform/excel"
 	"github.com/cardiacsociety/web-services/internal/platform/s3"
 	"github.com/cardiacsociety/web-services/internal/resource"
-	"github.com/gorilla/mux"
 )
 
 // AdminTest is a test endpoint
@@ -567,4 +570,46 @@ func AdminResourcesAttachmentRegister(w http.ResponseWriter, r *http.Request) {
 	p.Message = Message{http.StatusOK, "success", "Attachment registered"}
 	p.Data = a
 	p.Send(w)
+}
+
+// AdminReportMemberExcel responds with an excel member report
+func AdminReportMemberExcel(w http.ResponseWriter, r *http.Request) {
+
+	p := NewResponder(UserAuthToken.Encoded)
+
+	// A list of member ids should be posted in
+	var memberIDs []int
+	err := json.NewDecoder(r.Body).Decode(&memberIDs)
+	if err != nil {
+		msg := fmt.Sprintf("Could not decode list of member ids in body - %s", err)
+		p.Message = Message{http.StatusInternalServerError, "failed", msg}
+		p.Send(w)
+		return
+	}
+
+	var memberList member.Members
+	for _, id := range memberIDs {
+		m, err := member.ByID(DS, id)
+		if err != nil {
+			msg := fmt.Sprintf("Could not fetch member id %d - err = %s", id, err)
+			p.Message = Message{http.StatusInternalServerError, "failed", msg}
+			p.Send(w)
+			return
+		}
+		memberList = append(memberList, *m)
+	}
+
+	excelFile, err := excel.MemberReport(memberList)
+
+	filename := "member_report-" + strconv.FormatInt(time.Now().Unix(), 10) + ".xlsx"
+
+	// Send excel file instead of JSON
+	w.Header().Set("Content-Disposition", `attachment; filename="`+filename+`"`)
+	err = excelFile.Write(w)
+	if err != nil {
+		msg := fmt.Sprintf("Could not write excel fiel to stream - err = %s", err)
+		p.Message = Message{http.StatusInternalServerError, "failed", msg}
+		p.Send(w)
+		return
+	}
 }

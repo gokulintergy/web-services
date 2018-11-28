@@ -3,11 +3,12 @@ package member
 import (
 	"database/sql"
 	"fmt"
-	"gopkg.in/mgo.v2"
-	"gopkg.in/mgo.v2/bson"
 	"strconv"
 	"strings"
 	"time"
+
+	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 
 	"github.com/cardiacsociety/web-services/internal/cpd"
 	"github.com/cardiacsociety/web-services/internal/date"
@@ -43,6 +44,10 @@ type Member struct {
 	PostNominal    string          `json:"postNominal" bson:"postNominal"`
 	Gender         string          `json:"gender" bson:"gender"`
 	DateOfBirth    string          `json:"dateOfBirth" bson:"dateOfBirth"`
+	DateOfEntry    string          `json:"dateOfEntry" bson:"dateOfEntry"`
+	Country        string          `json:"country" bson:"country"`
+	JournalNumber  string          `json:"journalNumber" bson:"journalNumber"`
+	BpayNumber     string          `json:"bpayNumber" bson:"bpayNumber"`
 	Memberships    []Membership    `json:"memberships" bson:"memberships"`
 	Contact        Contact         `json:"contact" bson:"contact"`
 	Qualifications []Qualification `json:"qualifications" bson:"qualifications"`
@@ -153,6 +158,21 @@ func (m *Member) SetHonorific(ds datastore.Datastore) error {
 	}
 	if err != nil {
 		return errors.Wrap(err, "SetHonorific query error")
+	}
+
+	return nil
+}
+
+// SetCountryc sets the membership country
+func (m *Member) SetCountry(ds datastore.Datastore) error {
+
+	query := Queries["select-member-country"]
+	err := ds.MySQL.Session.QueryRow(query, m.ID).Scan(&m.Country)
+	if err == sql.ErrNoRows {
+		return nil
+	}
+	if err != nil {
+		return errors.Wrap(err, "SetCountry query error")
 	}
 
 	return nil
@@ -478,6 +498,28 @@ func (m *Member) SetSpecialities(ds datastore.Datastore) error {
 	return nil
 }
 
+// ContactLocationByDesc fetches a location / contact record by its type (Location.Description)
+func (m *Member) ContactLocationByDesc(desc string) (Location, error) {
+	var loc Location
+	for _, l := range m.Contact.Locations {
+		if strings.ToLower(l.Description) == strings.ToLower(desc) {
+			return l, nil
+		}
+	}
+	return loc, errors.New("not found")
+}
+
+// PositionByName fetches a member position by name
+func (m *Member) PositionByName(name string) (Position, error) {
+	var pos Position
+	for _, p := range m.Positions {
+		if strings.ToLower(p.Name) == strings.ToLower(name) {
+			return p, nil
+		}
+	}
+	return pos, errors.New("not found")
+}
+
 // SaveDocDB method upserts Member doc to MongoDB
 func (m *Member) SaveDocDB(ds datastore.Datastore) error {
 
@@ -544,9 +586,12 @@ func ByID(ds datastore.Datastore, id int) (*Member, error) {
 		&m.PostNominal,
 		&m.Gender,
 		&m.DateOfBirth,
+		&m.DateOfEntry,
 		&m.Contact.EmailPrimary,
 		&m.Contact.EmailSecondary,
 		&m.Contact.Mobile,
+		&m.JournalNumber,
+		&m.BpayNumber,
 		&m.Contact.Directory,
 		&m.Contact.Consent,
 	)
@@ -575,6 +620,11 @@ func ByID(ds datastore.Datastore, id int) (*Member, error) {
 	err = m.SetHonorific(ds)
 	if err != nil {
 		return &m, errors.Wrap(err, "SetHonorific")
+	}
+
+	err = m.SetCountry(ds)
+	if err != nil {
+		return &m, errors.Wrap(err, "SetCountry")
 	}
 
 	if len(middleNames) > 0 {
