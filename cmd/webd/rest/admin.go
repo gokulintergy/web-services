@@ -605,9 +605,10 @@ func AdminReportMemberExcel(w http.ResponseWriter, r *http.Request) {
 
 	// Send excel file instead of JSON
 	w.Header().Set("Content-Disposition", `attachment; filename="`+filename+`"`)
+	w.Header().Set("Access-Control-Allow-Origin", `*`)
 	err = excelFile.Write(w)
 	if err != nil {
-		msg := fmt.Sprintf("Could not write excel fiel to stream - err = %s", err)
+		msg := fmt.Sprintf("Could not write excel file to stream - err = %s", err)
 		p.Message = Message{http.StatusInternalServerError, "failed", msg}
 		p.Send(w)
 		return

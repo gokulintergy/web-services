@@ -89,8 +89,12 @@ func MemberReport(members []member.Member) (*xlsx.File, error) {
 		row.AddCell().Value = m.Contact.EmailSecondary
 		row.AddCell().Value = m.Contact.Mobile
 		row.AddCell().Value = m.DateOfEntry
-		row.AddCell().Value = m.Memberships[0].Title
-		row.AddCell().Value = m.Memberships[0].Status
+
+		if len(m.Memberships) > 0 {
+			row.AddCell().Value = m.Memberships[0].Title
+			row.AddCell().Value = m.Memberships[0].Status
+		}
+
 		row.AddCell().Value = m.Country
 		row.AddCell().Value = "Tags"
 		row.AddCell().Value = m.JournalNumber
@@ -131,7 +135,7 @@ func MemberReport(members []member.Member) (*xlsx.File, error) {
 		if len(m.Specialities) > 1 {
 			row.AddCell().Value = m.Specialities[1].Name
 		}
-		if len(m.Specialities) > 0 {
+		if len(m.Specialities) > 2 {
 			row.AddCell().Value = m.Specialities[2].Name
 		}
 	}
