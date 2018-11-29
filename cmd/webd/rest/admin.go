@@ -578,6 +578,14 @@ func AdminReportMemberExcel(w http.ResponseWriter, r *http.Request) {
 
 	p := NewResponder(UserAuthToken.Encoded)
 
+	// send 202 now, before the heavy lifting starts
+	cacheID, _ := uuid.GenerateUUID()
+	msg := fmt.Sprintf("Report has been queued, pickup url below")
+	p.Message = Message{http.StatusAccepted, "accepted", msg}
+	url := os.Getenv("MAPPCPD_API_URL") + "/v1/r/excel/" + cacheID
+	p.Data = map[string]string{"url": url}
+	p.Send(w)
+
 	// A list of member ids should be posted in
 	var memberIDs []int
 	err := json.NewDecoder(r.Body).Decode(&memberIDs)
@@ -587,14 +595,6 @@ func AdminReportMemberExcel(w http.ResponseWriter, r *http.Request) {
 		p.Send(w)
 		return
 	}
-
-	// send 202 now, before the heavy lifting starts
-	cacheID, _ := uuid.GenerateUUID()
-	msg := fmt.Sprintf("Report has been queued, pickup url below")
-	p.Message = Message{http.StatusAccepted, "accepted", msg}
-	url := os.Getenv("MAPPCPD_API_URL") + "/v1/r/excel/" + cacheID
-	p.Data = map[string]string{"url": url}
-	p.Send(w)
 
 	// generate the report
 	var memberList member.Members
