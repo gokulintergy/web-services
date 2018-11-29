@@ -183,13 +183,13 @@ func MemberMiddleware(r *mux.Router) *negroni.Negroni {
 // ReportSubRouter sets up a router for report endpoints - no middleware for now
 func ReportSubRouter(prefix string) *mux.Router {
 
-	// TODO - add a KEY for reports
 	r := mux.NewRouter().StrictSlash(true)
 	reports := r.PathPrefix(prefix).Subrouter()
 	reports.Methods("GET").Path("/test").HandlerFunc(ReportsTest)
 	reports.Methods("GET").Path("/modulesbydate").HandlerFunc(ReportsModulesByDate)
 	reports.Methods("GET").Path("/pointsbyrecorddate").HandlerFunc(ReportsPointsByRecordDate)
 	reports.Methods("GET").Path("/pointsbyactivitydate").HandlerFunc(ReportsPointsByActivityDate)
+	reports.Methods("GET").Path("/excel/{id}").HandlerFunc(ReportsExcel)
 
 	return reports
 }

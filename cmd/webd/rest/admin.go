@@ -5,10 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"strconv"
-	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/hashicorp/go-uuid"
 
 	"github.com/cardiacsociety/web-services/internal/attachments"
 	"github.com/cardiacsociety/web-services/internal/fileset"
@@ -600,17 +601,20 @@ func AdminReportMemberExcel(w http.ResponseWriter, r *http.Request) {
 	}
 
 	excelFile, err := excel.MemberReport(memberList)
-
-	filename := "member_report-" + strconv.FormatInt(time.Now().Unix(), 10) + ".xlsx"
-
-	// Send excel file instead of JSON
-	w.Header().Set("Content-Disposition", `attachment; filename="`+filename+`"`)
-	w.Header().Set("Access-Control-Allow-Origin", `*`)
-	err = excelFile.Write(w)
 	if err != nil {
-		msg := fmt.Sprintf("Could not write excel file to stream - err = %s", err)
+		msg := fmt.Sprintf("Could not create excel report - err = %s", err)
 		p.Message = Message{http.StatusInternalServerError, "failed", msg}
 		p.Send(w)
 		return
 	}
+
+	// Cache the xlsx value, and return a 202
+	cacheID, _ := uuid.GenerateUUID()
+	DS.Cache.SetDefault(cacheID, excelFile)
+	msg := fmt.Sprintf("Report has been queued, pickup details below")
+	p.Message = Message{http.StatusAccepted, "accepted", msg}
+	url := os.Getenv("MAPPCPD_API_URL") + "/v1/r/excel/" + cacheID
+	p.Data = map[string]string{"url": url}
+	p.Send(w)
+	return
 }

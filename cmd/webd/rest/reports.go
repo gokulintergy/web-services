@@ -1,7 +1,13 @@
 package rest
 
 import (
+	"fmt"
 	"net/http"
+	"strconv"
+	"time"
+
+	"github.com/gorilla/mux"
+	"github.com/tealeg/xlsx"
 
 	reports "github.com/cardiacsociety/web-services/internal/reports"
 )
@@ -81,4 +87,31 @@ func ReportsPointsByActivityDate(w http.ResponseWriter, _ *http.Request) {
 	m["description"] = "Report groups CPD points by date of CPD activity"
 	p.Meta = m
 	p.Send(w)
+}
+
+func ReportsExcel(w http.ResponseWriter, r *http.Request) {
+
+	p := NewResponder(UserAuthToken.Encoded)
+
+	v := mux.Vars(r)
+	cacheID := v["id"]
+
+	ef, found := DS.Cache.Get(cacheID)
+	if !found {
+		msg := fmt.Sprintf("Could not find cache item id %s,", cacheID)
+		p.Message = Message{http.StatusNotFound, "failed", msg}
+		p.Send(w)
+		return
+	}
+
+	filename := "member_report-" + strconv.FormatInt(time.Now().Unix(), 10) + ".xlsx"
+	w.Header().Set("Content-Disposition", `attachment; filename="`+filename+`"`)
+	w.Header().Set("Access-Control-Allow-Origin", `*`)
+	err := ef.(*xlsx.File).Write(w) // sets content-type = application/zip
+	if err != nil {
+		msg := fmt.Sprintf("Could not write excel file to stream - err = %s", err)
+		p.Message = Message{http.StatusInternalServerError, "failed", msg}
+		p.Send(w)
+		return
+	}
 }
