@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -578,14 +579,6 @@ func AdminReportMemberExcel(w http.ResponseWriter, r *http.Request) {
 
 	p := NewResponder(UserAuthToken.Encoded)
 
-	// send 202 now, before the heavy lifting starts
-	cacheID, _ := uuid.GenerateUUID()
-	msg := fmt.Sprintf("Report has been queued, pickup url below")
-	p.Message = Message{http.StatusAccepted, "accepted", msg}
-	url := os.Getenv("MAPPCPD_API_URL") + "/v1/r/excel/" + cacheID
-	p.Data = map[string]string{"url": url}
-	p.Send(w)
-
 	// A list of member ids should be posted in
 	var memberIDs []int
 	err := json.NewDecoder(r.Body).Decode(&memberIDs)
@@ -596,26 +589,35 @@ func AdminReportMemberExcel(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// generate the report
-	var memberList member.Members
-	for _, id := range memberIDs {
-		m, err := member.ByID(DS, id)
-		if err != nil {
-			msg := fmt.Sprintf("Could not fetch member id %d - err = %s", id, err)
-			p.Message = Message{http.StatusInternalServerError, "failed", msg}
-			p.Send(w)
-			return
-		}
-		memberList = append(memberList, *m)
-	}
-	excelFile, err := excel.MemberReport(memberList)
-	if err != nil {
-		msg := fmt.Sprintf("Could not create excel report - err = %s", err)
-		p.Message = Message{http.StatusInternalServerError, "failed", msg}
-		p.Send(w)
-		return
-	}
+	// send 202 now, before the heavy lifting starts
+	cacheID, _ := uuid.GenerateUUID()
+	msg := fmt.Sprintf("Report has been queued, pickup url below")
+	p.Message = Message{http.StatusAccepted, "accepted", msg}
+	url := os.Getenv("MAPPCPD_API_URL") + "/v1/r/excel/" + cacheID
+	p.Data = map[string]string{"url": url}
+	p.Send(w)
 
-	// Cache the xlsx value
-	DS.Cache.SetDefault(cacheID, excelFile)
+	// generate the report
+	go func() {
+		var memberList member.Members
+		for _, id := range memberIDs {
+			fmt.Printf("fetching member id %v\n", id)
+			m, err := member.ByID(DS, id)
+			if err != nil {
+				msg := fmt.Sprintf("Can't find member id %d - err = %s - skipping", id, err)
+				log.Println(msg)
+			}
+			memberList = append(memberList, *m)
+		}
+		excelFile, err := excel.MemberReport(memberList)
+		if err != nil {
+			msg := fmt.Sprintf("Could not create excel report - err = %s", err)
+			log.Fatalln(msg)
+		}
+
+		excelFile.Save("test.xlsx")
+
+		// Cache the xlsx value
+		DS.Cache.SetDefault(cacheID, excelFile)
+	}()
 }
