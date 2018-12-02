@@ -14,6 +14,7 @@ var Queries = map[string]string{
 	"select-member-accreditations":     selectMemberAccreditations,
 	"select-member-positions":          selectMemberPositions,
 	"select-member-specialities":       selectMemberSpecialities,
+	"select-member-tags":               selectMemberTags,
 }
 
 const selectMember = `SELECT 
@@ -175,3 +176,12 @@ FROM
 WHERE
     ms.member_id = ?
 ORDER BY ms.preference ASC`
+
+const selectMemberTags = `SELECT 
+    COALESCE(t.name, '') as Tag
+FROM
+    mp_m_tag mt
+        LEFT JOIN
+    mp_tag t ON mt.mp_tag_id = t.id
+WHERE
+    mt.member_id = ?`

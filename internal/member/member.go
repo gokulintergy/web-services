@@ -54,6 +54,7 @@ type Member struct {
 	Accreditations []Accreditation `json:"accreditations" bson:"accreditations"`
 	Positions      []Position      `json:"positions" bson:"positions"`
 	Specialities   []Speciality    `json:"specialities" bson:"specialities"`
+	Tags           []string        `json:"tags" bson:"tags"`
 
 	// omitempty to exclude this from sync
 	RecurringActivities []cpd.RecurringActivity `json:"recurringActivities,omitempty" bson:"recurringActivities,omitempty"`
@@ -498,6 +499,33 @@ func (m *Member) SetSpecialities(ds datastore.Datastore) error {
 	return nil
 }
 
+// SetTags fetches the tags for a member
+func (m *Member) SetTags(ds datastore.Datastore) error {
+
+	query := Queries["select-member-tags"]
+	rows, err := ds.MySQL.Session.Query(query, m.ID)
+	if err == sql.ErrNoRows {
+		return nil
+	}
+	if err != nil {
+		return errors.Wrap(err, "SetTags query error")
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var t string
+		err := rows.Scan(
+			&t,
+		)
+		if err != nil {
+			return errors.Wrap(err, "SetTags scan error")
+		}
+		m.Tags = append(m.Tags, t)
+	}
+
+	return nil
+}
+
 // ContactLocationByDesc fetches a location / contact record by its type (Location.Description)
 func (m *Member) ContactLocationByDesc(desc string) (Location, error) {
 	var loc Location
@@ -686,6 +714,11 @@ func ByID(ds datastore.Datastore, id int) (*Member, error) {
 	err = m.SetSpecialities(ds)
 	if err != nil {
 		return &m, errors.Wrap(err, "SetSpecialities")
+	}
+
+	err = m.SetTags(ds)
+	if err != nil {
+		return &m, errors.Wrap(err, "SetTags")
 	}
 
 	return &m, nil
