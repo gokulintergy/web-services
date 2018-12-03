@@ -96,7 +96,11 @@ func MemberReport(members []member.Member) (*xlsx.File, error) {
 		}
 
 		row.AddCell().Value = m.Country
-		row.AddCell().Value = "Tags"
+
+		if len(m.Tags) > 0 {
+			row.AddCell().Value = strings.Join(m.Tags, ", ")
+		}
+
 		row.AddCell().Value = m.JournalNumber
 		row.AddCell().Value = m.BpayNumber
 

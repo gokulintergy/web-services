@@ -582,10 +582,9 @@ func (m *Member) SyncUpdated(ds datastore.Datastore) error {
 		return m.SaveDocDB(ds)
 	}
 
-	if len(xm) > 0 {
-		if m.UpdatedAt.After(xm[0].UpdatedAt) {
-			return m.SaveDocDB(ds)
-		}
+	memberDoc := xm[0]
+	if memberDoc.UpdatedAt != m.UpdatedAt {
+		return m.SaveDocDB(ds)
 	}
 
 	// do nothing

@@ -11,6 +11,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/hashicorp/go-uuid"
+	"gopkg.in/mgo.v2/bson"
 
 	"github.com/cardiacsociety/web-services/internal/attachments"
 	"github.com/cardiacsociety/web-services/internal/fileset"
@@ -600,22 +601,31 @@ func AdminReportMemberExcel(w http.ResponseWriter, r *http.Request) {
 	// generate the report
 	go func() {
 		var memberList member.Members
-		for _, id := range memberIDs {
-			fmt.Printf("fetching member id %v\n", id)
-			m, err := member.ByID(DS, id)
-			if err != nil {
-				msg := fmt.Sprintf("Can't find member id %d - err = %s - skipping", id, err)
-				log.Println(msg)
-			}
-			memberList = append(memberList, *m)
+
+		// this one by one search of MySQL is SLOW
+		// for _, id := range memberIDs {
+		// 	fmt.Printf("fetching member id %v\n", id)
+		// 	m, err := member.ByID(DS, id)
+		// 	if err != nil {
+		// 		msg := fmt.Sprintf("Can't find member id %d - err = %s - skipping", id, err)
+		// 		log.Println(msg)
+		// 	}
+		// 	memberList = append(memberList, *m)
+		// }
+
+		// Try MongoDB
+		query := bson.M{"id": bson.M{"$in": memberIDs}}
+		memberList, err := member.SearchDocDB(DS, query)
+		if err != nil {
+			msg := fmt.Sprintf("SearchDocDB err = %s", err)
+			log.Fatalln(msg)
 		}
+
 		excelFile, err := excel.MemberReport(memberList)
 		if err != nil {
 			msg := fmt.Sprintf("Could not create excel report - err = %s", err)
 			log.Fatalln(msg)
 		}
-
-		excelFile.Save("test.xlsx")
 
 		// Cache the xlsx value
 		DS.Cache.SetDefault(cacheID, excelFile)
