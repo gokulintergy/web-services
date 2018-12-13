@@ -2,23 +2,36 @@ package application
 
 // Queries is a map containing data queries for the package
 var Queries = map[string]string{
-	"select-applications": selectApplications,
+	"select-applications":             selectApplications,
+	"select-application-by-id":        selectApplicationByID,
+	"select-applications-by-memberid": selectApplicationsByMemberID,
 }
 
-const selectApplications = `SELECT
-  a.id                      AS ActivityID,
-  a.code                    AS ActivityCode,
-  a.name                    AS ActivityName,
-  a.description             AS ActivityDescription,
-  a.ce_activity_category_id AS ActivityCategoryID,
-  c.name                    AS ActivityCategoryName,
-  a.ce_activity_unit_id     AS ActivityUnitID,
-  u.name                    AS ActivityUnitName,
-  a.points_per_unit         AS CreditPerUnit,
-  a.annual_points_cap       AS MaxCredit
+const selectApplications = `SELECT 
+  ma.id                                   AS ID,
+  ma.created_at                           AS CreatedAt,
+  ma.updated_at                           AS UpdatedAt,
+  ma.member_id                            AS MemberID,
+  COALESCE(CONCAT(m.first_name, ' ', m.last_name), '') AS Member,
+  ma.member_id_nominator                  AS NominatorID,
+  COALESCE(CONCAT(n.first_name, ' ', n.last_name), '') AS Nominator,
+  ma.member_id_seconder                   AS SeconderID,
+  COALESCE(CONCAT(s.first_name, ' ', s.last_name), '') AS Seconder,
+  ma.applied_on                           AS ApplicationDate,
+  t.name                                  AS AppliedFor,
+  ma.result                               AS Status,
+  COALESCE(ma.comment,'')                 AS Comment
 FROM
-  ce_activity a
-  LEFT JOIN
-  ce_activity_category c ON a.ce_activity_category_id = c.id
-  LEFT JOIN
-  ce_activity_unit u ON a.ce_activity_unit_id = u.id`
+  ms_m_application ma
+    LEFT JOIN
+  member m ON ma.member_id = m.id
+    LEFT JOIN
+  member n ON ma.member_id_nominator = n.id
+    LEFT JOIN
+  member s ON ma.member_id_seconder = s.id
+    LEFT JOIN
+  ms_title t ON ma.ms_title_id = t.id `
+
+const selectApplicationByID = selectApplications + `WHERE ma.id = %v`
+
+const selectApplicationsByMemberID = selectApplications + `WHERE ma.member_id = %v`

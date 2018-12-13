@@ -1,7 +1,9 @@
 package application_test
 
 import (
+	"database/sql"
 	"log"
+	"reflect"
 	"testing"
 
 	"github.com/cardiacsociety/web-services/internal/application"
@@ -9,17 +11,22 @@ import (
 	"github.com/cardiacsociety/web-services/testdata"
 )
 
-var store datastore.Datastore
+var ds datastore.Datastore
 
 func TestAll(t *testing.T) {
 
 	var teardown func()
-	store, teardown = setup()
+	ds, teardown = setup()
 	defer teardown()
 
 	t.Run("application", func(t *testing.T) {
 		t.Run("testPingDatabase", testPingDatabase)
-		t.Run("testNada", testNada)
+		t.Run("testByID", testByID)
+		t.Run("testByID_notFound", testByID_notFound)
+		t.Run("testByMemberID", testByMemberID)
+		t.Run("testByMemberID_notFound", testByMemberID_notFound)
+		t.Run("testByNonExistentMemberID", testByNonExistentMemberID)
+		t.Run("testQuery", testQuery)
 	})
 }
 
@@ -38,16 +45,117 @@ func setup() (datastore.Datastore, func()) {
 }
 
 func testPingDatabase(t *testing.T) {
-	err := store.MySQL.Session.Ping()
+	err := ds.MySQL.Session.Ping()
 	if err != nil {
 		t.Fatalf("Ping() err = %s", err)
 	}
 }
 
-func testNada(t *testing.T) {
-	want := true
-	got := application.Nada()
+// fetch an application by id, verify member id
+func testByID(t *testing.T) {
+
+	cases := []struct {
+		arg  int // application id
+		want int // member id
+	}{
+		{1, 502},
+		{2, 482},
+		{3, 488},
+	}
+
+	for _, c := range cases {
+		got, err := application.ByID(ds, c.arg)
+		if err != nil {
+			t.Errorf("application.ByID(%d) err = %s", c.arg, err)
+		}
+		if got.MemberID != c.want {
+			t.Errorf("Application.MemberID = %d, want %d", got.MemberID, c.want)
+		}
+	}
+}
+
+// attempt fetch an application by id that does not exist
+func testByID_notFound(t *testing.T) {
+	arg := 101 // does not exist
+	_, err := application.ByID(ds, arg)
+	if err == nil {
+		t.Errorf("application.ByID(%d) err = nil, want %s", arg, sql.ErrNoRows)
+	}
+}
+
+// fetch application records by member id
+func testByMemberID(t *testing.T) {
+	cases := []struct {
+		arg  int   // member id
+		want []int // application ids
+	}{
+		{502, []int{1, 6}},
+	}
+
+	for _, c := range cases {
+		xa, err := application.ByMemberID(ds, c.arg)
+		if err != nil {
+			t.Errorf("application.ByMemberID(%d) err = %s", c.arg, err)
+		}
+		var got []int
+		for _, a := range xa {
+			got = append(got, a.ID)
+		}
+		if !reflect.DeepEqual(got, c.want) {
+			t.Errorf("application.ByMemberID(%d) = %v, want %v", c.arg, got, c.want)
+		}
+
+	}
+}
+
+// attempt fetch application records by member id where no applications exist
+func testByMemberID_notFound(t *testing.T) {
+	arg := 1 // member id 1 has no applications in test
+	xa, err := application.ByMemberID(ds, arg)
+	if err != nil {
+		t.Errorf("application.ByMemberID(%d) err = %s", arg, err)
+	}
+	got := len(xa)
+	want := 0
 	if got != want {
-		t.Errorf("Nada() = %v, want %v", got, want)
+		t.Errorf("application.ByMemberID(%d) len = %d, want %d", arg, got, want)
+	}
+}
+
+// attempt fetch application records by member id that does not exist
+func testByNonExistentMemberID(t *testing.T) {
+	arg := 101
+	xa, err := application.ByMemberID(ds, arg)
+	if err != nil {
+		t.Errorf("application.ByMemberID(%d) err = %s", arg, err)
+	}
+	got := len(xa)
+	want := 0
+	if got != want {
+		t.Errorf("application.ByMemberID(%d) len = %d, want %d", arg, got, want)
+	}
+}
+
+// test generic query function, specify clause and check expected result count
+func testQuery(t *testing.T) {
+	cases := []struct {
+		arg  string
+		want int
+	}{
+		{"WHERE 1", 6},
+		{"WHERE member_id = 488", 1},
+		{"WHERE member_id = 502", 2},
+		{"WHERE member_id = 101", 0},
+		{"WHERE applied_on > '2017-01-01'", 1},
+	}
+	for _, c := range cases {
+		xa, err := application.Query(ds, c.arg)
+		if err != nil {
+			t.Errorf("application.Query() err = %s", err)
+		}
+		got := len(xa)
+		if got != c.want {
+			t.Errorf("application.Query() count = %d, want %d", got, c.want)
+		}
 	}
 }
