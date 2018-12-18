@@ -147,6 +147,7 @@ func testQuery(t *testing.T) {
 		{"WHERE member_id = 502", 2},
 		{"WHERE member_id = 101", 0},
 		{"WHERE applied_on > '2017-01-01'", 1},
+		{"WHERE ma.id IN (1,2,3)", 3},
 	}
 	for _, c := range cases {
 		xa, err := application.Query(ds, c.arg)
