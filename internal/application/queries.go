@@ -2,7 +2,7 @@ package application
 
 // Queries is a map containing data queries for the package
 var Queries = map[string]string{
-	"select-applications":             selectApplications,
+	"select-applications":             selectActiveApplications,
 	"select-application-by-id":        selectApplicationByID,
 	"select-applications-by-memberid": selectApplicationsByMemberID,
 }
@@ -30,8 +30,10 @@ FROM
     LEFT JOIN
   member s ON ma.member_id_seconder = s.id
     LEFT JOIN
-  ms_title t ON ma.ms_title_id = t.id `
+  ms_title t ON ma.ms_title_id = t.id WHERE 1 `
 
-const selectApplicationByID = selectApplications + `WHERE ma.id = %v`
+const selectActiveApplications = selectApplications + ` AND ma.active = 1 `
 
-const selectApplicationsByMemberID = selectApplications + `WHERE ma.member_id = %v`
+const selectApplicationByID = selectActiveApplications + ` AND ma.id = %v `
+
+const selectApplicationsByMemberID = selectActiveApplications + ` AND ma.member_id = %v `

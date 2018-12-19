@@ -45,7 +45,7 @@ func ByID(ds datastore.Datastore, applicationID int) (Application, error) {
 // ByIDs fetches a set of applications by IDs.
 func ByIDs(ds datastore.Datastore, applicationIDs []int) ([]Application, error) {
 	idList := strings.Trim(strings.Join(strings.Fields(fmt.Sprint(applicationIDs)), ","), "[]")
-	clause := fmt.Sprintf("WHERE ma.id IN (%s)", idList)
+	clause := fmt.Sprintf(" AND ma.id IN (%s)", idList)
 	return Query(ds, clause)
 }
 

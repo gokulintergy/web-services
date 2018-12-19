@@ -168,12 +168,12 @@ func testQuery(t *testing.T) {
 		arg  string
 		want int
 	}{
-		{"WHERE 1", 6},
-		{"WHERE member_id = 488", 1},
-		{"WHERE member_id = 502", 2},
-		{"WHERE member_id = 101", 0},
-		{"WHERE applied_on > '2017-01-01'", 1},
-		{"WHERE ma.id IN (1,2,3)", 3},
+		{"", 6},
+		{"AND member_id = 488", 1},
+		{"AND member_id = 502", 2},
+		{"AND member_id = 101", 0},
+		{"AND applied_on > '2017-01-01'", 1},
+		{"AND ma.id IN (1,2,3)", 3},
 	}
 	for _, c := range cases {
 		xa, err := application.Query(ds, c.arg)
