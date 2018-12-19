@@ -22,6 +22,7 @@ func TestAll(t *testing.T) {
 	t.Run("application", func(t *testing.T) {
 		t.Run("testPingDatabase", testPingDatabase)
 		t.Run("testByID", testByID)
+		t.Run("testByIDs", testByIDs)
 		t.Run("testByID_notFound", testByID_notFound)
 		t.Run("testByMemberID", testByMemberID)
 		t.Run("testByMemberID_notFound", testByMemberID_notFound)
@@ -70,6 +71,31 @@ func testByID(t *testing.T) {
 		}
 		if got.MemberID != c.want {
 			t.Errorf("Application.MemberID = %d, want %d", got.MemberID, c.want)
+		}
+	}
+}
+
+// fetch applications by a list of IDs
+func testByIDs(t *testing.T) {
+
+	cases := []struct {
+		arg  []int // application IDs
+		want int   // count
+	}{
+		{[]int{101}, 0},
+		{[]int{1}, 1},
+		{[]int{1, 2, 3}, 3},
+		{[]int{1, 2, 101}, 2},
+	}
+
+	for _, c := range cases {
+		xa, err := application.ByIDs(ds, c.arg)
+		if err != nil {
+			t.Errorf("application.ByIDs(%d) err = %s", c.arg, err)
+		}
+		got := len(xa)
+		if got != c.want {
+			t.Errorf("Application.ByIDs count = %d, want %d", got, c.want)
 		}
 	}
 }

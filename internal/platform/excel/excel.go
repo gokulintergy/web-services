@@ -3,12 +3,15 @@ package excel
 
 import (
 	"fmt"
+	"log"
 	"strconv"
 	"strings"
 
 	"github.com/tealeg/xlsx"
 
+	"github.com/cardiacsociety/web-services/internal/application"
 	"github.com/cardiacsociety/web-services/internal/member"
+	"github.com/cardiacsociety/web-services/internal/platform/datastore"
 )
 
 // MemberReport returns an excel member report File
@@ -142,6 +145,98 @@ func MemberReport(members []member.Member) (*xlsx.File, error) {
 		if len(m.Specialities) > 2 {
 			row.AddCell().Value = m.Specialities[2].Name
 		}
+	}
+
+	return file, nil
+}
+
+// ApplicationReport returns an excel application report File
+func ApplicationReport(ds datastore.Datastore, applications []application.Application) (*xlsx.File, error) {
+
+	var file *xlsx.File
+	var sheet *xlsx.Sheet
+	var row *xlsx.Row
+	var cell *xlsx.Cell
+	var err error
+
+	file = xlsx.NewFile()
+	sheet, err = file.AddSheet("Sheet1")
+	if err != nil {
+		return nil, fmt.Errorf("file.AddSheet() err = %s", err)
+	}
+
+	columns := []string{
+		"Application ID",
+		"Application date",
+		"Member ID",
+		"Member name",
+		"Nominator ID",
+		"Nominator name",
+		"Seconder ID",
+		"Seconder name",
+		"Applied for",
+		"Tags",
+		"Region",
+		"Result",
+		"Comment",
+	}
+
+	// Column headers
+	row = sheet.AddRow()
+	for _, c := range columns {
+		cell = row.AddCell()
+		cell.Value = c
+	}
+
+	for _, a := range applications {
+		row = sheet.AddRow()
+		row.AddCell().Value = strconv.Itoa(a.ID)
+		row.AddCell().Value = a.Date.Format("2006-01-02")
+		row.AddCell().Value = strconv.Itoa(a.MemberID)
+		row.AddCell().Value = a.Member
+
+		var nomID string
+		if a.NominatorID.Int64 > 0 {
+			nomID = strconv.FormatInt(a.NominatorID.Int64, 10)
+		}
+		row.AddCell().Value = nomID
+		row.AddCell().Value = a.Nominator
+
+		var secID string
+		if a.SeconderID.Int64 > 0 {
+			secID = strconv.FormatInt(a.SeconderID.Int64, 10)
+		}
+		row.AddCell().Value = secID
+		row.AddCell().Value = a.Seconder
+
+		row.AddCell().Value = a.For
+
+		var tags string
+		var region string
+		m, err := member.ByID(ds, a.MemberID)
+		if err != nil {
+			log.Printf("member.ByID() err = %s", err)
+			tags, region = "err", "err"
+		} else {
+			tags = strings.Join(m.Tags, ", ")
+			region = m.Country + " " + m.Contact.Locations[0].State + " " + m.Contact.Locations[0].City
+		}
+		row.AddCell().Value = tags
+		row.AddCell().Value = region
+
+		var status string
+		if a.Status == -1 {
+			status = "pending"
+		}
+		if a.Status == 0 {
+			status = "rejected"
+		}
+		if a.Status == 1 {
+			status = "accepted"
+		}
+		row.AddCell().Value = status
+
+		row.AddCell().Value = a.Comment
 	}
 
 	return file, nil

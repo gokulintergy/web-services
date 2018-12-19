@@ -4,6 +4,7 @@ package application
 import (
 	"database/sql"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/cardiacsociety/web-services/internal/platform/datastore"
@@ -11,19 +12,19 @@ import (
 
 // Application describes an application for membership
 type Application struct {
-	ID          int       `json:"id" bson:"id"`
-	CreatedAt   time.Time `json:"createdAt" bson:"createdAt"`
-	UpdatedAt   time.Time `json:"updatedAt" bson:"updatedAt"`
-	MemberID    int       `json:"memberId" bson:"memberId"`
-	Member      string    `json:"member" bson:"member"`
-	NominatorID int       `json:"nominatorId" bson:"nominatorId"`
-	Nominator   string    `json:"nominator" bson:"nominator"`
-	SeconderID  int       `json:"seconderId" bson:"seconderId"`
-	Seconder    string    `json:"seconder" bson:"seconder"`
-	Date        time.Time `json:"date" bson:"date"`
-	For         string    `json:"applyingFor" bson:"applyingFor"`
-	Status      int       `json:"status" bson:"status"`
-	Comment     string    `json:"comment" bson:"comment"`
+	ID          int           `json:"id" bson:"id"`
+	CreatedAt   time.Time     `json:"createdAt" bson:"createdAt"`
+	UpdatedAt   time.Time     `json:"updatedAt" bson:"updatedAt"`
+	MemberID    int           `json:"memberId" bson:"memberId"`
+	Member      string        `json:"member" bson:"member"`
+	NominatorID sql.NullInt64 `json:"nominatorId" bson:"nominatorId"`
+	Nominator   string        `json:"nominator" bson:"nominator"`
+	SeconderID  sql.NullInt64 `json:"seconderId" bson:"seconderId"`
+	Seconder    string        `json:"seconder" bson:"seconder"`
+	Date        time.Time     `json:"date" bson:"date"`
+	For         string        `json:"applyingFor" bson:"applyingFor"`
+	Status      int           `json:"status" bson:"status"`
+	Comment     string        `json:"comment" bson:"comment"`
 }
 
 // ByID fetches an application record by id. This returns an error if no result is found.
@@ -39,6 +40,13 @@ func ByID(ds datastore.Datastore, applicationID int) (Application, error) {
 	}
 	a = r[0] // one result
 	return a, nil
+}
+
+// ByIDs fetches a set of applications by IDs.
+func ByIDs(ds datastore.Datastore, applicationIDs []int) ([]Application, error) {
+	idList := strings.Trim(strings.Join(strings.Fields(fmt.Sprint(applicationIDs)), ","), "[]")
+	clause := fmt.Sprintf("WHERE ma.id IN (%s)", idList)
+	return Query(ds, clause)
 }
 
 // ByMemberID fetches application records by member id. This does not return an error if no results are found, only an empty slice.

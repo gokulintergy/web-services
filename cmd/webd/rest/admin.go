@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-uuid"
 	"gopkg.in/mgo.v2/bson"
 
+	"github.com/cardiacsociety/web-services/internal/application"
 	"github.com/cardiacsociety/web-services/internal/attachments"
 	"github.com/cardiacsociety/web-services/internal/fileset"
 	"github.com/cardiacsociety/web-services/internal/generic"
@@ -573,6 +574,46 @@ func AdminResourcesAttachmentRegister(w http.ResponseWriter, r *http.Request) {
 	p.Message = Message{http.StatusOK, "success", "Attachment registered"}
 	p.Data = a
 	p.Send(w)
+}
+
+// AdminReportApplicationExcel responds with an excel application report
+func AdminReportApplicationExcel(w http.ResponseWriter, r *http.Request) {
+
+	p := NewResponder(UserAuthToken.Encoded)
+
+	// A list of application ids should be posted in
+	var applicationIDs []int
+	err := json.NewDecoder(r.Body).Decode(&applicationIDs)
+	if err != nil {
+		msg := fmt.Sprintf("Could not decode list of application ids in body - %s", err)
+		p.Message = Message{http.StatusInternalServerError, "failed", msg}
+		p.Send(w)
+		return
+	}
+
+	// send 202 now, before the heavy lifting starts
+	cacheID, _ := uuid.GenerateUUID()
+	msg := fmt.Sprintf("Report has been queued, pickup url below")
+	p.Message = Message{http.StatusAccepted, "accepted", msg}
+	url := os.Getenv("MAPPCPD_API_URL") + "/v1/r/excel/" + cacheID
+	p.Data = map[string]string{"url": url}
+	p.Send(w)
+
+	// generate the report
+	go func() {
+		xa, err := application.ByIDs(DS, applicationIDs)
+		if err != nil {
+			log.Fatalln(fmt.Sprintf("application.ByIDs() err = %s", err))
+		}
+
+		excelFile, err := excel.ApplicationReport(DS, xa)
+		if err != nil {
+			log.Fatalln(fmt.Sprintf("Could not create excel report - err = %s", err))
+		}
+
+		// Cache the xlsx value
+		DS.Cache.SetDefault(cacheID, excelFile)
+	}()
 }
 
 // AdminReportMemberExcel responds with an excel member report
