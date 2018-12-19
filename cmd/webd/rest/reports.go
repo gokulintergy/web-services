@@ -104,7 +104,7 @@ func ReportsExcel(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	filename := "member_report-" + strconv.FormatInt(time.Now().Unix(), 10) + ".xlsx"
+	filename := strconv.FormatInt(time.Now().Unix(), 10) + ".xlsx"
 	w.Header().Set("Content-Disposition", `attachment; filename="`+filename+`"`)
 	w.Header().Set("Access-Control-Allow-Origin", `*`)
 	err := ef.(*xlsx.File).Write(w) // sets content-type = application/zip
