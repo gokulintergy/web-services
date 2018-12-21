@@ -11,6 +11,7 @@ import (
 
 	"github.com/cardiacsociety/web-services/internal/application"
 	"github.com/cardiacsociety/web-services/internal/member"
+	"github.com/cardiacsociety/web-services/internal/payment"
 	"github.com/cardiacsociety/web-services/internal/platform/datastore"
 )
 
@@ -237,6 +238,67 @@ func ApplicationReport(ds datastore.Datastore, applications []application.Applic
 		row.AddCell().Value = status
 
 		row.AddCell().Value = a.Comment
+	}
+
+	return file, nil
+}
+
+// PaymentReport returns an excel payment report File
+func PaymentReport(ds datastore.Datastore, payments []payment.Payment) (*xlsx.File, error) {
+
+	var file *xlsx.File
+	var sheet *xlsx.Sheet
+	var row *xlsx.Row
+	var cell *xlsx.Cell
+	var err error
+
+	file = xlsx.NewFile()
+	sheet, err = file.AddSheet("Sheet1")
+	if err != nil {
+		return nil, fmt.Errorf("file.AddSheet() err = %s", err)
+	}
+
+	columns := []string{
+		"Payment ID",
+		"Payment Date",
+		"Member ID",
+		"Member",
+		"Payment Type",
+		"Amount",
+		"Comment",
+		"Field1",
+		"Field2",
+		"Field3",
+		"Field4",
+		"Invoice IDs",
+	}
+
+	// Column headers
+	row = sheet.AddRow()
+	for _, c := range columns {
+		cell = row.AddCell()
+		cell.Value = c
+	}
+
+	for _, p := range payments {
+		row = sheet.AddRow()
+		row.AddCell().Value = strconv.Itoa(p.ID)
+		row.AddCell().Value = p.Date.Format("2006-01-02")
+		row.AddCell().Value = strconv.Itoa(p.MemberID)
+		row.AddCell().Value = p.Member
+		row.AddCell().Value = p.Type
+		row.AddCell().Value = strconv.FormatFloat(p.Amount, 'e', -1, 64)
+		row.AddCell().Value = p.Comment
+		row.AddCell().Value = p.DataField1
+		row.AddCell().Value = p.DataField2
+		row.AddCell().Value = p.DataField3
+		row.AddCell().Value = p.DataField4
+
+		var invoiceAllocations []string
+		for _, i := range p.Allocations {
+			invoiceAllocations = append(invoiceAllocations, strconv.Itoa(i.InvoiceID))
+		}
+		row.AddCell().Value = strings.Join(invoiceAllocations, ", ")
 	}
 
 	return file, nil

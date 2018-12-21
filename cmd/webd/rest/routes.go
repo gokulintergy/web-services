@@ -55,6 +55,7 @@ func AdminSubRouter(prefix string) *mux.Router {
 	// Report routes
 	admin.Methods("POST").Path("/reports/application").HandlerFunc(AdminReportApplicationExcel)
 	admin.Methods("POST").Path("/reports/member").HandlerFunc(AdminReportMemberExcel)
+	admin.Methods("POST").Path("/reports/payment").HandlerFunc(AdminReportPaymentExcel)
 
 	return admin
 }

@@ -10,7 +10,7 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
-	"github.com/hashicorp/go-uuid"
+	uuid "github.com/hashicorp/go-uuid"
 	"gopkg.in/mgo.v2/bson"
 
 	"github.com/cardiacsociety/web-services/internal/application"
@@ -19,6 +19,7 @@ import (
 	"github.com/cardiacsociety/web-services/internal/generic"
 	"github.com/cardiacsociety/web-services/internal/member"
 	"github.com/cardiacsociety/web-services/internal/note"
+	"github.com/cardiacsociety/web-services/internal/payment"
 	"github.com/cardiacsociety/web-services/internal/platform/excel"
 	"github.com/cardiacsociety/web-services/internal/platform/s3"
 	"github.com/cardiacsociety/web-services/internal/resource"
@@ -666,6 +667,46 @@ func AdminReportMemberExcel(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			msg := fmt.Sprintf("Could not create excel report - err = %s", err)
 			log.Fatalln(msg)
+		}
+
+		// Cache the xlsx value
+		DS.Cache.SetDefault(cacheID, excelFile)
+	}()
+}
+
+// AdminReportPaymentExcel responds with an excel payment report
+func AdminReportPaymentExcel(w http.ResponseWriter, r *http.Request) {
+
+	p := NewResponder(UserAuthToken.Encoded)
+
+	// A list of payments ids should be posted in
+	var paymentIDs []int
+	err := json.NewDecoder(r.Body).Decode(&paymentIDs)
+	if err != nil {
+		msg := fmt.Sprintf("Could not decode list of payment ids in body - %s", err)
+		p.Message = Message{http.StatusInternalServerError, "failed", msg}
+		p.Send(w)
+		return
+	}
+
+	// send 202 now, before the heavy lifting starts
+	cacheID, _ := uuid.GenerateUUID()
+	msg := fmt.Sprintf("Report has been queued, pickup url below")
+	p.Message = Message{http.StatusAccepted, "accepted", msg}
+	url := os.Getenv("MAPPCPD_API_URL") + "/v1/r/excel/" + cacheID
+	p.Data = map[string]string{"url": url}
+	p.Send(w)
+
+	// generate the report
+	go func() {
+		xa, err := payment.ByIDs(DS, paymentIDs)
+		if err != nil {
+			log.Fatalln(fmt.Sprintf("payment.ByIDs() err = %s", err))
+		}
+
+		excelFile, err := excel.PaymentReport(DS, xa)
+		if err != nil {
+			log.Fatalln(fmt.Sprintf("Could not create excel report - err = %s", err))
 		}
 
 		// Cache the xlsx value
