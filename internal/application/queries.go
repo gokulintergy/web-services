@@ -30,7 +30,8 @@ FROM
     LEFT JOIN
   member s ON ma.member_id_seconder = s.id
     LEFT JOIN
-  ms_title t ON ma.ms_title_id = t.id WHERE 1 `
+  ms_title t ON ma.ms_title_id = t.id 
+WHERE 1 `
 
 const selectActiveApplications = selectApplications + ` AND ma.active = 1 `
 
