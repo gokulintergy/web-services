@@ -42,5 +42,5 @@ SELECT
 FROM
 	fn_invoice_payment p
 WHERE
-  active = 1 AND p.id = %v
+  active = 1 AND p.fn_payment_id = %v
 `
