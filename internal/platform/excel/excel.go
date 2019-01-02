@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/360EntSecGroup-Skylar/excelize"
 	"github.com/tealeg/xlsx"
 
 	"github.com/cardiacsociety/web-services/internal/application"
@@ -244,62 +245,80 @@ func ApplicationReport(ds datastore.Datastore, applications []application.Applic
 }
 
 // PaymentReport returns an excel payment report File
-func PaymentReport(ds datastore.Datastore, payments []payment.Payment) (*xlsx.File, error) {
+func PaymentReport(ds datastore.Datastore, payments []payment.Payment) (*excelize.File, error) {
 
-	var file *xlsx.File
-	var sheet *xlsx.Sheet
-	var row *xlsx.Row
-	var cell *xlsx.Cell
-	var err error
+	var rowNum int
 
-	file = xlsx.NewFile()
-	sheet, err = file.AddSheet("Sheet1")
-	if err != nil {
-		return nil, fmt.Errorf("file.AddSheet() err = %s", err)
+	// var file *xlsx.File
+	// var sheet *xlsx.Sheet
+	// var row *xlsx.Row
+	// var cell *xlsx.Cell
+	// var err error
+
+	file := excelize.NewFile()
+	//sheet := file.NewSheet("Sheet1")
+	// if err != nil {
+	// 	return nil, fmt.Errorf("file.AddSheet() err = %s", err)
+	// }
+
+	columns := []string{"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"}
+
+	rowNum++
+	titles := map[string]string{
+		"A1": "Payment ID",
+		"B1": "Payment Date",
+		"C1": "Member ID",
+		"D1": "Member",
+		"E1": "Payment Type",
+		"F1": "Amount",
+		"G1": "Comment",
+		"H1": "Field1",
+		"I1": "Field2",
+		"J1": "Field3",
+		"K1": "Field4",
+		"L1": "Invoice IDs",
 	}
-
-	columns := []string{
-		"Payment ID",
-		"Payment Date",
-		"Member ID",
-		"Member",
-		"Payment Type",
-		"Amount",
-		"Comment",
-		"Field1",
-		"Field2",
-		"Field3",
-		"Field4",
-		"Invoice IDs",
-	}
-
-	// Column headers
-	row = sheet.AddRow()
-	for _, c := range columns {
-		cell = row.AddCell()
-		cell.Value = c
+	for i, t := range titles {
+		file.SetCellValue("Sheet1", i, t)
 	}
 
 	for _, p := range payments {
-		row = sheet.AddRow()
-		row.AddCell().Value = strconv.Itoa(p.ID)
-		row.AddCell().Value = p.Date.Format("2006-01-02")
-		row.AddCell().Value = strconv.Itoa(p.MemberID)
-		row.AddCell().Value = p.Member
-		row.AddCell().Value = p.Type
-		row.AddCell().Value = strconv.FormatFloat(p.Amount, 'e', -1, 64)
-		row.AddCell().Value = p.Comment
-		row.AddCell().Value = p.DataField1
-		row.AddCell().Value = p.DataField2
-		row.AddCell().Value = p.DataField3
-		row.AddCell().Value = p.DataField4
+		rowNum++
+		keys := rowKeys(columns, rowNum)
+		row := make(map[string]interface{}, len(columns))
+		row[keys[0]] = p.ID
+		row[keys[1]] = p.Date.Format("2006-01-02")
+		row[keys[2]] = p.MemberID
+		row[keys[3]] = p.Member
+		row[keys[4]] = p.Type
+		row[keys[5]] = p.Amount
+		row[keys[6]] = p.Comment
+		row[keys[7]] = p.DataField1
+		row[keys[8]] = p.DataField2
+		row[keys[9]] = p.DataField3
+		row[keys[10]] = p.DataField4
 
 		var invoiceAllocations []string
 		for _, i := range p.Allocations {
 			invoiceAllocations = append(invoiceAllocations, strconv.Itoa(i.InvoiceID))
 		}
-		row.AddCell().Value = strings.Join(invoiceAllocations, ", ")
+		row[keys[11]] = strings.Join(invoiceAllocations, ", ")
+
+		for i, t := range row {
+			file.SetCellValue("Sheet1", i, t)
+		}
 	}
 
 	return file, nil
+}
+
+// rowKeys returns a []string containing the cell references for a row, eg "A10", "B10", "C10" etc
+func rowKeys(columnKeys []string, rowNumber int) []string {
+	var refs []string
+	rowNum := strconv.Itoa(rowNumber)
+	for _, c := range columnKeys {
+		r := c + rowNum
+		refs = append(refs, r)
+	}
+	return refs
 }

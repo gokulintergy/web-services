@@ -138,7 +138,6 @@ func paymentAllocations(ds datastore.Datastore, paymentID int) ([]InvoicePayment
 	var result []InvoicePayment
 
 	q := fmt.Sprintf(Queries["select-payment-allocations"], paymentID)
-	fmt.Println(q)
 	rows, err := ds.MySQL.Session.Query(q)
 	if err != nil {
 		return result, fmt.Errorf("Query() err = %s", err)

@@ -192,6 +192,7 @@ func ReportSubRouter(prefix string) *mux.Router {
 	reports.Methods("GET").Path("/pointsbyrecorddate").HandlerFunc(ReportsPointsByRecordDate)
 	reports.Methods("GET").Path("/pointsbyactivitydate").HandlerFunc(ReportsPointsByActivityDate)
 	reports.Methods("GET").Path("/excel/{id}").HandlerFunc(ReportsExcel)
+	reports.Methods("GET").Path("/excelize/{id}").HandlerFunc(ReportsExcelize)
 
 	return reports
 }

@@ -693,7 +693,7 @@ func AdminReportPaymentExcel(w http.ResponseWriter, r *http.Request) {
 	cacheID, _ := uuid.GenerateUUID()
 	msg := fmt.Sprintf("Report has been queued, pickup url below")
 	p.Message = Message{http.StatusAccepted, "accepted", msg}
-	url := os.Getenv("MAPPCPD_API_URL") + "/v1/r/excel/" + cacheID
+	url := os.Getenv("MAPPCPD_API_URL") + "/v1/r/excelize/" + cacheID
 	p.Data = map[string]string{"url": url}
 	p.Send(w)
 

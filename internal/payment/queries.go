@@ -12,16 +12,15 @@ SELECT
     p.created_at AS Created,
     p.updated_at AS Updated,
     p.member_id AS MemberID,
-    COALESCE(CONCAT(m.first_name, ' ', m.last_name),
-            '') AS Member,
+    COALESCE(CONCAT(m.first_name, ' ', m.last_name), '') AS Member,
     p.payment_on as Date,        
     pt.name AS Type,
     p.amount_received as Amount,
-		p.comment as Comment,
-		p.field1_data as DataField1,
-		p.field2_data as DataField2,
-		p.field3_data as DataField3,
-		p.field4_data as DataField4
+	COALESCE(p.comment, '') as Comment,
+	COALESCE(p.field1_data, '') as DataField1,
+	COALESCE(p.field2_data, '') as DataField2,
+	COALESCE(p.field3_data, '') as DataField3,
+	COALESCE(p.field4_data, '') as DataField4
 FROM
     fn_payment p
         LEFT JOIN
