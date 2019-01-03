@@ -604,15 +604,14 @@ func AdminReportApplicationExcel(w http.ResponseWriter, r *http.Request) {
 	go func() {
 		xa, err := application.ByIDs(DS, applicationIDs)
 		if err != nil {
-			log.Fatalln(fmt.Sprintf("application.ByIDs() err = %s", err))
+			log.Printf("application.ByIDs() err = %s\n", err)
 		}
 
 		excelFile, err := excel.ApplicationReport(DS, xa)
 		if err != nil {
-			log.Fatalln(fmt.Sprintf("Could not create excel report - err = %s", err))
+			log.Printf("Could not create excel report - err = %s\n", err)
 		}
 
-		// Cache the xlsx value
 		DS.Cache.SetDefault(cacheID, excelFile)
 	}()
 }
@@ -636,7 +635,7 @@ func AdminReportMemberExcel(w http.ResponseWriter, r *http.Request) {
 	cacheID, _ := uuid.GenerateUUID()
 	msg := fmt.Sprintf("Report has been queued, pickup url below")
 	p.Message = Message{http.StatusAccepted, "accepted", msg}
-	url := os.Getenv("MAPPCPD_API_URL") + "/v1/r/excelize/" + cacheID
+	url := os.Getenv("MAPPCPD_API_URL") + "/v1/r/excel/" + cacheID
 	p.Data = map[string]string{"url": url}
 	p.Send(w)
 
@@ -659,17 +658,14 @@ func AdminReportMemberExcel(w http.ResponseWriter, r *http.Request) {
 		query := bson.M{"id": bson.M{"$in": memberIDs}}
 		memberList, err := member.SearchDocDB(DS, query)
 		if err != nil {
-			msg := fmt.Sprintf("SearchDocDB err = %s", err)
-			log.Fatalln(msg)
+			log.Printf(fmt.Sprintf("SearchDocDB() err = %s\n", err))
 		}
 
 		excelFile, err := excel.MemberReport(memberList)
 		if err != nil {
-			msg := fmt.Sprintf("Could not create excel report - err = %s", err)
-			log.Fatalln(msg)
+			log.Printf(fmt.Sprintf("Could not create excel report - err = %s\n", err))
 		}
 
-		// Cache the xlsx value
 		DS.Cache.SetDefault(cacheID, excelFile)
 	}()
 }
@@ -693,7 +689,7 @@ func AdminReportPaymentExcel(w http.ResponseWriter, r *http.Request) {
 	cacheID, _ := uuid.GenerateUUID()
 	msg := fmt.Sprintf("Report has been queued, pickup url below")
 	p.Message = Message{http.StatusAccepted, "accepted", msg}
-	url := os.Getenv("MAPPCPD_API_URL") + "/v1/r/excelize/" + cacheID
+	url := os.Getenv("MAPPCPD_API_URL") + "/v1/r/excel/" + cacheID
 	p.Data = map[string]string{"url": url}
 	p.Send(w)
 
@@ -701,15 +697,14 @@ func AdminReportPaymentExcel(w http.ResponseWriter, r *http.Request) {
 	go func() {
 		xa, err := payment.ByIDs(DS, paymentIDs)
 		if err != nil {
-			log.Fatalln(fmt.Sprintf("payment.ByIDs() err = %s", err))
+			log.Printf(fmt.Sprintf("payment.ByIDs() err = %s\n", err))
 		}
 
 		excelFile, err := excel.PaymentReport(DS, xa)
 		if err != nil {
-			log.Fatalln(fmt.Sprintf("Could not create excel report - err = %s", err))
+			log.Printf(fmt.Sprintf("Could not create excel report - err = %s\n", err))
 		}
 
-		// Cache the xlsx value
 		DS.Cache.SetDefault(cacheID, excelFile)
 	}()
 }

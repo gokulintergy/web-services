@@ -18,7 +18,7 @@ const selectApplications = `SELECT
   ma.member_id_seconder                   AS SeconderID,
   COALESCE(CONCAT(s.first_name, ' ', s.last_name), '') AS Seconder,
   ma.applied_on                           AS ApplicationDate,
-  t.name                                  AS AppliedFor,
+  COALESCE(t.name, '')                    AS AppliedFor,
   ma.result                               AS Status,
   COALESCE(ma.comment,'')                 AS Comment
 FROM

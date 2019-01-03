@@ -2,14 +2,13 @@
 package excel
 
 import (
-	"fmt"
 	"log"
 	"math"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/360EntSecGroup-Skylar/excelize"
-	"github.com/tealeg/xlsx"
 
 	"github.com/cardiacsociety/web-services/internal/application"
 	"github.com/cardiacsociety/web-services/internal/member"
@@ -75,23 +74,41 @@ func MemberReport(members []member.Member) (*excelize.File, error) {
 		file.SetCellValue("Sheet1", cell, value)
 	}
 
+	dateStyle, err := file.NewStyle(`{"alignment": {"horizontal": "right"}, "custom_number_format": "dd mmm yyyy"}`)
+	if err != nil {
+		log.Printf("NewStyle() err = %s\n", err)
+	}
+
 	// data rows
 	for _, m := range members {
 		rowNum++
 		row := make(map[string]interface{}, len(xc))
 		keys := rowKeys(xc, rowNum)
-		row[keys[0]] = strconv.Itoa(m.ID)
+		row[keys[0]] = m.ID
 		row[keys[1]] = m.Title
 		row[keys[2]] = m.FirstName
 		row[keys[3]] = strings.Join(m.MiddleNames, " ")
 		row[keys[4]] = m.LastName
 		row[keys[5]] = m.PostNominal
 		row[keys[6]] = m.Gender
-		row[keys[7]] = m.DateOfBirth
+
+		file.SetCellStyle("Sheet1", keys[7], keys[7], dateStyle)
+		row[keys[7]] = m.DateOfBirth // string
+		dob, err := time.Parse("2006-01-02", m.DateOfBirth)
+		if err == nil {
+			row[keys[7]] = dob // time.Time will accept the dateStyle formatting
+		}
+
 		row[keys[8]] = m.Contact.EmailPrimary
 		row[keys[9]] = m.Contact.EmailSecondary
 		row[keys[10]] = m.Contact.Mobile
-		row[keys[11]] = m.DateOfEntry
+
+		file.SetCellStyle("Sheet1", keys[11], keys[11], dateStyle)
+		row[keys[11]] = m.DateOfEntry // string
+		doe, err := time.Parse("2006-01-02", m.DateOfEntry)
+		if err == nil {
+			row[keys[11]] = doe // time.Time will accept the dateStyle formatting
+		}
 
 		if len(m.Memberships) > 0 {
 			row[keys[12]] = m.Memberships[0].Title
@@ -155,21 +172,17 @@ func MemberReport(members []member.Member) (*excelize.File, error) {
 }
 
 // ApplicationReport returns an excel application report File
-func ApplicationReport(ds datastore.Datastore, applications []application.Application) (*xlsx.File, error) {
+func ApplicationReport(ds datastore.Datastore, applications []application.Application) (*excelize.File, error) {
 
-	var file *xlsx.File
-	var sheet *xlsx.Sheet
-	var row *xlsx.Row
-	var cell *xlsx.Cell
-	var err error
+	var rowNum int
+	file := excelize.NewFile()
 
-	file = xlsx.NewFile()
-	sheet, err = file.AddSheet("Sheet1")
-	if err != nil {
-		return nil, fmt.Errorf("file.AddSheet() err = %s", err)
-	}
+	// heading row
+	rowNum++
+	headingStyle, _ := file.NewStyle(`{"font": {"bold": true}}`)
+	file.SetCellStyle("Sheet1", "A1", "ZZ1", headingStyle)
 
-	columns := []string{
+	xt := []string{
 		"Application ID",
 		"Application date",
 		"Member ID",
@@ -184,36 +197,35 @@ func ApplicationReport(ds datastore.Datastore, applications []application.Applic
 		"Result",
 		"Comment",
 	}
-
-	// Column headers
-	row = sheet.AddRow()
-	for _, c := range columns {
-		cell = row.AddCell()
-		cell.Value = c
+	xc := columnKeys(len(xt))
+	for i := range xt {
+		cell := xc[i] + strconv.Itoa(rowNum) // "A1", "A2" etc
+		value := xt[i]
+		file.SetCellValue("Sheet1", cell, value)
 	}
 
+	dateStyle, err := file.NewStyle(`{"custom_number_format": "dd mmm yyyy"}`)
+	if err != nil {
+		log.Printf("NewStyle() err = %s\n", err)
+	}
+
+	// data rows
 	for _, a := range applications {
-		row = sheet.AddRow()
-		row.AddCell().Value = strconv.Itoa(a.ID)
-		row.AddCell().Value = a.Date.Format("2006-01-02")
-		row.AddCell().Value = strconv.Itoa(a.MemberID)
-		row.AddCell().Value = a.Member
+		rowNum++
+		row := make(map[string]interface{}, len(xc))
+		keys := rowKeys(xc, rowNum)
+		row[keys[0]] = a.ID
 
-		var nomID string
-		if a.NominatorID.Int64 > 0 {
-			nomID = strconv.FormatInt(a.NominatorID.Int64, 10)
-		}
-		row.AddCell().Value = nomID
-		row.AddCell().Value = a.Nominator
+		file.SetCellStyle("Sheet1", keys[1], keys[1], dateStyle)
+		row[keys[1]] = a.Date
 
-		var secID string
-		if a.SeconderID.Int64 > 0 {
-			secID = strconv.FormatInt(a.SeconderID.Int64, 10)
-		}
-		row.AddCell().Value = secID
-		row.AddCell().Value = a.Seconder
-
-		row.AddCell().Value = a.For
+		row[keys[2]] = a.MemberID
+		row[keys[3]] = a.Member
+		row[keys[4]] = a.NominatorID.Int64
+		row[keys[5]] = a.Nominator
+		row[keys[6]] = a.SeconderID.Int64
+		row[keys[7]] = a.Seconder
+		row[keys[8]] = a.For
 
 		var tags string
 		var region string
@@ -225,8 +237,8 @@ func ApplicationReport(ds datastore.Datastore, applications []application.Applic
 			tags = strings.Join(m.Tags, ", ")
 			region = m.Country + " " + m.Contact.Locations[0].State + " " + m.Contact.Locations[0].City
 		}
-		row.AddCell().Value = tags
-		row.AddCell().Value = region
+		row[keys[9]] = tags
+		row[keys[10]] = region
 
 		var status string
 		if a.Status == -1 {
@@ -238,9 +250,13 @@ func ApplicationReport(ds datastore.Datastore, applications []application.Applic
 		if a.Status == 1 {
 			status = "accepted"
 		}
-		row.AddCell().Value = status
+		row[keys[11]] = status
 
-		row.AddCell().Value = a.Comment
+		row[keys[12]] = a.Comment
+
+		for i, t := range row {
+			file.SetCellValue("Sheet1", i, t)
+		}
 	}
 
 	return file, nil
@@ -276,6 +292,11 @@ func PaymentReport(ds datastore.Datastore, payments []payment.Payment) (*exceliz
 		file.SetCellValue("Sheet1", cell, value)
 	}
 
+	dateStyle, err := file.NewStyle(`{"custom_number_format": "dd mmm yyyy"}`)
+	if err != nil {
+		log.Printf("NewStyle() err = %s\n", err)
+	}
+
 	// data rows
 	var total float64
 	for _, p := range payments {
@@ -284,10 +305,6 @@ func PaymentReport(ds datastore.Datastore, payments []payment.Payment) (*exceliz
 		row := make(map[string]interface{}, len(xc))
 		row[keys[0]] = p.ID
 
-		dateStyle, err := file.NewStyle(`{"custom_number_format": "dd mmm yyyy"}`)
-		if err != nil {
-			log.Printf("NewStyle() err = %s\n", err)
-		}
 		file.SetCellStyle("Sheet1", keys[1], keys[1], dateStyle)
 		row[keys[1]] = p.Date
 

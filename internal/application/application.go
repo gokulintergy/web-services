@@ -122,9 +122,11 @@ func scanRow(row *sql.Rows) (Application, error) {
 	if err != nil {
 		return a, err
 	}
+	// application date for some old records is "0000-00-00" which cannot be parsed properly and ends up as
+	// "30-08-1754". However, don't want to return an error for these few records so will just ignore for now.
 	a.Date, err = time.Parse("2006-01-02", applicationDate)
 	if err != nil {
-		return a, err
+		// return a, err
 	}
 
 	return a, nil
