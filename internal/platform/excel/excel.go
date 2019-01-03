@@ -297,6 +297,11 @@ func PaymentReport(ds datastore.Datastore, payments []payment.Payment) (*exceliz
 		log.Printf("NewStyle() err = %s\n", err)
 	}
 
+	currencyStyle, err := file.NewStyle(`{"number_format": 169}`)
+	if err != nil {
+		log.Printf("NewStyle() err = %s\n", err)
+	}
+
 	// data rows
 	var total float64
 	for _, p := range payments {
@@ -311,10 +316,6 @@ func PaymentReport(ds datastore.Datastore, payments []payment.Payment) (*exceliz
 		row[keys[2]] = p.Member + " [" + strconv.Itoa(p.MemberID) + "]"
 		row[keys[3]] = p.Type
 
-		currencyStyle, err := file.NewStyle(`{"number_format": 8}`)
-		if err != nil {
-			log.Printf("NewStyle() err = %s\n", err)
-		}
 		file.SetCellStyle("Sheet1", keys[4], keys[4], currencyStyle)
 		row[keys[4]] = p.Amount
 		total += p.Amount
@@ -334,15 +335,15 @@ func PaymentReport(ds datastore.Datastore, payments []payment.Payment) (*exceliz
 
 	// total
 	rowNum++
-	style, err := file.NewStyle(`{"font":{"bold":true}}`)
+	totalStyle, err := file.NewStyle(`{"number_format": 169, "font":{"bold":true}}`)
 	if err != nil {
 		log.Printf("NewStyle() err = %s\n", err)
 	}
 	cellLabel := "D" + strconv.Itoa(rowNum)
-	file.SetCellStyle("Sheet1", cellLabel, cellLabel, style)
+	file.SetCellStyle("Sheet1", cellLabel, cellLabel, totalStyle)
 	file.SetCellValue("Sheet1", cellLabel, "Total")
 	cellValue := "E" + strconv.Itoa(rowNum)
-	file.SetCellStyle("Sheet1", cellValue, cellValue, style)
+	file.SetCellStyle("Sheet1", cellValue, cellValue, totalStyle)
 	file.SetCellValue("Sheet1", cellValue, total)
 
 	return file, nil
