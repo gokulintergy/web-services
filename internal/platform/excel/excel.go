@@ -349,6 +349,25 @@ func PaymentReport(ds datastore.Datastore, payments []payment.Payment) (*exceliz
 	return file, nil
 }
 
+func TestReport() (*excelize.File, error) {
+
+	f := New([]string{"one", "two", "three"})
+	r1 := []interface{}{1, 2, 3}
+	r2 := []interface{}{4, 5, 6}
+	r3 := []interface{}{7, 8, 9}
+	r4 := []interface{}{10, 11, 12}
+	f.AddRow(r1)
+	f.AddRow(r2)
+	f.AddRow(r3)
+	f.AddRow(r4)
+
+	f.SetColWidthByHeading("one", 40)
+	f.SetColStyleByHeading("one", `{"font": {"color": "#ff0000"}}`)
+	//f.SetColWidthByHeading("three", 80)
+
+	return f.XLSX, nil
+}
+
 // columnkeys generates the specified number of column references - eg "A", "B" ... "Z", "AA", "AB" etc.
 func columnKeys(numCols int) []string {
 
