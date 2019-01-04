@@ -20,7 +20,6 @@ import (
 	"github.com/cardiacsociety/web-services/internal/member"
 	"github.com/cardiacsociety/web-services/internal/note"
 	"github.com/cardiacsociety/web-services/internal/payment"
-	"github.com/cardiacsociety/web-services/internal/platform/excel"
 	"github.com/cardiacsociety/web-services/internal/platform/s3"
 	"github.com/cardiacsociety/web-services/internal/resource"
 )
@@ -607,7 +606,7 @@ func AdminReportApplicationExcel(w http.ResponseWriter, r *http.Request) {
 			log.Printf("application.ByIDs() err = %s\n", err)
 		}
 
-		excelFile, err := excel.ApplicationReport(DS, xa)
+		excelFile, err := application.ExcelReport(DS, xa)
 		if err != nil {
 			log.Printf("Could not create excel report - err = %s\n", err)
 		}
@@ -661,7 +660,7 @@ func AdminReportMemberExcel(w http.ResponseWriter, r *http.Request) {
 			log.Printf(fmt.Sprintf("SearchDocDB() err = %s\n", err))
 		}
 
-		excelFile, err := excel.MemberReport(memberList)
+		excelFile, err := member.ExcelReport(memberList)
 		if err != nil {
 			log.Printf(fmt.Sprintf("Could not create excel report - err = %s\n", err))
 		}
@@ -700,7 +699,7 @@ func AdminReportPaymentExcel(w http.ResponseWriter, r *http.Request) {
 			log.Printf(fmt.Sprintf("payment.ByIDs() err = %s\n", err))
 		}
 
-		excelFile, err := excel.PaymentReport(DS, xa)
+		excelFile, err := payment.ExcelReport(DS, xa)
 		if err != nil {
 			log.Printf(fmt.Sprintf("Could not create excel report - err = %s\n", err))
 		}
