@@ -19,15 +19,7 @@ import (
 // MemberReport returns an excel member report File
 func MemberReport(members []member.Member) (*excelize.File, error) {
 
-	var rowNum int
-	file := excelize.NewFile()
-
-	// heading row
-	rowNum++
-	headingStyle, _ := file.NewStyle(`{"font": {"bold": true}}`)
-	file.SetCellStyle("Sheet1", "A1", "ZZ1", headingStyle)
-
-	xt := []string{
+	f := New([]string{
 		"Member ID",
 		"Prefix",
 		"First Name",
@@ -66,123 +58,109 @@ func MemberReport(members []member.Member) (*excelize.File, error) {
 		"First Speciality",
 		"Second Speciality",
 		"Third Speciality",
-	}
-	xc := columnKeys(len(xt))
-	for i := range xt {
-		cell := xc[i] + strconv.Itoa(rowNum) // "A1", "A2" etc
-		value := xt[i]
-		file.SetCellValue("Sheet1", cell, value)
-	}
-
-	dateStyle, err := file.NewStyle(`{"alignment": {"horizontal": "right"}, "custom_number_format": "dd mmm yyyy"}`)
-	if err != nil {
-		log.Printf("NewStyle() err = %s\n", err)
-	}
+	})
 
 	// data rows
 	for _, m := range members {
-		rowNum++
-		row := make(map[string]interface{}, len(xc))
-		keys := rowKeys(xc, rowNum)
-		row[keys[0]] = m.ID
-		row[keys[1]] = m.Title
-		row[keys[2]] = m.FirstName
-		row[keys[3]] = strings.Join(m.MiddleNames, " ")
-		row[keys[4]] = m.LastName
-		row[keys[5]] = m.PostNominal
-		row[keys[6]] = m.Gender
 
-		file.SetCellStyle("Sheet1", keys[7], keys[7], dateStyle)
-		row[keys[7]] = m.DateOfBirth // string
-		dob, err := time.Parse("2006-01-02", m.DateOfBirth)
+		var dob interface{}
+		dob = m.DateOfBirth // string
+		d, err := time.Parse("2006-01-02", m.DateOfBirth)
 		if err == nil {
-			row[keys[7]] = dob // time.Time will accept the dateStyle formatting
+			dob = d // time.Time will accept the dateStyle formatting
 		}
 
-		row[keys[8]] = m.Contact.EmailPrimary
-		row[keys[9]] = m.Contact.EmailSecondary
-		row[keys[10]] = m.Contact.Mobile
-
-		file.SetCellStyle("Sheet1", keys[11], keys[11], dateStyle)
-		row[keys[11]] = m.DateOfEntry // string
-		doe, err := time.Parse("2006-01-02", m.DateOfEntry)
+		var doe interface{}
+		doe = m.DateOfEntry // string
+		de, err := time.Parse("2006-01-02", m.DateOfEntry)
 		if err == nil {
-			row[keys[11]] = doe // time.Time will accept the dateStyle formatting
+			doe = de // time.Time will accept the dateStyle formatting
 		}
 
+		var title string
+		var status string
 		if len(m.Memberships) > 0 {
-			row[keys[12]] = m.Memberships[0].Title
-			row[keys[13]] = m.Memberships[0].Status
+			title = m.Memberships[0].Title
+			status = m.Memberships[0].Status
 		}
 
-		row[keys[14]] = m.Country
-
+		var tags string
 		if len(m.Tags) > 0 {
-			row[keys[15]] = strings.Join(m.Tags, ", ")
+			tags = strings.Join(m.Tags, ", ")
 		}
-
-		row[keys[16]] = m.JournalNumber
-		row[keys[17]] = m.BpayNumber
 
 		// ContactLocationByType returns an empty struct and an error if not found
 		// so can ignore error and write an empty cell
-		mailLocation, _ := m.ContactLocationByDesc("mail")
-		row[keys[18]] = strings.Join(mailLocation.Address, " ")
-		row[keys[19]] = mailLocation.City
-		row[keys[20]] = mailLocation.State
-		row[keys[21]] = mailLocation.Postcode
-		row[keys[22]] = mailLocation.Country
-
-		directoryLocation, _ := m.ContactLocationByDesc("directory")
-		row[keys[23]] = strings.Join(directoryLocation.Address, " ")
-		row[keys[24]] = directoryLocation.City
-		row[keys[25]] = directoryLocation.State
-		row[keys[26]] = directoryLocation.Postcode
-		row[keys[27]] = directoryLocation.Country
-		row[keys[28]] = directoryLocation.Phone
-		row[keys[29]] = directoryLocation.Fax
-		row[keys[30]] = directoryLocation.Email
-		row[keys[31]] = directoryLocation.URL
+		mail, _ := m.ContactLocationByDesc("mail")
+		directory, _ := m.ContactLocationByDesc("directory")
 
 		p1, _ := m.PositionByName("First Council Affiliation")
-		row[keys[32]] = p1.OrgName
 		p2, _ := m.PositionByName("Second Council Affiliation")
-		row[keys[33]] = p2.OrgName
 		p3, _ := m.PositionByName("Third Council Affiliation")
-		row[keys[34]] = p3.OrgName
 
 		// There can be many specialities, but generally up to 3 for the report
 		// they *should* be returned in order of preference
+		var s1, s2, s3 string
 		if len(m.Specialities) > 0 {
-			row[keys[35]] = m.Specialities[0].Name
+			s1 = m.Specialities[0].Name
 		}
 		if len(m.Specialities) > 1 {
-			row[keys[36]] = m.Specialities[1].Name
+			s2 = m.Specialities[1].Name
 		}
 		if len(m.Specialities) > 2 {
-			row[keys[37]] = m.Specialities[2].Name
+			s3 = m.Specialities[2].Name
 		}
 
-		for i, t := range row {
-			file.SetCellValue("Sheet1", i, t)
+		data := []interface{}{
+			m.ID,
+			m.Title,
+			m.FirstName,
+			strings.Join(m.MiddleNames, " "),
+			m.LastName,
+			m.PostNominal,
+			m.Gender,
+			dob,
+			m.Contact.EmailPrimary,
+			m.Contact.EmailSecondary,
+			m.Contact.Mobile,
+			doe,
+			title,
+			status,
+			m.Country,
+			tags,
+			m.JournalNumber,
+			m.BpayNumber,
+			strings.Join(mail.Address, " "),
+			mail.City,
+			mail.State,
+			mail.Postcode,
+			mail.Country,
+			strings.Join(directory.Address, " "),
+			directory.City,
+			directory.State,
+			directory.Postcode,
+			directory.Country,
+			directory.Phone,
+			directory.Fax,
+			directory.Email,
+			directory.URL,
+			p1.OrgName,
+			p2.OrgName,
+			p3.OrgName,
+			s1,
+			s2,
+			s3,
 		}
+		f.AddRow(data)
 	}
 
-	return file, nil
+	return f.XLSX, nil
 }
 
 // ApplicationReport returns an excel application report File
 func ApplicationReport(ds datastore.Datastore, applications []application.Application) (*excelize.File, error) {
 
-	var rowNum int
-	file := excelize.NewFile()
-
-	// heading row
-	rowNum++
-	headingStyle, _ := file.NewStyle(`{"font": {"bold": true}}`)
-	file.SetCellStyle("Sheet1", "A1", "ZZ1", headingStyle)
-
-	xt := []string{
+	f := New([]string{
 		"Application ID",
 		"Application date",
 		"Member ID",
@@ -196,36 +174,10 @@ func ApplicationReport(ds datastore.Datastore, applications []application.Applic
 		"Region",
 		"Result",
 		"Comment",
-	}
-	xc := columnKeys(len(xt))
-	for i := range xt {
-		cell := xc[i] + strconv.Itoa(rowNum) // "A1", "A2" etc
-		value := xt[i]
-		file.SetCellValue("Sheet1", cell, value)
-	}
-
-	dateStyle, err := file.NewStyle(`{"custom_number_format": "dd mmm yyyy"}`)
-	if err != nil {
-		log.Printf("NewStyle() err = %s\n", err)
-	}
+	})
 
 	// data rows
 	for _, a := range applications {
-		rowNum++
-		row := make(map[string]interface{}, len(xc))
-		keys := rowKeys(xc, rowNum)
-		row[keys[0]] = a.ID
-
-		file.SetCellStyle("Sheet1", keys[1], keys[1], dateStyle)
-		row[keys[1]] = a.Date
-
-		row[keys[2]] = a.MemberID
-		row[keys[3]] = a.Member
-		row[keys[4]] = a.NominatorID.Int64
-		row[keys[5]] = a.Nominator
-		row[keys[6]] = a.SeconderID.Int64
-		row[keys[7]] = a.Seconder
-		row[keys[8]] = a.For
 
 		var tags string
 		var region string
@@ -237,8 +189,6 @@ func ApplicationReport(ds datastore.Datastore, applications []application.Applic
 			tags = strings.Join(m.Tags, ", ")
 			region = m.Country + " " + m.Contact.Locations[0].State + " " + m.Contact.Locations[0].City
 		}
-		row[keys[9]] = tags
-		row[keys[10]] = region
 
 		var status string
 		if a.Status == -1 {
@@ -250,120 +200,84 @@ func ApplicationReport(ds datastore.Datastore, applications []application.Applic
 		if a.Status == 1 {
 			status = "accepted"
 		}
-		row[keys[11]] = status
 
-		row[keys[12]] = a.Comment
-
-		for i, t := range row {
-			file.SetCellValue("Sheet1", i, t)
+		data := []interface{}{
+			a.ID,
+			a.Date,
+			a.MemberID,
+			a.Member,
+			a.NominatorID.Int64,
+			a.Nominator,
+			a.SeconderID.Int64,
+			a.Seconder,
+			a.For,
+			tags,
+			region,
+			status,
+			a.Comment,
 		}
+
+		f.AddRow(data)
 	}
 
-	return file, nil
+	// customise style
+	f.SetColStyleByHeading("Application date", styleDate)
+	f.SetColWidthByHeading("Application date", 18)
+
+	return f.XLSX, nil
 }
 
 // PaymentReport returns an excel payment report File
 func PaymentReport(ds datastore.Datastore, payments []payment.Payment) (*excelize.File, error) {
 
-	var rowNum int
-	file := excelize.NewFile()
-	file.SetColWidth("Sheet1", "B", "B", 16)
-	file.SetColWidth("Sheet1", "C", "C", 20)
-	file.SetColWidth("Sheet1", "D", "D", 16)
-
-	// heading row
-	rowNum++
-	headingStyle, _ := file.NewStyle(`{"font": {"bold": true}}`)
-	file.SetCellStyle("Sheet1", "A1", "Z1", headingStyle)
-
-	xt := []string{
+	f := New([]string{
 		"Payment ID",
-		"Payment Date",
+		"Payment date",
 		"Member",
-		"Payment Type",
+		"Payment type",
 		"Amount",
 		"Invoice",
 		"Comment",
-	}
-	xc := columnKeys(len(xt))
-	for i := range xt {
-		cell := xc[i] + strconv.Itoa(rowNum) // "A1", "A2" etc
-		value := xt[i]
-		file.SetCellValue("Sheet1", cell, value)
-	}
-
-	dateStyle, err := file.NewStyle(`{"custom_number_format": "dd mmm yyyy"}`)
-	if err != nil {
-		log.Printf("NewStyle() err = %s\n", err)
-	}
-
-	currencyStyle, err := file.NewStyle(`{"number_format": 169}`)
-	if err != nil {
-		log.Printf("NewStyle() err = %s\n", err)
-	}
+	})
 
 	// data rows
 	var total float64
 	for _, p := range payments {
-		rowNum++
-		keys := rowKeys(xc, rowNum)
-		row := make(map[string]interface{}, len(xc))
-		row[keys[0]] = p.ID
 
-		file.SetCellStyle("Sheet1", keys[1], keys[1], dateStyle)
-		row[keys[1]] = p.Date
-
-		row[keys[2]] = p.Member + " [" + strconv.Itoa(p.MemberID) + "]"
-		row[keys[3]] = p.Type
-
-		file.SetCellStyle("Sheet1", keys[4], keys[4], currencyStyle)
-		row[keys[4]] = p.Amount
-		total += p.Amount
-
-		var invoiceAllocations []string
+		var ia []string
 		for _, i := range p.Allocations {
-			invoiceAllocations = append(invoiceAllocations, strconv.Itoa(i.InvoiceID))
+			ia = append(ia, strconv.Itoa(i.InvoiceID))
 		}
-		row[keys[5]] = strings.Join(invoiceAllocations, ", ")
+		invoiceAllocations := strings.Join(ia, ", ")
 
-		row[keys[6]] = p.Comment
-
-		for i, t := range row {
-			file.SetCellValue("Sheet1", i, t)
+		data := []interface{}{
+			p.ID,
+			p.Date,
+			p.Member + " [" + strconv.Itoa(p.MemberID) + "]",
+			p.Type,
+			p.Amount,
+			invoiceAllocations,
+			p.Comment,
 		}
+		f.AddRow(data)
+
+		total += p.Amount
 	}
 
-	// total
-	rowNum++
-	totalStyle, err := file.NewStyle(`{"number_format": 169, "font":{"bold":true}}`)
-	if err != nil {
-		log.Printf("NewStyle() err = %s\n", err)
-	}
-	cellLabel := "D" + strconv.Itoa(rowNum)
-	file.SetCellStyle("Sheet1", cellLabel, cellLabel, totalStyle)
-	file.SetCellValue("Sheet1", cellLabel, "Total")
-	cellValue := "E" + strconv.Itoa(rowNum)
-	file.SetCellStyle("Sheet1", cellValue, cellValue, totalStyle)
-	file.SetCellValue("Sheet1", cellValue, total)
+	// total row
+	r := []interface{}{"", "", "", "Total", total, "", ""}
+	f.AddRow(r)
 
-	return file, nil
-}
-
-func TestReport() (*excelize.File, error) {
-
-	f := New([]string{"one", "two", "three"})
-	r1 := []interface{}{1, 2, 3}
-	r2 := []interface{}{4, 5, 6}
-	r3 := []interface{}{7, 8, 9}
-	r4 := []interface{}{10, 11, 12}
-	f.AddRow(r1)
-	f.AddRow(r2)
-	f.AddRow(r3)
-	f.AddRow(r4)
-
-	f.SetColWidthByHeading("one", 40)
-	f.SetColStyleByHeading("one", `{"font": {"color": "#ff0000"}}`)
-	//f.SetColWidthByHeading("three", 80)
+	// style
+	f.SetColStyleByHeading("Payment date", styleDate)
+	f.SetColWidthByHeading("Payment date", 18)
+	f.SetColWidthByHeading("Member", 18)
+	f.SetColStyleByHeading("Amount", styleCurrency)
+	f.SetColWidthByHeading("Amount", 18)
+	cell := "D" + strconv.Itoa(f.nextRow)
+	f.SetCellStyle(cell, cell, styleBold)
+	cell = "E" + strconv.Itoa(f.nextRow)
+	f.SetCellStyle(cell, cell, styleBoldCurrency)
 
 	return f.XLSX, nil
 }

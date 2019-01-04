@@ -708,25 +708,3 @@ func AdminReportPaymentExcel(w http.ResponseWriter, r *http.Request) {
 		DS.Cache.SetDefault(cacheID, excelFile)
 	}()
 }
-
-// AdminReportTestExcel tests the excel abstration
-func AdminReportTestExcel(w http.ResponseWriter, r *http.Request) {
-
-	p := NewResponder(UserAuthToken.Encoded)
-
-	// send 202 now, before the heavy lifting starts
-	cacheID, _ := uuid.GenerateUUID()
-	msg := fmt.Sprintf("Report has been queued, pickup url below")
-	p.Message = Message{http.StatusAccepted, "accepted", msg}
-	url := os.Getenv("MAPPCPD_API_URL") + "/v1/r/excel/" + cacheID
-	p.Data = map[string]string{"url": url}
-	p.Send(w)
-
-	go func() {
-		excelFile, err := excel.TestReport()
-		if err != nil {
-			log.Printf(fmt.Sprintf("Could not create excel report - err = %s\n", err))
-		}
-		DS.Cache.SetDefault(cacheID, excelFile)
-	}()
-}

@@ -3,7 +3,6 @@ package excel
 
 import (
 	"errors"
-	"fmt"
 	"log"
 	"math"
 	"strconv"
@@ -66,9 +65,7 @@ func (f *File) SetHeadingStyle(style string) {
 func (f *File) SetAllColWidths(width int) {
 	startCell := f.Columns[0].Ref
 	endCell := f.Columns[len(f.Columns)-1].Ref
-	fmt.Println("Setting all column widths ref:", startCell, endCell)
-	//	f.XLSX.SetColWidth(defaultSheetName, startCell, endCell, float64(width))
-	f.XLSX.SetColWidth(defaultSheetName, "A", "C", float64(width))
+	f.XLSX.SetColWidth(defaultSheetName, startCell, endCell, float64(width))
 }
 
 // SetColWidthByHeading sets the width for a single column specified by the column heading
@@ -95,7 +92,6 @@ func (f *File) SetColStyleByHeading(heading string, style string) {
 
 // SetColWidth sets the width for a single column specified by colRef, eg "A", "BA" etc
 func (f *File) SetColWidth(colRef string, width int) {
-	fmt.Println("Set col width for col", colRef, width)
 	f.XLSX.SetColWidth(defaultSheetName, colRef, colRef, float64(width))
 }
 
