@@ -1,6 +1,7 @@
 package member
 
 import (
+	"log"
 	"strings"
 	"time"
 
@@ -141,7 +142,10 @@ func ExcelReport(members []Member) (*excelize.File, error) {
 			s2,
 			s3,
 		}
-		f.AddRow(data)
+		err := f.AddRow(data)
+		if err != nil {
+			log.Printf("AddRow() err = %s\n", err)
+		}
 	}
 
 	f.SetColStyleByHeading("Date of birth", excel.DateStyle)

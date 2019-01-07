@@ -1,6 +1,7 @@
 package payment
 
 import (
+	"log"
 	"strconv"
 	"strings"
 
@@ -41,14 +42,20 @@ func ExcelReport(ds datastore.Datastore, payments []Payment) (*excelize.File, er
 			invoiceAllocations,
 			p.Comment,
 		}
-		f.AddRow(data)
+		err := f.AddRow(data)
+		if err != nil {
+			log.Printf("AddRow() err = %s\n", err)
+		}
 
 		total += p.Amount
 	}
 
 	// total row
 	r := []interface{}{"", "", "", "Total", total, "", ""}
-	f.AddRow(r)
+	err := f.AddRow(r)
+	if err != nil {
+		log.Printf("AddRow() err = %s\n", err)
+	}
 
 	// style
 	f.SetColStyleByHeading("Payment date", excel.DateStyle)

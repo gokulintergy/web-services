@@ -70,7 +70,10 @@ func ExcelReport(ds datastore.Datastore, applications []Application) (*excelize.
 			a.Comment,
 		}
 
-		f.AddRow(data)
+		err := f.AddRow(data)
+		if err != nil {
+			log.Printf("AddRow() err = %s\n", err)
+		}
 	}
 
 	// customise style
