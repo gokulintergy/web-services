@@ -6,15 +6,15 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/hashicorp/go-uuid"
 	"github.com/cardiacsociety/web-services/internal/platform/datastore"
+	"github.com/hashicorp/go-uuid"
 	"github.com/nleof/goyesql"
 	"github.com/pkg/errors"
 	"gopkg.in/mgo.v2/bson"
 )
 
 // Hard coded for local dev and Travis CI
-const MySQLDSN = "root:@tcp(localhost:3306)/"
+const MySQLDSN = "root:password@tcp(localhost:3306)/"
 const MongoDSN = "mongodb://localhost/mapp_demo"
 
 var path = os.Getenv("GOPATH") + "/src/github.com/cardiacsociety/web-services/testdata/"
@@ -44,8 +44,8 @@ func NewDataStore() *TestStore {
 			},
 			MongoDB: datastore.MongoDBConnection{
 				DBName: n,
-				DSN: MongoDSN,
-				Desc: "test Mongo database",
+				DSN:    MongoDSN,
+				Desc:   "test Mongo database",
 			},
 		},
 	}
