@@ -13,12 +13,9 @@ SELECT
     i.member_id AS MemberID,
 	COALESCE(CONCAT(m.first_name, ' ', m.last_name), '') AS Member,
 	i.invoiced_on as IssueDate,
-	i.last_sent_at as LastSentDate,
     i.due_on AS DueDate,
     IFNULL(i.fn_subscription_id, 0) AS SubscriptionID,
     COALESCE(s.name, '') as Subscription,
-    i.start_on AS FromDate,
-    i.end_on AS ToDate,
     i.invoice_total AS Amount,
     i.paid AS Paid,
     COALESCE(i.comment,'') AS Comment

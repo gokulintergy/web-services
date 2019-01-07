@@ -11,19 +11,16 @@ import (
 
 // Invoice represents an invoice :)
 type Invoice struct {
-	ID           int       `json:"id" bson:"id"`
-	CreatedAt    time.Time `json:"createdAt" bson:"createdAt"`
-	UpdatedAt    time.Time `json:"updatedAt" bson:"updatedAt"`
-	MemberID     int       `json:"memberId" bson:"memberId"`
-	Member       string    `json:"member" bson:"member"`
-	IssueDate    time.Time `json:"issueDate" bson:"issueDate"`
-	LastSendDate time.Time `json:"lastSendDate" bson:"lastSendDate"`
-	DueDate      time.Time `json:"dueDate" bson:"dueDate"`
+	ID        int       `json:"id" bson:"id"`
+	CreatedAt time.Time `json:"createdAt" bson:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt" bson:"updatedAt"`
+	MemberID  int       `json:"memberId" bson:"memberId"`
+	Member    string    `json:"member" bson:"member"`
+	IssueDate time.Time `json:"issueDate" bson:"issueDate"`
+	DueDate   time.Time `json:"dueDate" bson:"dueDate"`
 
-	SubscriptionID int       `json:"subscriptionID" bson:"subscriptionID"`
-	Subscription   string    `json:"subscription" bson:"subscription"`
-	FromDate       time.Time `json:"fromDate" bson:"fromDate"`
-	ToDate         time.Time `json:"toDate" bson:"toDate"`
+	SubscriptionID int    `json:"subscriptionID" bson:"subscriptionID"`
+	Subscription   string `json:"subscription" bson:"subscription"`
 
 	Amount  float64 `json:"Amount" bson:"Amount"`
 	Paid    bool    `json:"paid" bson:"paid"`
@@ -85,11 +82,9 @@ func scanRow(row *sql.Rows) (Invoice, error) {
 	var i Invoice
 
 	// values that will need some manipulation
-	var createdAt, updatedAt string             // data dates
-	var issueDate, lastSendDate, dueDate string // invoice dates
-	var fromDate, toDate string                 // subscription period dates
-
-	var paid int // 0,1 represents boolean in database
+	var createdAt, updatedAt string // data dates
+	var issueDate, dueDate string   // invoice dates
+	var paid int                    // 0,1 represents boolean in database
 
 	err := row.Scan(
 		&i.ID,
@@ -98,12 +93,9 @@ func scanRow(row *sql.Rows) (Invoice, error) {
 		&i.MemberID,
 		&i.Member,
 		&issueDate,
-		&lastSendDate,
 		&dueDate,
 		&i.SubscriptionID,
 		&i.Subscription,
-		&fromDate,
-		&toDate,
 		&i.Amount,
 		&paid,
 		&i.Comment,
@@ -125,19 +117,7 @@ func scanRow(row *sql.Rows) (Invoice, error) {
 	if err != nil {
 		return i, err
 	}
-	i.LastSendDate, err = time.Parse("2006-01-02 15:04:05", lastSendDate)
-	if err != nil {
-		return i, err
-	}
 	i.DueDate, err = time.Parse("2006-01-02", dueDate)
-	if err != nil {
-		return i, err
-	}
-	i.FromDate, err = time.Parse("2006-01-02", fromDate)
-	if err != nil {
-		return i, err
-	}
-	i.ToDate, err = time.Parse("2006-01-02", toDate)
 	if err != nil {
 		return i, err
 	}
