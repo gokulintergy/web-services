@@ -17,6 +17,7 @@ import (
 	"github.com/cardiacsociety/web-services/internal/attachments"
 	"github.com/cardiacsociety/web-services/internal/fileset"
 	"github.com/cardiacsociety/web-services/internal/generic"
+	"github.com/cardiacsociety/web-services/internal/invoice"
 	"github.com/cardiacsociety/web-services/internal/member"
 	"github.com/cardiacsociety/web-services/internal/note"
 	"github.com/cardiacsociety/web-services/internal/payment"
@@ -700,6 +701,45 @@ func AdminReportPaymentExcel(w http.ResponseWriter, r *http.Request) {
 		}
 
 		excelFile, err := payment.ExcelReport(DS, xa)
+		if err != nil {
+			log.Printf(fmt.Sprintf("Could not create excel report - err = %s\n", err))
+		}
+
+		DS.Cache.SetDefault(cacheID, excelFile)
+	}()
+}
+
+// AdminReportInvoiceExcel responds with an excel invoice report
+func AdminReportInvoiceExcel(w http.ResponseWriter, r *http.Request) {
+
+	p := NewResponder(UserAuthToken.Encoded)
+
+	// A list of invoice ids should be posted in
+	var invoiceIDs []int
+	err := json.NewDecoder(r.Body).Decode(&invoiceIDs)
+	if err != nil {
+		msg := fmt.Sprintf("Could not decode list of invoice ids in body - %s", err)
+		p.Message = Message{http.StatusInternalServerError, "failed", msg}
+		p.Send(w)
+		return
+	}
+
+	// send 202 now, before the heavy lifting starts
+	cacheID, _ := uuid.GenerateUUID()
+	msg := fmt.Sprintf("Report has been queued, pickup url below")
+	p.Message = Message{http.StatusAccepted, "accepted", msg}
+	url := os.Getenv("MAPPCPD_API_URL") + "/v1/r/excel/" + cacheID
+	p.Data = map[string]string{"url": url}
+	p.Send(w)
+
+	// generate the report
+	go func() {
+		xi, err := invoice.ByIDs(DS, invoiceIDs)
+		if err != nil {
+			log.Printf(fmt.Sprintf("invoice.ByIDs() err = %s\n", err))
+		}
+
+		excelFile, err := invoice.ExcelReport(DS, xi)
 		if err != nil {
 			log.Printf(fmt.Sprintf("Could not create excel report - err = %s\n", err))
 		}
