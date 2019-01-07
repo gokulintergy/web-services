@@ -1,7 +1,7 @@
 package activity
 
-// Queries is a map containing common queries for the package
-var Queries = map[string]string{
+// queries is a map containing common queries for the package
+var queries = map[string]string{
 	"select-activities": selectActivities,
 }
 

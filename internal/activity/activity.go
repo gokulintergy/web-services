@@ -82,7 +82,7 @@ func activityList(ds datastore.Datastore) ([]Activity, error) {
 
 	var xa []Activity
 
-	q := Queries["select-activities"] + " WHERE a.active = 1"
+	q := queries["select-activities"] + " WHERE a.active = 1"
 	rows, err := ds.MySQL.Session.Query(q)
 	if err != nil {
 		return xa, err
@@ -104,7 +104,7 @@ func activityByID(ds datastore.Datastore, id int) (Activity, error) {
 
 	var a Activity
 
-	q := Queries["select-activities"] + ` WHERE a.id = ? LIMIT 1`
+	q := queries["select-activities"] + ` WHERE a.id = ? LIMIT 1`
 	rows, err := ds.MySQL.Session.Query(q, id) // not using .QueryRow so can share scanActivity func
 	if err != nil {
 		return a, err
