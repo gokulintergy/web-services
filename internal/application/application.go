@@ -12,19 +12,19 @@ import (
 
 // Application describes an application for membership
 type Application struct {
-	ID          int           `json:"id" bson:"id"`
-	CreatedAt   time.Time     `json:"createdAt" bson:"createdAt"`
-	UpdatedAt   time.Time     `json:"updatedAt" bson:"updatedAt"`
-	MemberID    int           `json:"memberId" bson:"memberId"`
-	Member      string        `json:"member" bson:"member"`
-	NominatorID sql.NullInt64 `json:"nominatorId" bson:"nominatorId"`
-	Nominator   string        `json:"nominator" bson:"nominator"`
-	SeconderID  sql.NullInt64 `json:"seconderId" bson:"seconderId"`
-	Seconder    string        `json:"seconder" bson:"seconder"`
-	Date        time.Time     `json:"date" bson:"date"`
-	For         string        `json:"applyingFor" bson:"applyingFor"`
-	Status      int           `json:"status" bson:"status"`
-	Comment     string        `json:"comment" bson:"comment"`
+	ID          int       `json:"id" bson:"id"`
+	CreatedAt   time.Time `json:"createdAt" bson:"createdAt"`
+	UpdatedAt   time.Time `json:"updatedAt" bson:"updatedAt"`
+	MemberID    int       `json:"memberId" bson:"memberId"`
+	Member      string    `json:"member" bson:"member"`
+	NominatorID int       `json:"nominatorId" bson:"nominatorId"`
+	Nominator   string    `json:"nominator" bson:"nominator"`
+	SeconderID  int       `json:"seconderId" bson:"seconderId"`
+	Seconder    string    `json:"seconder" bson:"seconder"`
+	Date        time.Time `json:"date" bson:"date"`
+	For         string    `json:"applyingFor" bson:"applyingFor"`
+	Status      int       `json:"status" bson:"status"`
+	Comment     string    `json:"comment" bson:"comment"`
 }
 
 // ByID fetches an application record by id. This returns an error if no result is found.

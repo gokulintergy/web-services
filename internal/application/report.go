@@ -59,9 +59,9 @@ func ExcelReport(ds datastore.Datastore, applications []Application) (*excelize.
 			a.Date,
 			a.MemberID,
 			a.Member,
-			a.NominatorID.Int64,
+			a.NominatorID,
 			a.Nominator,
-			a.SeconderID.Int64,
+			a.SeconderID,
 			a.Seconder,
 			a.For,
 			tags,
@@ -70,7 +70,7 @@ func ExcelReport(ds datastore.Datastore, applications []Application) (*excelize.
 			a.Comment,
 		}
 
-		err := f.AddRow(data)
+		err = f.AddRow(data)
 		if err != nil {
 			log.Printf("AddRow() err = %s\n", err)
 		}

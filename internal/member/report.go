@@ -142,7 +142,7 @@ func ExcelReport(members []Member) (*excelize.File, error) {
 			s2,
 			s3,
 		}
-		err := f.AddRow(data)
+		err = f.AddRow(data)
 		if err != nil {
 			log.Printf("AddRow() err = %s\n", err)
 		}
