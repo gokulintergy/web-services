@@ -22,7 +22,7 @@ const selectMemberActivity = `SELECT
   COALESCE(ca.code, '')                AS 'activityCode',
   COALESCE(ca.name, '')                AS 'activityName',
   COALESCE(ca.description, '')         AS 'activityDescription',
-  cat.id                               AS 'typeId',
+  IFNULL(cat.id, 0)                    AS 'typeId',
   COALESCE(cat.name, '')               AS 'typeName'
 FROM
   ce_m_activity cma

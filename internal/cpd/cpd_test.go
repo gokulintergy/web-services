@@ -132,7 +132,7 @@ func testDuplicateOf(t *testing.T) {
 	i := cpd.Input{
 		MemberID:    a.MemberID,
 		ActivityID:  a.Activity.ID,
-		TypeID:      int(a.Type.ID.Int64),
+		TypeID:      a.Type.ID,
 		Date:        a.Date,
 		Description: a.Description,
 		Evidence:    a.Evidence,
