@@ -89,7 +89,7 @@ func scanRow(row *sql.Rows) (Invoice, error) {
 	var issueDate, lastSendDate, dueDate string // invoice dates
 	var fromDate, toDate string                 // subscription period dates
 
-	var paid int                                // 0,1 represents boolean in database
+	var paid int // 0,1 represents boolean in database
 
 	err := row.Scan(
 		&i.ID,
@@ -142,14 +142,11 @@ func scanRow(row *sql.Rows) (Invoice, error) {
 		return i, err
 	}
 
-<<<<<<< HEAD
 	// Paid bool is 0,1 in the database
 	i.Paid = false
 	if paid == 1 {
 		i.Paid = true
 	}
 
-=======
->>>>>>> dab11a705fb65953e221529b4a3e75261f76c5d0
 	return i, nil
 }

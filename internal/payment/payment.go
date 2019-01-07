@@ -38,7 +38,7 @@ type InvoicePayment struct {
 // ByID returns the Payment identified by paymentID, or an error if not found.
 func ByID(ds datastore.Datastore, paymentID int) (Payment, error) {
 	var p Payment
-	q := fmt.Sprintf(Queries["select-payment-by-id"], paymentID)
+	q := fmt.Sprintf(queries["select-payment-by-id"], paymentID)
 	xp, err := execute(ds, q)
 	if err != nil {
 		return p, err
@@ -53,7 +53,7 @@ func ByID(ds datastore.Datastore, paymentID int) (Payment, error) {
 // ByIDs returns multiple Payment values identified by paymentIDs
 func ByIDs(ds datastore.Datastore, paymentIDs []int) ([]Payment, error) {
 	idList := strings.Trim(strings.Join(strings.Fields(fmt.Sprint(paymentIDs)), ","), "[]")
-	q := Queries["select-payments"] + fmt.Sprintf(" AND p.id IN (%s)", idList)
+	q := queries["select-payments"] + fmt.Sprintf(" AND p.id IN (%s)", idList)
 	return execute(ds, q)
 }
 
@@ -137,7 +137,7 @@ func paymentAllocations(ds datastore.Datastore, paymentID int) ([]InvoicePayment
 
 	var result []InvoicePayment
 
-	q := fmt.Sprintf(Queries["select-payment-allocations"], paymentID)
+	q := fmt.Sprintf(queries["select-payment-allocations"], paymentID)
 	rows, err := ds.MySQL.Session.Query(q)
 	if err != nil {
 		return result, fmt.Errorf("Query() err = %s", err)

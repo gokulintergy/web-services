@@ -1,6 +1,6 @@
 package payment
 
-var Queries = map[string]string{
+var queries = map[string]string{
 	"select-payments":            selectActivePayments,
 	"select-payment-by-id":       selectPaymentByID,
 	"select-payment-allocations": selectPaymentAllocations,

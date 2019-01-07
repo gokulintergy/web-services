@@ -30,7 +30,7 @@ type Application struct {
 // ByID fetches an application record by id. This returns an error if no result is found.
 func ByID(ds datastore.Datastore, applicationID int) (Application, error) {
 	var a Application
-	q := fmt.Sprintf(Queries["select-application-by-id"], applicationID)
+	q := fmt.Sprintf(queries["select-application-by-id"], applicationID)
 	r, err := execute(ds, q)
 	if err != nil {
 		return a, err
@@ -51,13 +51,13 @@ func ByIDs(ds datastore.Datastore, applicationIDs []int) ([]Application, error) 
 
 // ByMemberID fetches application records by member id. This does not return an error if no results are found, only an empty slice.
 func ByMemberID(ds datastore.Datastore, memberID int) ([]Application, error) {
-	q := fmt.Sprintf(Queries["select-applications-by-memberid"], memberID)
+	q := fmt.Sprintf(queries["select-applications-by-memberid"], memberID)
 	return execute(ds, q)
 }
 
 // Query runs a select query with the given clause
 func Query(ds datastore.Datastore, clause string) ([]Application, error) {
-	q := fmt.Sprintf(Queries["select-applications"]+" %s", clause)
+	q := fmt.Sprintf(queries["select-applications"]+" %s", clause)
 	return execute(ds, q)
 }
 

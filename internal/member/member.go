@@ -152,7 +152,7 @@ type Speciality struct {
 // SetHonorific sets the title (Mr, Prof, Dr) and Post nominal, if any
 func (m *Member) SetHonorific(ds datastore.Datastore) error {
 
-	query := Queries["select-member-honorific"]
+	query := queries["select-member-honorific"]
 	err := ds.MySQL.Session.QueryRow(query, m.ID).Scan(&m.Title)
 	if err == sql.ErrNoRows {
 		return nil
@@ -167,7 +167,7 @@ func (m *Member) SetHonorific(ds datastore.Datastore) error {
 // SetCountryc sets the membership country
 func (m *Member) SetCountry(ds datastore.Datastore) error {
 
-	query := Queries["select-member-country"]
+	query := queries["select-member-country"]
 	err := ds.MySQL.Session.QueryRow(query, m.ID).Scan(&m.Country)
 	if err == sql.ErrNoRows {
 		return nil
@@ -182,7 +182,7 @@ func (m *Member) SetCountry(ds datastore.Datastore) error {
 // SetContactLocations populates the Contact.Locations []Location
 func (m *Member) SetContactLocations(ds datastore.Datastore) error {
 
-	query := Queries["select-member-contact-locations"]
+	query := queries["select-member-contact-locations"]
 	rows, err := ds.MySQL.Session.Query(query, m.ID)
 	if err == sql.ErrNoRows {
 		return nil
@@ -254,7 +254,7 @@ func (m *Member) SetMembershipTitle(ds datastore.Datastore, mi int) error {
 	//t := MembershipTitle{}
 	t := ""
 
-	query := Queries["select-membership-title"]
+	query := queries["select-membership-title"]
 	err := ds.MySQL.Session.QueryRow(query, m.ID).Scan(&t)
 	if err == sql.ErrNoRows {
 		// remove the default membership as there is no title
@@ -274,7 +274,7 @@ func (m *Member) SetMembershipTitle(ds datastore.Datastore, mi int) error {
 // MembershipTitle so it uses []MembershipTitle
 func (m *Member) SetMembershipTitleHistory(ds datastore.Datastore, mi int) error {
 
-	query := Queries["select-membership-title-history"]
+	query := queries["select-membership-title-history"]
 	rows, err := ds.MySQL.Session.Query(query, m.ID)
 	if err == sql.ErrNoRows {
 		return nil
@@ -308,7 +308,7 @@ func (m *Member) SetMembershipTitleHistory(ds datastore.Datastore, mi int) error
 func (m *Member) SetMembershipStatus(ds datastore.Datastore, mi int) error {
 
 	s := ""
-	query := Queries["select-membership-status"]
+	query := queries["select-membership-status"]
 	err := ds.MySQL.Session.QueryRow(query, m.ID).Scan(&s)
 	if err == sql.ErrNoRows {
 		// remove the default membership as there is no status
@@ -326,7 +326,7 @@ func (m *Member) SetMembershipStatus(ds datastore.Datastore, mi int) error {
 // SetMembershipStatusHistory populates the Member.StatusHistory field for the Membership at index mi.
 func (m *Member) SetMembershipStatusHistory(ds datastore.Datastore, mi int) error {
 
-	query := Queries["select-membership-status-history"]
+	query := queries["select-membership-status-history"]
 	rows, err := ds.MySQL.Session.Query(query, m.ID)
 	if err == sql.ErrNoRows {
 		return nil
@@ -360,7 +360,7 @@ func (m *Member) SetMembershipStatusHistory(ds datastore.Datastore, mi int) erro
 // SetQualifications sets the qualifications
 func (m *Member) SetQualifications(ds datastore.Datastore) error {
 
-	query := Queries["select-member-qualifications"]
+	query := queries["select-member-qualifications"]
 	rows, err := ds.MySQL.Session.Query(query, m.ID)
 	if err == sql.ErrNoRows {
 		return nil
@@ -401,7 +401,7 @@ func (m *Member) SetQualifications(ds datastore.Datastore) error {
 // SetAccreditations adds member accreditations
 func (m *Member) SetAccreditations(ds datastore.Datastore) error {
 
-	query := Queries["select-member-accreditations"]
+	query := queries["select-member-accreditations"]
 	rows, err := ds.MySQL.Session.Query(query, m.ID)
 	if err == sql.ErrNoRows {
 		return nil
@@ -433,7 +433,7 @@ func (m *Member) SetAccreditations(ds datastore.Datastore) error {
 // SetPositions fetches the Positions held by a member and sets the corresponding fields
 func (m *Member) SetPositions(ds datastore.Datastore) error {
 
-	query := Queries["select-member-positions"]
+	query := queries["select-member-positions"]
 
 	rows, err := ds.MySQL.Session.Query(query, m.ID)
 	if err == sql.ErrNoRows {
@@ -470,7 +470,7 @@ func (m *Member) SetPositions(ds datastore.Datastore) error {
 // SetSpecialities fetches the specialities for a member and sets the corresponding fields
 func (m *Member) SetSpecialities(ds datastore.Datastore) error {
 
-	query := Queries["select-member-specialities"]
+	query := queries["select-member-specialities"]
 	rows, err := ds.MySQL.Session.Query(query, m.ID)
 	if err == sql.ErrNoRows {
 		return nil
@@ -502,7 +502,7 @@ func (m *Member) SetSpecialities(ds datastore.Datastore) error {
 // SetTags fetches the tags for a member
 func (m *Member) SetTags(ds datastore.Datastore) error {
 
-	query := Queries["select-member-tags"]
+	query := queries["select-member-tags"]
 	rows, err := ds.MySQL.Session.Query(query, m.ID)
 	if err == sql.ErrNoRows {
 		return nil
@@ -596,7 +596,7 @@ func ByID(ds datastore.Datastore, id int) (*Member, error) {
 
 	m := Member{ID: id}
 
-	query := Queries["select-member"]
+	query := queries["select-member"]
 
 	var active int
 	var createdAt string

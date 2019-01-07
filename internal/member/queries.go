@@ -1,7 +1,6 @@
 package member
 
-// Queries contains a set of SQL queries for member records
-var Queries = map[string]string{
+var queries = map[string]string{
 	"select-member":                    selectMember,
 	"select-member-honorific":          selectMemberHonorific,
 	"select-member-country":            selectMemberCountry,

@@ -1,7 +1,6 @@
 package application
 
-// Queries is a map containing data queries for the package
-var Queries = map[string]string{
+var queries = map[string]string{
 	"select-applications":             selectActiveApplications,
 	"select-application-by-id":        selectApplicationByID,
 	"select-applications-by-memberid": selectApplicationsByMemberID,
