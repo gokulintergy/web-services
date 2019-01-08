@@ -351,9 +351,9 @@ INSERT INTO `%s`.`mp_m_contact` VALUES
 
 -- name: insert-data-mp_m_position
 INSERT INTO `%s`.`mp_m_position` VALUES
-  (1, 1, 2, 317, 1, NOW(), NOW(), '2017-12-03', '2017-12-03', NULL),
-  (2, 1, 3, 95, 1, NOW(), NOW(), '2018-03-23', '2019-03-26', NULL),
-  (3, 1, 1, 14, 1, NOW(), NOW(), NULL, NULL, NULL);
+  (1, 1, 1, 317, 1, NOW(), NOW(), '2017-12-03', '2017-12-03', NULL),
+  (2, 1, 2, 95, 1, NOW(), NOW(), '2018-03-23', '2019-03-26', NULL),
+  (3, 1, 3, 14, 1, NOW(), NOW(), NULL, NULL, NULL);
 
 -- name: insert-data-mp_m_qualification
 INSERT INTO `%s`.`mp_m_qualification` VALUES
@@ -368,10 +368,10 @@ INSERT INTO `%s`.`mp_m_speciality` VALUES
 
 -- name: insert-data-mp_position
 INSERT INTO `%s`.`mp_position` VALUES
-  (1, 0, 1, '2015-08-30 17:10:25', '2015-08-30 17:10:25', 0, 'AFFIL', 'Affiliation',
+  (1, 0, 1, '2015-08-30 17:10:25', '2015-08-30 17:10:25', 0, 'AFFIL', 'Affiliate',
    '... has an affiliation with an organisation'),
   (2, 0, 1, '2015-08-30 17:10:26', '2015-08-30 17:10:26', 0, 'MEMBER', 'Member', '... is a member of an organisation'),
-  (3, 0, 1, '2015-08-30 17:10:26', '2015-08-30 17:10:26', 0, 'CHAIR', 'CHAIR',
+  (3, 0, 1, '2015-08-30 17:10:26', '2015-08-30 17:10:26', 0, 'CHAIR', 'Chair',
    '... is the chair of a group / committee'),
   (4, 0, 1, '2015-08-30 17:10:26', '2015-08-30 17:10:26', 0, 'MANAGER', 'Manager', 'A management position.');
 
