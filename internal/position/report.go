@@ -26,14 +26,27 @@ func ExcelReport(ds datastore.Datastore, positions []Position) (*excelize.File, 
 	// data rows
 	for _, p := range positions {
 
+		// If dates are bung set to an empty string
+		var startDate, endDate interface{}
+		if p.StartDate.Year() > 1971 { // epoch + 1
+			startDate = p.StartDate
+		} else {
+			startDate = ""
+		}
+		if p.EndDate.Year() > 1971 { // epoch + 1
+			endDate = p.EndDate
+		} else {
+			endDate = ""
+		}
+
 		data := []interface{}{
 			p.MemberPositionID,
 			p.Member + " [" + strconv.Itoa(p.MemberID) + "]",
 			p.Email,
 			p.Name + " [" + strconv.Itoa(p.ID) + "]",
 			p.OrganisationName + " [" + strconv.Itoa(p.OrganisationID) + "]",
-			p.StartDate,
-			p.EndDate,
+			startDate,
+			endDate,
 			p.Comment,
 		}
 		err := f.AddRow(data)
