@@ -28,6 +28,7 @@ func TestAll(t *testing.T) {
 		t.Run("testByMemberID_notFound", testByMemberID_notFound)
 		t.Run("testByNonExistentMemberID", testByNonExistentMemberID)
 		t.Run("testQuery", testQuery)
+		t.Run("testExcelReport", testExcelReport)
 	})
 }
 
@@ -186,3 +187,26 @@ func testQuery(t *testing.T) {
 		}
 	}
 }
+
+// fetch some test data and ensure excel report is not returning an error
+func testExcelReport(t *testing.T) {
+
+	ids := []int{1, 2, 3} // application records
+	want := 4             // expect 4 rows - heading and 3 records
+
+	xp, err := application.ByIDs(ds, ids)
+	if err != nil {
+		t.Fatalf("application.ByIDs() err = %s", err)
+	}
+	f, err := application.ExcelReport(ds, xp)
+	if err != nil {
+		t.Fatalf("application.ExcelReport() err = %s", err)
+	}
+	
+	rows := f.GetRows(f.GetSheetName(f.GetActiveSheetIndex())) // rows is [][]string
+	got := len(rows)
+	if got != want {
+		t.Errorf("GetRows() row count = %d, want %d", got, want)
+	}
+}
+

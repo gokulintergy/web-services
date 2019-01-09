@@ -21,6 +21,7 @@ func TestAll(t *testing.T) {
 		t.Run("testPingDatabase", testPingDatabase)
 		t.Run("testByID", testByID)
 		t.Run("testByIDs", testByIDs)
+		t.Run("testExcelReport", testExcelReport)
 	})
 }
 
@@ -95,5 +96,27 @@ func testByIDs(t *testing.T) {
 		if gotSum != c.wantSum {
 			t.Errorf("invoice.ByIDs(%v) sum amounts = %v, want %v", c.arg, gotSum, c.wantSum)
 		}
+	}
+}
+
+// fetch some test data and ensure excel report is not returning an error
+func testExcelReport(t *testing.T) {
+
+	ids := []int{1, 2} // invoice records
+	want := 4          // expect 4 rows - heading, 2 records and a total row
+
+	xp, err := invoice.ByIDs(ds, ids)
+	if err != nil {
+		t.Fatalf("invoice.ByIDs() err = %s", err)
+	}
+	f, err := invoice.ExcelReport(ds, xp)
+	if err != nil {
+		t.Fatalf("invoice.ExcelReport() err = %s", err)
+	}
+
+	rows := f.GetRows(f.GetSheetName(f.GetActiveSheetIndex())) // rows is [][]string
+	got := len(rows)
+	if got != want {
+		t.Errorf("GetRows() row count = %d, want %d", got, want)
 	}
 }

@@ -15,7 +15,7 @@ import (
 
 // Hard coded for local dev and Travis CI
 const MySQLDSN = "root:password@tcp(localhost:3306)/"
-const MongoDSN = "mongodb://localhost/mapp_demo"
+const MongoDSN = "mongodb://localhost/"
 
 var path = os.Getenv("GOPATH") + "/src/github.com/cardiacsociety/web-services/testdata/"
 var schemaQueries = goyesql.MustParseFile(path + "schema.sql")

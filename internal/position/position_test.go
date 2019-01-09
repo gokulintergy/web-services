@@ -108,7 +108,11 @@ func testByIDs(t *testing.T) {
 
 // fetch some test data and ensure excel report is not returning an error
 func testExcelReport(t *testing.T) {
-	xp, err := position.ByIDs(ds, []int{1, 2, 3})
+
+	ids := []int{1, 2, 3} // position records
+	want := 4             // expect 4 rows - heading and 3 records
+
+	xp, err := position.ByIDs(ds, ids)
 	if err != nil {
 		t.Fatalf("position.ByIDs() err = %s", err)
 	}
@@ -116,9 +120,8 @@ func testExcelReport(t *testing.T) {
 	if err != nil {
 		t.Fatalf("position.ExcelReport() err = %s", err)
 	}
-	// check row count
-	want := 4
-	rows := f.GetRows("Sheet1") // rows is [][]string
+	
+	rows := f.GetRows(f.GetSheetName(f.GetActiveSheetIndex())) // rows is [][]string
 	got := len(rows)
 	if got != want {
 		t.Errorf("GetRows() row count = %d, want %d", got, want)

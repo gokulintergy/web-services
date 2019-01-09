@@ -21,9 +21,10 @@ const DateStyle = `{"custom_number_format": "dd mmm yyyy"}`
 
 // File represents a single-sheet xlsx file
 type File struct {
-	Columns []column
-	NextRow int
-	XLSX    *excelize.File
+	SheetName string
+	Columns   []column
+	NextRow   int
+	XLSX      *excelize.File
 }
 
 type column struct {
@@ -36,6 +37,7 @@ type column struct {
 // New returns a pointer to an excel.File with all columns initialised to defaults
 func New(colNames []string) *File {
 	f := File{}
+	f.SheetName = defaultSheetName
 	f.NextRow = defaultHeadingRow
 	f.XLSX = excelize.NewFile()
 	xc := columnRefs(len(colNames))
@@ -46,7 +48,7 @@ func New(colNames []string) *File {
 			Heading:     colNames[i],
 		}
 		f.Columns = append(f.Columns, c)
-		f.XLSX.SetCellValue(defaultSheetName, c.HeadingCell, c.Heading)
+		f.XLSX.SetCellValue(f.SheetName, c.HeadingCell, c.Heading)
 	}
 
 	f.SetHeadingStyle(defaultHeadingStyle)
@@ -65,7 +67,7 @@ func (f *File) SetHeadingStyle(style string) {
 func (f *File) SetAllColWidths(width int) {
 	startCell := f.Columns[0].Ref
 	endCell := f.Columns[len(f.Columns)-1].Ref
-	f.XLSX.SetColWidth(defaultSheetName, startCell, endCell, float64(width))
+	f.XLSX.SetColWidth(f.SheetName, startCell, endCell, float64(width))
 }
 
 // SetColWidthByHeading sets the width for a single column specified by the column heading
@@ -92,13 +94,13 @@ func (f *File) SetColStyleByHeading(heading string, style string) {
 
 // SetColWidth sets the width for a single column specified by colRef, eg "A", "BA" etc
 func (f *File) SetColWidth(colRef string, width int) {
-	f.XLSX.SetColWidth(defaultSheetName, colRef, colRef, float64(width))
+	f.XLSX.SetColWidth(f.SheetName, colRef, colRef, float64(width))
 }
 
 // SetCellStyle applies a style to the specified cell grid
 func (f *File) SetCellStyle(startCell, endCell, style string) {
 	st, _ := f.XLSX.NewStyle(style)
-	f.XLSX.SetCellStyle(defaultSheetName, startCell, endCell, st)
+	f.XLSX.SetCellStyle(f.SheetName, startCell, endCell, st)
 }
 
 // AddRow adds a row of data to the sheet
@@ -111,7 +113,7 @@ func (f *File) AddRow(data []interface{}) error {
 	f.NextRow++
 	for i, c := range f.Columns {
 		cell := c.Ref + strconv.Itoa(f.NextRow) // eg "A1", "A2"... "AA26"
-		f.XLSX.SetCellValue(defaultSheetName, cell, data[i])
+		f.XLSX.SetCellValue(f.SheetName, cell, data[i])
 	}
 
 	return nil

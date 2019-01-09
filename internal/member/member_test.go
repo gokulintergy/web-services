@@ -36,6 +36,7 @@ func TestMember(t *testing.T) {
 		t.Run("testSearchDocDB", testSearchDocDB)
 		t.Run("testSaveDocDB", testSaveDocDB)
 		t.Run("testSyncUpdated", testSyncUpdated)
+		t.Run("testExcelReport", testExcelReport)
 
 	})
 }
@@ -131,6 +132,29 @@ func testSyncUpdated(t *testing.T) {
 	is.Equal(m.ID, 2)                     // ID should be 2
 	is.Equal(m.Active, false)             // Active should be false
 	is.Equal(m.DateOfBirth, "1948-03-15") // DateOfBirth incorrect
+}
+
+// fetch some test data and ensure excel report is not returning an error
+func testExcelReport(t *testing.T) {
+
+	id := 1   // member record
+	want := 2 // expect 2 rows - heading and 2 record
+
+	m, err := member.ByID(data.Store, id)
+	if err != nil {
+		t.Fatalf("member.ByID() err = %s", err)
+	}
+	xm := []member.Member{*m}
+	f, err := member.ExcelReport(xm)
+	if err != nil {
+		t.Fatalf("member.ExcelReport() err = %s", err)
+	}
+
+	rows := f.GetRows(f.GetSheetName(f.GetActiveSheetIndex())) // rows is [][]string
+	got := len(rows)
+	if got != want {
+		t.Errorf("GetRows() row count = %d, want %d", got, want)
+	}
 }
 
 func printJSON(m member.Member) {
