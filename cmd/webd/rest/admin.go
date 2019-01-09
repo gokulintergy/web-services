@@ -21,8 +21,8 @@ import (
 	"github.com/cardiacsociety/web-services/internal/member"
 	"github.com/cardiacsociety/web-services/internal/note"
 	"github.com/cardiacsociety/web-services/internal/payment"
-	"github.com/cardiacsociety/web-services/internal/position"
 	"github.com/cardiacsociety/web-services/internal/platform/s3"
+	"github.com/cardiacsociety/web-services/internal/position"
 	"github.com/cardiacsociety/web-services/internal/resource"
 )
 
@@ -664,7 +664,47 @@ func AdminReportMemberExcel(w http.ResponseWriter, r *http.Request) {
 
 		excelFile, err := member.ExcelReport(memberList)
 		if err != nil {
-			log.Printf(fmt.Sprintf("Could not create excel report - err = %s\n", err))
+			log.Printf(fmt.Sprintf("member.ExcelReport() err = %s\n", err))
+		}
+
+		DS.Cache.SetDefault(cacheID, excelFile)
+	}()
+}
+
+// AdminReportMemberJournalExcel responds with a excel member report that has fewer fields.
+// It is used as a report for journal recipients.
+func AdminReportMemberJournalExcel(w http.ResponseWriter, r *http.Request) {
+
+	p := NewResponder(UserAuthToken.Encoded)
+
+	var memberIDs []int
+	err := json.NewDecoder(r.Body).Decode(&memberIDs)
+	if err != nil {
+		msg := fmt.Sprintf("Could not decode list of member ids in body - %s", err)
+		p.Message = Message{http.StatusInternalServerError, "failed", msg}
+		p.Send(w)
+		return
+	}
+
+	// send 202 now, before the heavy lifting starts
+	cacheID, _ := uuid.GenerateUUID()
+	msg := fmt.Sprintf("Report has been queued, pickup url below")
+	p.Message = Message{http.StatusAccepted, "accepted", msg}
+	url := os.Getenv("MAPPCPD_API_URL") + "/v1/r/excel/" + cacheID
+	p.Data = map[string]string{"url": url}
+	p.Send(w)
+
+	go func() {
+		var memberList member.Members
+		query := bson.M{"id": bson.M{"$in": memberIDs}}
+		memberList, err := member.SearchDocDB(DS, query)
+		if err != nil {
+			log.Printf(fmt.Sprintf("SearchDocDB() err = %s\n", err))
+		}
+
+		excelFile, err := member.ExcelReportJournal(memberList)
+		if err != nil {
+			log.Printf(fmt.Sprintf("member.ExcelReportJournal() err = %s\n", err))
 		}
 
 		DS.Cache.SetDefault(cacheID, excelFile)
@@ -703,7 +743,7 @@ func AdminReportPaymentExcel(w http.ResponseWriter, r *http.Request) {
 
 		excelFile, err := payment.ExcelReport(DS, xa)
 		if err != nil {
-			log.Printf(fmt.Sprintf("Could not create excel report - err = %s\n", err))
+			log.Printf(fmt.Sprintf("payment.ExcelReport() err = %s\n", err))
 		}
 
 		DS.Cache.SetDefault(cacheID, excelFile)
@@ -742,7 +782,7 @@ func AdminReportInvoiceExcel(w http.ResponseWriter, r *http.Request) {
 
 		excelFile, err := invoice.ExcelReport(DS, xi)
 		if err != nil {
-			log.Printf(fmt.Sprintf("Could not create excel report - err = %s\n", err))
+			log.Printf(fmt.Sprintf(" invoice.ExcelReport() err = %s\n", err))
 		}
 
 		DS.Cache.SetDefault(cacheID, excelFile)
@@ -781,7 +821,7 @@ func AdminReportPositionExcel(w http.ResponseWriter, r *http.Request) {
 
 		excelFile, err := position.ExcelReport(DS, xp)
 		if err != nil {
-			log.Printf(fmt.Sprintf("Could not create excel report - err = %s\n", err))
+			log.Printf(fmt.Sprintf("position.ExcelReport() err = %s\n", err))
 		}
 
 		DS.Cache.SetDefault(cacheID, excelFile)

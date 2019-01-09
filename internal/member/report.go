@@ -155,3 +155,57 @@ func ExcelReport(members []Member) (*excelize.File, error) {
 
 	return f.XLSX, nil
 }
+
+// ExcelReportJournal is a cut down member report
+func ExcelReportJournal(members []Member) (*excelize.File, error) {
+
+	f := excel.New([]string{
+		"Member ID",
+		"Member",
+		"Membership",
+		"Journal no.",
+		"Address",
+		"Locality",
+		"State",
+		"Postcode",
+		"Country",
+		"Email",
+	})
+
+	// data rows
+	for _, m := range members {
+
+		var title string
+		if len(m.Memberships) > 0 {
+			title = m.Memberships[0].Title
+		}
+
+		// ContactLocationByType returns an empty struct and an error if not found
+		// so can ignore error and write an empty cell
+		mail, _ := m.ContactLocationByDesc("mail")
+
+		data := []interface{}{
+			m.ID,
+			m.Title + " " + m.FirstName + " " + m.LastName,
+			title,
+			m.JournalNumber,
+			strings.Join(mail.Address, " "),
+			mail.City,
+			mail.State,
+			mail.Postcode,
+			mail.Country,
+			m.Contact.EmailPrimary,
+		}
+		err := f.AddRow(data)
+		if err != nil {
+			log.Printf("AddRow() err = %s\n", err)
+		}
+	}
+
+	f.SetColWidthByHeading("Member", 18)
+	f.SetColWidthByHeading("Address", 18)
+	f.SetColWidthByHeading("Locality", 18)
+	f.SetColWidthByHeading("Email", 18)
+
+	return f.XLSX, nil
+}
