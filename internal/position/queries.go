@@ -10,16 +10,16 @@ SELECT
     mp.id AS MemberPositionID,
     mp.created_at AS CreatedAt,
     mp.updated_at AS UpdatedAt,
-    mp.member_id AS MemberID,
+    mp.member_id  AS MemberID,
     COALESCE(CONCAT(m.first_name, ' ', m.last_name), '') AS Member,
     COALESCE(m.primary_email, '') AS Email,
-    mp.mp_position_id AS PositionID,
-    p.name AS PositionName,
-    mp.organisation_id as OrganisationID,
-    COALESCE(o.name, '') as OrganisationName,
-    mp.start_on AS StartDate,
-    mp.end_on AS EndDate,
-    COALESCE(mp.comment, '') AS Comment
+    mp.mp_position_id         AS PositionID,
+    p.name                    AS PositionName,
+    mp.organisation_id        AS OrganisationID,
+    COALESCE(o.name, '')      AS OrganisationName,
+    COALESCE(mp.start_on, '') AS StartDate,
+    COALESCE(mp.end_on, '')   AS EndDate,
+    COALESCE(mp.comment, '')  AS Comment
 FROM
     mp_m_position mp
         LEFT JOIN

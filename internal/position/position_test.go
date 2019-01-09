@@ -22,6 +22,7 @@ func TestAll(t *testing.T) {
 		t.Run("testPingDatabase", testPingDatabase)
 		t.Run("testByID", testByID)
 		t.Run("testByIDs", testByIDs)
+		t.Run("testExcelReport", testExcelReport)
 	})
 }
 
@@ -102,5 +103,24 @@ func testByIDs(t *testing.T) {
 		if !reflect.DeepEqual(got, c.want) {
 			t.Errorf("position.ByIDs() Names = %v, want %v", got, c.want)
 		}
+	}
+}
+
+// fetch some test data and ensure excel report is not returning an error
+func testExcelReport(t *testing.T) {
+	xp, err := position.ByIDs(ds, []int{1, 2, 3})
+	if err != nil {
+		t.Fatalf("position.ByIDs() err = %s", err)
+	}
+	f, err := position.ExcelReport(ds, xp)
+	if err != nil {
+		t.Fatalf("position.ExcelReport() err = %s", err)
+	}
+	// check row count
+	want := 4
+	rows := f.GetRows("Sheet1") // rows is [][]string
+	got := len(rows)
+	if got != want {
+		t.Errorf("GetRows() row count = %d, want %d", got, want)
 	}
 }
