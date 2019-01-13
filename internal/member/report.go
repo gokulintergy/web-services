@@ -164,7 +164,9 @@ func ExcelReportJournal(members []Member) (*excelize.File, error) {
 		"Member",
 		"Membership",
 		"Journal no.",
-		"Address",
+		"Address 1",
+		"Address 2",
+		"Address 3",
 		"Locality",
 		"State",
 		"Postcode",
@@ -182,14 +184,26 @@ func ExcelReportJournal(members []Member) (*excelize.File, error) {
 
 		// ContactLocationByType returns an empty struct and an error if not found
 		// so can ignore error and write an empty cell
+		var address = []string{"", "", ""}
 		mail, _ := m.ContactLocationByDesc("mail")
+		if len(mail.Address) > 0 {
+			address[0] = mail.Address[0]
+		}
+		if len(mail.Address) > 1 {
+			address[1] = mail.Address[1]
+		}
+		if len(mail.Address) > 2 {
+			address[2] = mail.Address[2]
+		}
 
 		data := []interface{}{
 			m.ID,
 			m.Title + " " + m.FirstName + " " + m.LastName,
 			title,
 			m.JournalNumber,
-			strings.Join(mail.Address, " "),
+			address[0],
+			address[1],
+			address[2],
 			mail.City,
 			mail.State,
 			mail.Postcode,
@@ -203,7 +217,9 @@ func ExcelReportJournal(members []Member) (*excelize.File, error) {
 	}
 
 	f.SetColWidthByHeading("Member", 18)
-	f.SetColWidthByHeading("Address", 18)
+	f.SetColWidthByHeading("Address 1", 18)
+	f.SetColWidthByHeading("Address 2", 18)
+	f.SetColWidthByHeading("Address 3", 18)
 	f.SetColWidthByHeading("Locality", 18)
 	f.SetColWidthByHeading("Email", 18)
 
