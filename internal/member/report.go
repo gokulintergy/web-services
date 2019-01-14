@@ -60,12 +60,16 @@ func ExcelReport(members []Member) (*excelize.File, error) {
 		d, err := time.Parse("2006-01-02", m.DateOfBirth)
 		if err == nil {
 			dob = d // time.Time will accept the dateStyle formatting
+		} else {
+			f.AddError(m.ID, "Error parsing date of birth: "+err.Error())
 		}
 
 		var doe interface{}
 		de, err := time.Parse("2006-01-02", m.DateOfEntry)
 		if err == nil {
 			doe = de // time.Time will accept the dateStyle formatting
+		} else {
+			f.AddError(m.ID, "Error parsing date of entry: "+err.Error())
 		}
 
 		var title string
@@ -73,6 +77,8 @@ func ExcelReport(members []Member) (*excelize.File, error) {
 		if len(m.Memberships) > 0 {
 			title = m.Memberships[0].Title
 			status = m.Memberships[0].Status
+		} else {
+			f.AddError(m.ID, "Could not determine memership titme or status")
 		}
 
 		var tags string
@@ -145,6 +151,7 @@ func ExcelReport(members []Member) (*excelize.File, error) {
 		err = f.AddRow(data)
 		if err != nil {
 			log.Printf("AddRow() err = %s\n", err)
+			f.AddError(m.ID, err.Error())
 		}
 	}
 
@@ -185,7 +192,10 @@ func ExcelReportJournal(members []Member) (*excelize.File, error) {
 		// ContactLocationByType returns an empty struct and an error if not found
 		// so can ignore error and write an empty cell
 		var address = []string{"", "", ""}
-		mail, _ := m.ContactLocationByDesc("mail")
+		mail, err := m.ContactLocationByDesc("mail")
+		if err != nil {
+			f.AddError(m.ID, "Error fetching mailo address: "+err.Error())
+		}
 		if len(mail.Address) > 0 {
 			address[0] = mail.Address[0]
 		}
@@ -210,9 +220,10 @@ func ExcelReportJournal(members []Member) (*excelize.File, error) {
 			mail.Country,
 			m.Contact.EmailPrimary,
 		}
-		err := f.AddRow(data)
+		err = f.AddRow(data)
 		if err != nil {
 			log.Printf("AddRow() err = %s\n", err)
+			f.AddError(m.ID, err.Error())
 		}
 	}
 

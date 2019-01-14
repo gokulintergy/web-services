@@ -11,6 +11,7 @@ import (
 )
 
 const defaultSheetName = "Sheet1"
+const errorSheetName = "Errors"
 const defaultHeadingRow = 1
 const defaultHeadingStyle = `{"font": {"bold": true}}`
 
@@ -21,10 +22,11 @@ const DateStyle = `{"custom_number_format": "dd mmm yyyy"}`
 
 // File represents a single-sheet xlsx file
 type File struct {
-	SheetName string
-	Columns   []column
-	NextRow   int
-	XLSX      *excelize.File
+	SheetName  string
+	Columns    []column
+	NextRow    int
+	NextErrRow int
+	XLSX       *excelize.File
 }
 
 type column struct {
@@ -39,6 +41,7 @@ func New(colNames []string) *File {
 	f := File{}
 	f.SheetName = defaultSheetName
 	f.NextRow = defaultHeadingRow
+	f.NextErrRow = 2 // row 1 is headings
 	f.XLSX = excelize.NewFile()
 	xc := columnRefs(len(colNames))
 	for i := range colNames {
@@ -128,6 +131,26 @@ func (f *File) colByHeading(heading string) (column, error) {
 		}
 	}
 	return c, errors.New("column heading not found")
+}
+
+// AddError adds an error message to a separate sheet
+func (f *File) AddError(id int, message string) {
+	f.errorSheet() // Ensure error sheet
+	row := []interface{}{id, message}
+	axis := "A" + strconv.Itoa(f.NextErrRow)
+	f.XLSX.SetSheetRow(errorSheetName, axis, &row)
+	f.NextErrRow++
+}
+
+// errorSheet will initialise the error sheet if it is not already there
+func (f *File) errorSheet() {
+	i := f.XLSX.GetSheetIndex(errorSheetName)
+	if i > 0 { // exists already
+		return
+	}
+	f.XLSX.NewSheet(errorSheetName)
+	f.XLSX.SetCellValue(errorSheetName, "A1", "Record ID")
+	f.XLSX.SetCellValue(errorSheetName, "B1", "Error message")
 }
 
 // columnRefs generates the specified number of column references - eg "A", "B" ... "Z", "AA", "AB" etc.
