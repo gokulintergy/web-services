@@ -78,7 +78,7 @@ func ExcelReport(members []Member) (*excelize.File, error) {
 			title = m.Memberships[0].Title
 			status = m.Memberships[0].Status
 		} else {
-			f.AddError(m.ID, "Could not determine memership titme or status")
+			f.AddError(m.ID, "Could not determine memership title / status")
 		}
 
 		var tags string
@@ -194,7 +194,7 @@ func ExcelReportJournal(members []Member) (*excelize.File, error) {
 		var address = []string{"", "", ""}
 		mail, err := m.ContactLocationByDesc("mail")
 		if err != nil {
-			f.AddError(m.ID, "Error fetching mailo address: "+err.Error())
+			f.AddError(m.ID, "Error fetching mail address: "+err.Error())
 		}
 		if len(mail.Address) > 0 {
 			address[0] = mail.Address[0]
