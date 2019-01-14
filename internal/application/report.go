@@ -1,6 +1,7 @@
 package application
 
 import (
+	"fmt"
 	"log"
 	"strings"
 
@@ -36,8 +37,9 @@ func ExcelReport(ds datastore.Datastore, applications []Application) (*excelize.
 		var region string
 		m, err := member.ByID(ds, a.MemberID)
 		if err != nil {
-			log.Printf("member.ByID() err = %s", err)
-			tags, region = "err", "err"
+			msg := fmt.Sprintf("member.ByID() err = %s", err)
+			log.Printf(msg)
+			f.AddError(a.ID, msg)
 		} else {
 			tags = strings.Join(m.Tags, ", ")
 			region = m.Country + " " + m.Contact.Locations[0].State + " " + m.Contact.Locations[0].City
@@ -72,7 +74,9 @@ func ExcelReport(ds datastore.Datastore, applications []Application) (*excelize.
 
 		err = f.AddRow(data)
 		if err != nil {
-			log.Printf("AddRow() err = %s\n", err)
+			msg := fmt.Sprintf("AddRow() err = %s", err)
+			log.Printf(msg)
+			f.AddError(a.ID, msg)
 		}
 	}
 

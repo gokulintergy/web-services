@@ -1,6 +1,7 @@
 package invoice
 
 import (
+	"fmt"
 	"log"
 	"strconv"
 
@@ -44,7 +45,9 @@ func ExcelReport(ds datastore.Datastore, invoices []Invoice) (*excelize.File, er
 		}
 		err := f.AddRow(data)
 		if err != nil {
-			log.Printf("AddRow() err = %s\n", err)
+			msg := fmt.Sprintf("AddRow() err = %s", err)
+			log.Printf(msg)
+			f.AddError(i.ID, msg)
 		}
 
 		total += i.Amount
@@ -54,7 +57,9 @@ func ExcelReport(ds datastore.Datastore, invoices []Invoice) (*excelize.File, er
 	r := []interface{}{"", "", "", "", "Total", total, "", ""}
 	err := f.AddRow(r)
 	if err != nil {
-		log.Printf("AddRow() err = %s\n", err)
+		msg := fmt.Sprintf("AddRow() err = %s\n", err)
+		log.Printf(msg)
+		f.AddError(0, msg)
 	}
 
 	// style

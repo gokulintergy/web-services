@@ -1,6 +1,7 @@
 package position
 
 import (
+	"fmt"
 	"log"
 	"strconv"
 
@@ -51,7 +52,9 @@ func ExcelReport(ds datastore.Datastore, positions []Position) (*excelize.File, 
 		}
 		err := f.AddRow(data)
 		if err != nil {
-			log.Printf("AddRow() err = %s\n", err)
+			msg := fmt.Sprintf("AddRow() err = %s", err)
+			log.Printf(msg)
+			f.AddError(p.ID, msg)
 		}
 	}
 
