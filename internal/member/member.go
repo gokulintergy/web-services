@@ -17,17 +17,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Note trying to scan NULL db values into strings throws an error. This is discussed here:
-// https://github.com/go-sql-driver/mysql/issues/34
-// Using []byte is a workaround but then need to convert back to strings. So I've used
-// COALESCE() in any SQL where a NULL value is possible... it is a problem with the db
-// so might as well make the db deal with it :)
-
-// this file contains the Member "model" -  a struct that maps to the JSON representation
-// of the member record represented as a document, and can be unpacked to be mapped to the
-// relational model ofr a member
-
-// Member defines struct for member record
+// Member represents a Member record in document format
 type Member struct {
 	OID       bson.ObjectId `json:"_id,omitempty" bson:"_id,omitempty"`
 	ID        int           `json:"id" bson:"id"`
@@ -164,7 +154,7 @@ func (m *Member) SetHonorific(ds datastore.Datastore) error {
 	return nil
 }
 
-// SetCountryc sets the membership country
+// SetCountry sets the membership country
 func (m *Member) SetCountry(ds datastore.Datastore) error {
 
 	query := queries["select-member-country"]

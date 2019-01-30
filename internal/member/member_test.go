@@ -32,13 +32,13 @@ func TestMember(t *testing.T) {
 
 	t.Run("member", func(t *testing.T) {
 		t.Run("testPingDatabase", testPingDatabase)
+		t.Run("testAddMember", testAddMember)
 		t.Run("testByID", testByID)
 		t.Run("testSearchDocDB", testSearchDocDB)
 		t.Run("testSaveDocDB", testSaveDocDB)
 		t.Run("testSyncUpdated", testSyncUpdated)
 		t.Run("testExcelReport", testExcelReport)
 		t.Run("testExcelReportJournal", testExcelReportJournal)
-
 	})
 }
 
@@ -46,6 +46,54 @@ func testPingDatabase(t *testing.T) {
 	is := is.New(t)
 	err := data.Store.MySQL.Session.Ping()
 	is.NoErr(err) // Could not ping test database
+}
+
+// testAddMember tests the creation of a new member record
+func testAddMember(t *testing.T) {
+	m := member.Row{}
+	m.RoleID = 2
+	m.NamePrefixID = 1
+	m.CountryID = 17
+	m.ConsentDirectory = 1
+	m.ConsentContact = 1
+	m.UpdatedAt = "2019-01-01"
+	m.DateOfBirth = "1970-11-03"
+	m.Gender = "M"
+	m.FirstName = "Mike"
+	m.MiddleNames = "Peter"
+	m.LastName = "Donnici"
+	m.PostNominal = "B.Sc.Agr"
+	m.QualificationsOther = "Grad. Cert. Computing"
+	m.Mobile = "0402 400 191"
+	m.PrimaryEmail = "michael@8o8.io"
+	m.SecondaryEmail = "michael.donnici@gmail.com"
+
+	m.QualificationRows = []member.QualificationRow{
+		member.QualificationRow{
+			MemberID:        m.ID,
+			QualificationID: 11,
+			OrganisationID:  222,
+			YearObtained:    1992,
+			Abbreviation:    "B.Sc.Agr.",
+			Comment:         "Major in Crop Science",
+		},
+		member.QualificationRow{
+			MemberID:        m.ID,
+			QualificationID: 22,
+			OrganisationID:  223,
+			YearObtained:    1996,
+			Abbreviation:    "Grad. Cert. Computing",
+			Comment:         "Distance education",
+		},
+	}
+
+	err := m.Insert(data.Store)
+	if err != nil {
+		t.Fatalf("member.Row.Insert() err = %s", err)
+	}
+	if m.ID == 0 {
+		t.Errorf("member.Row.ID = 0, want > 0")
+	}
 }
 
 func testByID(t *testing.T) {

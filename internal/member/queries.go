@@ -1,6 +1,8 @@
 package member
 
 var queries = map[string]string{
+	"insert-member-row":                insertMemberRow,
+	"insert-member-qualification-row":  insertMemberQualificationRow,
 	"select-member":                    selectMember,
 	"select-member-honorific":          selectMemberHonorific,
 	"select-member-country":            selectMemberCountry,
@@ -15,6 +17,46 @@ var queries = map[string]string{
 	"select-member-specialities":       selectMemberSpecialities,
 	"select-member-tags":               selectMemberTags,
 }
+
+const insertMemberRow = `
+INSERT INTO member (
+    acl_member_role_id, 
+    a_name_prefix_id, 
+    country_id, 
+    consent_directory, 
+    consent_contact, 
+    created_at, 
+    updated_at, 
+    date_of_birth, 
+    gender, 
+    first_name, 
+    middle_names, 
+    last_name, 
+    suffix, 
+    qualifications_other, 
+    mobile_phone, 
+    primary_email, 
+    secondary_email,
+    password
+) VALUES (
+    %d, %d, %d, %d, %d, 
+    NOW(), NOW(), 
+    %q, %q, %q, %q, %q, %q, %q, %q, %q, %q,
+    ""
+)`
+
+const insertMemberQualificationRow = `
+INSERT INTO mp_m_qualification (
+    member_id, 
+    mp_qualification_id, 
+    organisation_id, 
+    created_at, 
+    updated_at, 
+    year, 
+    qualification_suffix,
+    comment
+) VALUES (%d, %d, %d, NOW(), NOW(), %d, %q, %q)
+`
 
 const selectMember = `SELECT 
 	active,

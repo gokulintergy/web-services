@@ -10,6 +10,7 @@ func AuthSubRouter(prefix string) *mux.Router {
 
 	r := mux.NewRouter().StrictSlash(true)
 	auth := r.PathPrefix(prefix).Subrouter()
+	auth.Methods("OPTIONS").Path("/").HandlerFunc(Preflight)
 	auth.Methods("POST").Path("/member").HandlerFunc(AuthMemberLogin)
 	auth.Methods("POST").Path("/admin").HandlerFunc(AuthAdminLogin)
 
@@ -59,6 +60,9 @@ func AdminSubRouter(prefix string) *mux.Router {
 	admin.Methods("POST").Path("/reports/invoice").HandlerFunc(AdminReportInvoiceExcel)
 	admin.Methods("POST").Path("/reports/payment").HandlerFunc(AdminReportPaymentExcel)
 	admin.Methods("POST").Path("/reports/position").HandlerFunc(AdminReportPositionExcel)
+
+	// Membership application
+	admin.Methods("POST").Path("/applications").HandlerFunc(AdminNewMembershipApplication)
 
 	return admin
 }
