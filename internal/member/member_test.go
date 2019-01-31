@@ -125,6 +125,21 @@ func testAddMember(t *testing.T) {
 		},
 	}
 
+	m.TagRows = []member.TagRow{
+		member.TagRow{
+			MemberID: m.ID,
+			TagID:    1,
+		},
+		member.TagRow{
+			MemberID: m.ID,
+			TagID:    2,
+		},
+		member.TagRow{
+			MemberID: m.ID,
+			TagID:    3,
+		},
+	}
+
 	err := m.Insert(data.Store)
 	if err != nil {
 		t.Fatalf("member.Row.Insert() err = %s", err)
@@ -165,6 +180,13 @@ func testAddMember(t *testing.T) {
 	got = len(mem.Accreditations)
 	if got != want {
 		t.Errorf("member.Member.Accreditations count = %d, want %d", got, want)
+	}
+
+	// check number of tags
+	want = 3
+	got = len(mem.Tags)
+	if got != want {
+		t.Errorf("member.Member.Tags count = %d, want %d", got, want)
 	}
 }
 

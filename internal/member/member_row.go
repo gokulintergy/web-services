@@ -33,11 +33,10 @@ type Row struct {
 	PositionRows      []PositionRow      `json:"positionRows"`
 	SpecialityRows    []SpecialityRow    `json:"specialityRows"`
 	AccreditationRows []AccreditationRow `json:"accreditationRows"`
+	TagRows           []TagRow           `json:"tagRows"`
 
 	// todo
 	//Contact        Contact         `json:"contact"`
-
-	TagIDs []int `json:"tags"`
 }
 
 // QualificationRow represents a member qualification in a junction table.
@@ -79,6 +78,13 @@ type AccreditationRow struct {
 	StartDate       string `json:"startDate"`
 	EndDate         string `json:"endDate"`
 	Comment         string `json:"comment"`
+}
+
+// TagRow represents a member tag in a junction table.
+type TagRow struct {
+	ID       int `json:"id"`
+	MemberID int `json:"memberID"`
+	TagID    int `json:"tagID"`
 }
 
 // Insert inserts a member row into the database. If successful it will set the member id.
@@ -131,6 +137,11 @@ func (r *Row) Insert(ds datastore.Datastore) error {
 		return err
 	}
 
+	err = r.insertTags(ds)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -171,6 +182,17 @@ func (r *Row) insertSpecialities(ds datastore.Datastore) error {
 func (r *Row) insertAccreditations(ds datastore.Datastore) error {
 	for _, a := range r.AccreditationRows {
 		err := a.insert(ds, r.ID)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// insertTags inserts the member tags present in the Row value
+func (r *Row) insertTags(ds datastore.Datastore) error {
+	for _, t := range r.TagRows {
+		err := t.insert(ds, r.ID)
 		if err != nil {
 			return err
 		}
@@ -223,6 +245,15 @@ func (ar AccreditationRow) insert(ds datastore.Datastore, memberID int) error {
 		ar.StartDate,
 		ar.EndDate,
 		ar.Comment)
+	_, err := ds.MySQL.Session.Exec(query)
+	return err
+}
+
+// insert a member tag row in the junction table
+func (tr TagRow) insert(ds datastore.Datastore, memberID int) error {
+	query := fmt.Sprintf(queries["insert-member-tag-row"],
+		memberID,
+		tr.TagID)
 	_, err := ds.MySQL.Session.Exec(query)
 	return err
 }
