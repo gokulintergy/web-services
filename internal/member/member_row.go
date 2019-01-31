@@ -31,11 +31,11 @@ type Row struct {
 	// The following fields are values represented in junction tables
 	QualificationRows []QualificationRow `json:"qualificationRows"`
 	PositionRows      []PositionRow      `json:"positionRows"`
+	SpecialityRows    []SpecialityRow    `json:"specialityRows"`
 
 	// todo
 	//Contact        Contact         `json:"contact"`
 	AccreditationIDs []int `json:"accreditations"`
-	SpecialityIDs    []int `json:"specialities"`
 	TagIDs           []int `json:"tags"`
 }
 
@@ -59,6 +59,15 @@ type PositionRow struct {
 	StartDate      string `json:"startDate"`
 	EndDate        string `json:"endDate"`
 	Comment        string `json:"comment"`
+}
+
+// SpecialityRow represents a member speciality in a junction table.
+type SpecialityRow struct {
+	ID           int    `json:"id"`
+	MemberID     int    `json:"memberID"`
+	SpecialityID int    `json:"specialityID"`
+	Preference   int    `json:"preference"`
+	Comment      string `json:"comment"`
 }
 
 // Insert inserts a member row into the database. If successful it will set the member id.
@@ -101,6 +110,11 @@ func (r *Row) Insert(ds datastore.Datastore) error {
 		return err
 	}
 
+	err = r.insertSpecialities(ds)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -119,6 +133,17 @@ func (r *Row) insertQualifications(ds datastore.Datastore) error {
 func (r *Row) insertPositions(ds datastore.Datastore) error {
 	for _, p := range r.PositionRows {
 		err := p.insert(ds, r.ID)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// insertSpecialities inserts the member specialities present in the Row value
+func (r *Row) insertSpecialities(ds datastore.Datastore) error {
+	for _, s := range r.SpecialityRows {
+		err := s.insert(ds, r.ID)
 		if err != nil {
 			return err
 		}
@@ -148,6 +173,17 @@ func (pr PositionRow) insert(ds datastore.Datastore, memberID int) error {
 		pr.StartDate,
 		pr.EndDate,
 		pr.Comment)
+	_, err := ds.MySQL.Session.Exec(query)
+	return err
+}
+
+// insert a member speciality row in the junction table
+func (sr SpecialityRow) insert(ds datastore.Datastore, memberID int) error {
+	query := fmt.Sprintf(queries["insert-member-speciality-row"],
+		memberID,
+		sr.SpecialityID,
+		sr.Preference,
+		sr.Comment)
 	_, err := ds.MySQL.Session.Exec(query)
 	return err
 }

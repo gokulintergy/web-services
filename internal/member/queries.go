@@ -4,6 +4,7 @@ var queries = map[string]string{
 	"insert-member-row":                insertMemberRow,
 	"insert-member-qualification-row":  insertMemberQualificationRow,
 	"insert-member-position-row":       insertMemberPositionRow,
+	"insert-member-speciality-row":     insertMemberSpecialityRow,
 	"select-member":                    selectMember,
 	"select-member-honorific":          selectMemberHonorific,
 	"select-member-country":            selectMemberCountry,
@@ -70,6 +71,17 @@ INSERT INTO mp_m_position (
     end_on,
     comment
 ) VALUES (%d, %d, %d, NOW(), NOW(), %q, %q, %q)
+`
+
+const insertMemberSpecialityRow = `
+INSERT INTO mp_m_speciality (
+    member_id, 
+    mp_speciality_id, 
+    created_at, 
+    updated_at, 
+    preference,
+    comment
+) VALUES (%d, %d, NOW(), NOW(), %d, %q)
 `
 
 const selectMember = `SELECT 

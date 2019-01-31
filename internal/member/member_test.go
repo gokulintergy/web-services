@@ -106,6 +106,15 @@ func testAddMember(t *testing.T) {
 		},
 	}
 
+	m.SpecialityRows = []member.SpecialityRow{
+		member.SpecialityRow{
+			MemberID:     m.ID,
+			SpecialityID: 11,
+			Preference:   1,
+			Comment:      "This is a comment",
+		},
+	}
+
 	err := m.Insert(data.Store)
 	if err != nil {
 		t.Fatalf("member.Row.Insert() err = %s", err)
@@ -132,6 +141,13 @@ func testAddMember(t *testing.T) {
 	got = len(mem.Positions)
 	if got != want {
 		t.Errorf("member.Member.Positions count = %d, want %d", got, want)
+	}
+
+	// check number of specialities
+	want = 1
+	got = len(mem.Specialities)
+	if got != want {
+		t.Errorf("member.Member.Specialities count = %d, want %d", got, want)
 	}
 }
 
