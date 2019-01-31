@@ -32,11 +32,12 @@ type Row struct {
 	QualificationRows []QualificationRow `json:"qualificationRows"`
 	PositionRows      []PositionRow      `json:"positionRows"`
 	SpecialityRows    []SpecialityRow    `json:"specialityRows"`
+	AccreditationRows []AccreditationRow `json:"accreditationRows"`
 
 	// todo
 	//Contact        Contact         `json:"contact"`
-	AccreditationIDs []int `json:"accreditations"`
-	TagIDs           []int `json:"tags"`
+
+	TagIDs []int `json:"tags"`
 }
 
 // QualificationRow represents a member qualification in a junction table.
@@ -68,6 +69,16 @@ type SpecialityRow struct {
 	SpecialityID int    `json:"specialityID"`
 	Preference   int    `json:"preference"`
 	Comment      string `json:"comment"`
+}
+
+// AccreditationRow represents a member accreditation in a junction table.
+type AccreditationRow struct {
+	ID              int    `json:"id"`
+	MemberID        int    `json:"memberID"`
+	AccreditationID int    `json:"accreditationID"`
+	StartDate       string `json:"startDate"`
+	EndDate         string `json:"endDate"`
+	Comment         string `json:"comment"`
 }
 
 // Insert inserts a member row into the database. If successful it will set the member id.
@@ -115,6 +126,11 @@ func (r *Row) Insert(ds datastore.Datastore) error {
 		return err
 	}
 
+	err = r.insertAccreditations(ds)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -144,6 +160,17 @@ func (r *Row) insertPositions(ds datastore.Datastore) error {
 func (r *Row) insertSpecialities(ds datastore.Datastore) error {
 	for _, s := range r.SpecialityRows {
 		err := s.insert(ds, r.ID)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// insertAccreditations inserts the member accreditations present in the Row value
+func (r *Row) insertAccreditations(ds datastore.Datastore) error {
+	for _, a := range r.AccreditationRows {
+		err := a.insert(ds, r.ID)
 		if err != nil {
 			return err
 		}
@@ -184,6 +211,18 @@ func (sr SpecialityRow) insert(ds datastore.Datastore, memberID int) error {
 		sr.SpecialityID,
 		sr.Preference,
 		sr.Comment)
+	_, err := ds.MySQL.Session.Exec(query)
+	return err
+}
+
+// insert a member accreditation row in the junction table
+func (ar AccreditationRow) insert(ds datastore.Datastore, memberID int) error {
+	query := fmt.Sprintf(queries["insert-member-accreditation-row"],
+		memberID,
+		ar.AccreditationID,
+		ar.StartDate,
+		ar.EndDate,
+		ar.Comment)
 	_, err := ds.MySQL.Session.Exec(query)
 	return err
 }

@@ -115,6 +115,16 @@ func testAddMember(t *testing.T) {
 		},
 	}
 
+	m.AccreditationRows = []member.AccreditationRow{
+		member.AccreditationRow{
+			MemberID:        m.ID,
+			AccreditationID: 11,
+			StartDate:       "2010-01-01",
+			EndDate:         "2012-12-31",
+			Comment:         "This is a comment",
+		},
+	}
+
 	err := m.Insert(data.Store)
 	if err != nil {
 		t.Fatalf("member.Row.Insert() err = %s", err)
@@ -148,6 +158,13 @@ func testAddMember(t *testing.T) {
 	got = len(mem.Specialities)
 	if got != want {
 		t.Errorf("member.Member.Specialities count = %d, want %d", got, want)
+	}
+
+	// check number of accreditations
+	want = 1
+	got = len(mem.Accreditations)
+	if got != want {
+		t.Errorf("member.Member.Accreditations count = %d, want %d", got, want)
 	}
 }
 
