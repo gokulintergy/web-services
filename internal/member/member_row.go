@@ -28,13 +28,15 @@ type Row struct {
 	PrimaryEmail        string `json:"primary_email"`
 	SecondaryEmail      string `json:"secondary_email"`
 
-	// The following fields are values repreented in junction tables
-	//Contact        Contact         `json:"contact"`
+	// The following fields are values represented in junction tables
 	QualificationRows []QualificationRow `json:"qualificationRows"`
-	AccreditationIDs  []int              `json:"accreditations"`
-	PositionIDs       []int              `json:"positions"`
-	SpecialityIDs     []int              `json:"specialities"`
-	TagIDs            []int              `json:"tags"`
+	PositionRows      []PositionRow      `json:"positionRows"`
+
+	// todo
+	//Contact        Contact         `json:"contact"`
+	AccreditationIDs []int `json:"accreditations"`
+	SpecialityIDs    []int `json:"specialities"`
+	TagIDs           []int `json:"tags"`
 }
 
 // QualificationRow represents a member qualification in a junction table.
@@ -46,6 +48,17 @@ type QualificationRow struct {
 	YearObtained    int    `json:"yearObtained"`
 	Abbreviation    string `json:"abbreviation"`
 	Comment         string `json:"comment"`
+}
+
+// PositionRow represents a member position in a junction table.
+type PositionRow struct {
+	ID             int    `json:"id"`
+	MemberID       int    `json:"memberID"`
+	PositionID     int    `json:"positionID"`
+	OrganisationID int    `json:"organisationID"`
+	StartDate      string `json:"startDate"`
+	EndDate        string `json:"endDate"`
+	Comment        string `json:"comment"`
 }
 
 // Insert inserts a member row into the database. If successful it will set the member id.
@@ -83,6 +96,11 @@ func (r *Row) Insert(ds datastore.Datastore) error {
 		return err
 	}
 
+	err = r.insertPositions(ds)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -97,7 +115,18 @@ func (r *Row) insertQualifications(ds datastore.Datastore) error {
 	return nil
 }
 
-// insertMemberQualification inserts a member qualification via a junction table
+// insertPositions inserts the member positions present in the Row value
+func (r *Row) insertPositions(ds datastore.Datastore) error {
+	for _, p := range r.PositionRows {
+		err := p.insert(ds, r.ID)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// insert a member qualification row in the junction table
 func (qr QualificationRow) insert(ds datastore.Datastore, memberID int) error {
 	query := fmt.Sprintf(queries["insert-member-qualification-row"],
 		memberID,
@@ -106,6 +135,19 @@ func (qr QualificationRow) insert(ds datastore.Datastore, memberID int) error {
 		qr.YearObtained,
 		qr.Abbreviation,
 		qr.Comment)
+	_, err := ds.MySQL.Session.Exec(query)
+	return err
+}
+
+// insert a member position row in the junction table
+func (pr PositionRow) insert(ds datastore.Datastore, memberID int) error {
+	query := fmt.Sprintf(queries["insert-member-position-row"],
+		memberID,
+		pr.PositionID,
+		pr.OrganisationID,
+		pr.StartDate,
+		pr.EndDate,
+		pr.Comment)
 	_, err := ds.MySQL.Session.Exec(query)
 	return err
 }

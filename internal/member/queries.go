@@ -3,6 +3,7 @@ package member
 var queries = map[string]string{
 	"insert-member-row":                insertMemberRow,
 	"insert-member-qualification-row":  insertMemberQualificationRow,
+	"insert-member-position-row":       insertMemberPositionRow,
 	"select-member":                    selectMember,
 	"select-member-honorific":          selectMemberHonorific,
 	"select-member-country":            selectMemberCountry,
@@ -56,6 +57,19 @@ INSERT INTO mp_m_qualification (
     qualification_suffix,
     comment
 ) VALUES (%d, %d, %d, NOW(), NOW(), %d, %q, %q)
+`
+
+const insertMemberPositionRow = `
+INSERT INTO mp_m_position (
+    member_id, 
+    mp_position_id, 
+    organisation_id, 
+    created_at, 
+    updated_at, 
+    start_on, 
+    end_on,
+    comment
+) VALUES (%d, %d, %d, NOW(), NOW(), %q, %q, %q)
 `
 
 const selectMember = `SELECT 

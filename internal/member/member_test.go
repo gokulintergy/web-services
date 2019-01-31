@@ -87,12 +87,51 @@ func testAddMember(t *testing.T) {
 		},
 	}
 
+	m.PositionRows = []member.PositionRow{
+		member.PositionRow{
+			MemberID:       m.ID,
+			PositionID:     11,
+			OrganisationID: 222,
+			StartDate:      "2010-01-01",
+			EndDate:        "2012-12-31",
+			Comment:        "This is a comment",
+		},
+		member.PositionRow{
+			MemberID:       m.ID,
+			PositionID:     22,
+			OrganisationID: 223,
+			StartDate:      "2010-01-01",
+			EndDate:        "2012-12-31",
+			Comment:        "This is a comment",
+		},
+	}
+
 	err := m.Insert(data.Store)
 	if err != nil {
 		t.Fatalf("member.Row.Insert() err = %s", err)
 	}
 	if m.ID == 0 {
 		t.Errorf("member.Row.ID = 0, want > 0")
+	}
+
+	// verify a few things about the member record
+	mem, err := member.ByID(data.Store, m.ID)
+	if err != nil {
+		t.Fatalf("member.ByID(%d) err = %s", m.ID, err)
+	}
+
+	// check number of qualifications
+	want := 2
+	got := len(mem.Qualifications)
+	if got != want {
+		t.Errorf("member.Member.Qualifcations count = %d, want %d", got, want)
+	}
+
+	// check number of positions
+	want = 2
+	got = len(mem.Positions)
+	if got != want {
+		t.Errorf("member.Member.Positions count = %d, want %d", got, want)
 	}
 }
 
