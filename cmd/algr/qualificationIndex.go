@@ -1,9 +1,9 @@
 package main
 
 import (
-		"github.com/algolia/algoliasearch-client-go/algoliasearch"
+	"github.com/algolia/algoliasearch-client-go/algoliasearch"
 	"github.com/cardiacsociety/web-services/internal/qualification"
-		)
+)
 
 type qualificationIndex struct {
 	Name      string
@@ -53,4 +53,3 @@ func (qi *qualificationIndex) createObject(i int) {
 	qi.IndexData[i]["name"] = qual.Name
 	qi.IndexData[i]["description"] = qual.Description
 }
-

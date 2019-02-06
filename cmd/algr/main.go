@@ -34,13 +34,14 @@ const (
 
 var updateTypes = []string{"partial", "full", "atomic"}
 
-var collections = flag.String("c", "", "collections to sync - 'all', 'directory', 'members', 'modules', 'resources', 'qualifications'")
+var collections = flag.String("c", "", "collections to sync - 'all', 'directory', 'members', 'modules', 'resources', 'qualifications', 'organisations'")
 
 var directoryIndexName string
 var memberIndexName string
 var moduleIndexName string
 var resourceIndexName string
 var qualificationIndexName string
+var organisationIndexName string
 
 var sched = scheduledUpdateType()
 
@@ -54,6 +55,7 @@ func init() {
 		"MAPPCPD_ALGOLIA_MODULES_INDEX",
 		"MAPPCPD_ALGOLIA_RESOURCES_INDEX",
 		"MAPPCPD_ALGOLIA_QUALIFICATIONS_INDEX",
+		"MAPPCPD_ALGOLIA_ORGANISATIONS_INDEX",
 		"MAPPCPD_MONGO_DBNAME",
 		"MAPPCPD_MONGO_DESC",
 		"MAPPCPD_MONGO_URL",
@@ -77,6 +79,7 @@ func main() {
 	resourceIndexName = os.Getenv("MAPPCPD_ALGOLIA_RESOURCES_INDEX")
 	moduleIndexName = os.Getenv("MAPPCPD_ALGOLIA_MODULES_INDEX")
 	qualificationIndexName = os.Getenv("MAPPCPD_ALGOLIA_QUALIFICATIONS_INDEX")
+	organisationIndexName = os.Getenv("MAPPCPD_ALGOLIA_ORGANISATIONS_INDEX")
 
 	switch *collections {
 	case "all":
@@ -85,6 +88,7 @@ func main() {
 		updateModuleIndex()
 		updateResourceIndex()
 		updateQualificationIndex()
+		updateOrganisationIndex()
 	case "directory":
 		updateDirectoryIndex()
 	case "members":
@@ -95,6 +99,8 @@ func main() {
 		updateResourceIndex()
 	case "qualifications":
 		updateQualificationIndex()
+	case "organisations":
+		updateOrganisationIndex()
 	default:
 		fmt.Println("Unknown flag, -h for help.")
 	}
@@ -205,6 +211,28 @@ func updateQualificationIndex() {
 	i := newQualificationIndex(qualificationIndexName)
 	if err := update(&i, ut); err != nil {
 		log.Fatalln("Error updating qualifications index -", err)
+	}
+}
+
+func updateOrganisationIndex() {
+
+	if organisationIndexName == "" {
+		log.Println("Organisation index name is an empty string - skipping")
+		return
+	}
+
+	// Always atomic because this index has no mongo collection and hence no Object IDs. Any other type
+	// of index update will result in duplicate records.
+	var ut updateType
+	switch sched {
+	default:
+		ut = atomic
+	}
+	updateLogMessage(organisationIndexName, ut)
+
+	i := newOrganisationIndex(organisationIndexName)
+	if err := update(&i, ut); err != nil {
+		log.Fatalln("Error updating organisation index -", err)
 	}
 }
 
