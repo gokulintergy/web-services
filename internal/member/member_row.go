@@ -33,8 +33,8 @@ type Row struct {
 
 	// The following fields are values represented in junction tables
 	QualificationRows []QualificationRow `json:"qualifications"`
+	SpecialityRows    []SpecialityRow    `json:"interests"`
 	PositionRows      []PositionRow      `json:"positionRows"`
-	SpecialityRows    []SpecialityRow    `json:"specialityRows"`
 	AccreditationRows []AccreditationRow `json:"accreditationRows"`
 	TagRows           []TagRow           `json:"tagRows"`
 

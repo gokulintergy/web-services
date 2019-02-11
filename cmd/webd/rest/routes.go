@@ -98,8 +98,8 @@ func GeneralSubRouter(prefix string) *mux.Router {
 	general.Methods("GET").Path("/activities").HandlerFunc(Activities)
 	general.Methods("GET").Path("/activities/{id:[0-9]+}").HandlerFunc(ActivitiesID)
 
-	// Qualifications
 	general.Methods("GET").Path("/qualifications").HandlerFunc(Qualifications)
+	general.Methods("GET").Path("/specialities").HandlerFunc(Specialities)
 
 	// Resources
 	general.Methods("GET").Path("/resources/{id:[0-9]+}").HandlerFunc(ResourcesID)
