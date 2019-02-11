@@ -26,25 +26,26 @@ type Member struct {
 
 	// Active refers to the members status in relation to the organisation, ie ms_m_status.ms_status_id = 1 (MySQL)
 	// In this model this really belongs in the memberships, however is here from simplicity.
-	Active         bool            `json:"active" bson:"active"`
-	Title          string          `json:"title" bson:"title"`
-	FirstName      string          `json:"firstName" bson:"firstName"`
-	MiddleNames    []string        `json:"middleNames" bson:"middleNames"`
-	LastName       string          `json:"lastName" bson:"lastName"`
-	PostNominal    string          `json:"postNominal" bson:"postNominal"`
-	Gender         string          `json:"gender" bson:"gender"`
-	DateOfBirth    string          `json:"dateOfBirth" bson:"dateOfBirth"`
-	DateOfEntry    string          `json:"dateOfEntry" bson:"dateOfEntry"`
-	Country        string          `json:"country" bson:"country"`
-	JournalNumber  string          `json:"journalNumber" bson:"journalNumber"`
-	BpayNumber     string          `json:"bpayNumber" bson:"bpayNumber"`
-	Memberships    []Membership    `json:"memberships" bson:"memberships"`
-	Contact        Contact         `json:"contact" bson:"contact"`
-	Qualifications []Qualification `json:"qualifications" bson:"qualifications"`
-	Accreditations []Accreditation `json:"accreditations" bson:"accreditations"`
-	Positions      []Position      `json:"positions" bson:"positions"`
-	Specialities   []Speciality    `json:"specialities" bson:"specialities"`
-	Tags           []string        `json:"tags" bson:"tags"`
+	Active              bool            `json:"active" bson:"active"`
+	Title               string          `json:"title" bson:"title"`
+	FirstName           string          `json:"firstName" bson:"firstName"`
+	MiddleNames         []string        `json:"middleNames" bson:"middleNames"`
+	LastName            string          `json:"lastName" bson:"lastName"`
+	PostNominal         string          `json:"postNominal" bson:"postNominal"`
+	Gender              string          `json:"gender" bson:"gender"`
+	DateOfBirth         string          `json:"dateOfBirth" bson:"dateOfBirth"`
+	DateOfEntry         string          `json:"dateOfEntry" bson:"dateOfEntry"`
+	Country             string          `json:"country" bson:"country"`
+	JournalNumber       string          `json:"journalNumber" bson:"journalNumber"`
+	BpayNumber          string          `json:"bpayNumber" bson:"bpayNumber"`
+	Memberships         []Membership    `json:"memberships" bson:"memberships"`
+	Contact             Contact         `json:"contact" bson:"contact"`
+	Qualifications      []Qualification `json:"qualifications" bson:"qualifications"`
+	QualificationsOther string          `json:"qualificationsOther" bson:"qualificationsOther"`
+	Accreditations      []Accreditation `json:"accreditations" bson:"accreditations"`
+	Positions           []Position      `json:"positions" bson:"positions"`
+	Specialities        []Speciality    `json:"specialities" bson:"specialities"`
+	Tags                []string        `json:"tags" bson:"tags"`
 
 	// omitempty to exclude this from sync
 	RecurringActivities []cpd.RecurringActivity `json:"recurringActivities,omitempty" bson:"recurringActivities,omitempty"`
@@ -601,6 +602,7 @@ func ByID(ds datastore.Datastore, id int) (*Member, error) {
 		&middleNames,
 		&m.LastName,
 		&m.PostNominal,
+		&m.QualificationsOther,
 		&m.Gender,
 		&m.DateOfBirth,
 		&m.DateOfEntry,

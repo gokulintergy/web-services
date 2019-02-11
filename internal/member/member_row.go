@@ -1,35 +1,38 @@
 package member
 
 import (
+	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/cardiacsociety/web-services/internal/platform/datastore"
 )
 
 // Row represents a raw record from the member table in the SQL database. This type is
 // primarily for inserting new records. Junction table data are represented with []int containing
-// a list of foreign key ids for the relevant table. The JSON tags match the columns names.
+// a list of foreign key ids for the relevant table. The comment next to JSON tags match the
+// relational db columns names.
 type Row struct {
-	ID                  int    `json:"id"`
-	RoleID              int    `json:"acl_member_role_id"`
-	NamePrefixID        int    `json:"a_name_prefix_id"`
-	CountryID           int    `json:"country_id"`
-	ConsentDirectory    int    `json:"consent_directory"`
-	ConsentContact      int    `json:"consent_contact"`
-	UpdatedAt           string `json:"updatedAt"`
-	DateOfBirth         string `json:"date_of_birth"`
-	Gender              string `json:"gender"`
-	FirstName           string `json:"first_name"`
-	MiddleNames         string `json:"middle_names"`
-	LastName            string `json:"last_name"`
-	PostNominal         string `json:"suffix"`
-	QualificationsOther string `json:"qualifications_other"`
-	Mobile              string `json:"mobile_phone"`
-	PrimaryEmail        string `json:"primary_email"`
-	SecondaryEmail      string `json:"secondary_email"`
+	ID                 int    `json:"id"`
+	RoleID             int    `json:"roleId"`             // acl_member_role_id
+	NamePrefixID       int    `json:"titleId"`            // a_name_prefix_id
+	CountryID          int    `json:"countryId"`          // country_id
+	ConsentDirectory   bool   `json:"consetDirectory"`    // consent_directory
+	ConsentContact     bool   `json:"consentContact"`     // consent_contact
+	UpdatedAt          string `json:"updatedAt"`          // updated_at
+	DateOfBirth        string `json:"dateOfBirth"`        // date_of_birth
+	Gender             string `json:"gender"`             // gender
+	FirstName          string `json:"firstName"`          // first_name
+	MiddleNames        string `json:"middleNames"`        // middle_names
+	LastName           string `json:"lastName"`           // last_name
+	PostNominal        string `json:"postNominal"`        // suffix
+	QualificationsInfo string `json:"qualificationsInfo"` // qualifications_other
+	Mobile             string `json:"mobile"`             // mobile_phone
+	PrimaryEmail       string `json:"primaryEmail"`       // primary_email
+	SecondaryEmail     string `json:"secondaryEmail"`     // secondary_email
 
 	// The following fields are values represented in junction tables
-	QualificationRows []QualificationRow `json:"qualificationRows"`
+	QualificationRows []QualificationRow `json:"qualifications"`
 	PositionRows      []PositionRow      `json:"positionRows"`
 	SpecialityRows    []SpecialityRow    `json:"specialityRows"`
 	AccreditationRows []AccreditationRow `json:"accreditationRows"`
@@ -41,21 +44,21 @@ type Row struct {
 
 // QualificationRow represents a member qualification in a junction table.
 type QualificationRow struct {
-	ID              int    `json:"id"`
-	MemberID        int    `json:"memberID"`
-	QualificationID int    `json:"qualificationID"`
-	OrganisationID  int    `json:"organisationID"`
-	YearObtained    int    `json:"yearObtained"`
+	ID              int    `json:"id"` // id of the junction record
+	MemberID        int    `json:"memberId"`
+	QualificationID int    `json:"qualificationId"`
+	OrganisationID  int    `json:"organisationId"`
+	YearObtained    int    `json:"year"`
 	Abbreviation    string `json:"abbreviation"`
 	Comment         string `json:"comment"`
 }
 
 // PositionRow represents a member position in a junction table.
 type PositionRow struct {
-	ID             int    `json:"id"`
-	MemberID       int    `json:"memberID"`
-	PositionID     int    `json:"positionID"`
-	OrganisationID int    `json:"organisationID"`
+	ID             int    `json:"id"` // id of the junction record
+	MemberID       int    `json:"memberId"`
+	PositionID     int    `json:"positionId"`
+	OrganisationID int    `json:"organisationId"`
 	StartDate      string `json:"startDate"`
 	EndDate        string `json:"endDate"`
 	Comment        string `json:"comment"`
@@ -64,8 +67,8 @@ type PositionRow struct {
 // SpecialityRow represents a member speciality in a junction table.
 type SpecialityRow struct {
 	ID           int    `json:"id"`
-	MemberID     int    `json:"memberID"`
-	SpecialityID int    `json:"specialityID"`
+	MemberID     int    `json:"memberId"`
+	SpecialityID int    `json:"specialityId"`
 	Preference   int    `json:"preference"`
 	Comment      string `json:"comment"`
 }
@@ -89,19 +92,32 @@ type TagRow struct {
 
 // Insert inserts a member row into the database. If successful it will set the member id.
 func (r *Row) Insert(ds datastore.Datastore) error {
+
+	// convert bools to 0/1
+	var consentDirectory, consentContact int
+	if r.ConsentDirectory {
+		consentDirectory = 1
+	}
+	if r.ConsentContact {
+		consentContact = 1
+	}
+
+	// gender stored as 'M' or 'F', so capitalise first letter of gender string
+	r.Gender = strings.ToUpper(string(strings.TrimSpace(r.Gender)[0]))
+
 	query := fmt.Sprintf(queries["insert-member-row"],
 		r.RoleID,
 		r.NamePrefixID,
 		r.CountryID,
-		r.ConsentDirectory,
-		r.ConsentContact,
+		consentDirectory,
+		consentContact,
 		r.DateOfBirth,
 		r.Gender,
 		r.FirstName,
 		r.MiddleNames,
 		r.LastName,
 		r.PostNominal,
-		r.QualificationsOther,
+		r.QualificationsInfo,
 		r.Mobile,
 		r.PrimaryEmail,
 		r.SecondaryEmail,
@@ -256,4 +272,20 @@ func (tr TagRow) insert(ds datastore.Datastore, memberID int) error {
 		tr.TagID)
 	_, err := ds.MySQL.Session.Exec(query)
 	return err
+}
+
+// InsertRowFromJSON creates a member Row from a JSON object. This is used for online
+// membership applications and returns a new member Row on success.
+func InsertRowFromJSON(ds datastore.Datastore, s string) (Row, error) {
+	r := Row{}
+
+	err := json.Unmarshal([]byte(s), &r)
+	if err != nil {
+		return r, err
+	}
+	err = r.Insert(ds)
+	if err != nil {
+		return r, err
+	}
+	return r, nil
 }

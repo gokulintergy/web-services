@@ -22,7 +22,7 @@ func TestMember(t *testing.T) {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	defer data.TearDownMySQL()
+	//defer data.TearDownMySQL()
 
 	err = data.SetupMongoDB()
 	if err != nil {
@@ -32,7 +32,8 @@ func TestMember(t *testing.T) {
 
 	t.Run("member", func(t *testing.T) {
 		t.Run("testPingDatabase", testPingDatabase)
-		t.Run("testAddMember", testAddMember)
+		t.Run("testInsertRow", testInsertRow)
+		t.Run("testInsertRowJSON", testInsertRowJSON)
 		t.Run("testByID", testByID)
 		t.Run("testSearchDocDB", testSearchDocDB)
 		t.Run("testSaveDocDB", testSaveDocDB)
@@ -48,14 +49,14 @@ func testPingDatabase(t *testing.T) {
 	is.NoErr(err) // Could not ping test database
 }
 
-// testAddMember tests the creation of a new member record
-func testAddMember(t *testing.T) {
+// testInsertRow tests the creation of a new member record
+func testInsertRow(t *testing.T) {
 	m := member.Row{}
 	m.RoleID = 2
 	m.NamePrefixID = 1
 	m.CountryID = 17
-	m.ConsentDirectory = 1
-	m.ConsentContact = 1
+	m.ConsentDirectory = true
+	m.ConsentContact = true
 	m.UpdatedAt = "2019-01-01"
 	m.DateOfBirth = "1970-11-03"
 	m.Gender = "M"
@@ -63,7 +64,7 @@ func testAddMember(t *testing.T) {
 	m.MiddleNames = "Peter"
 	m.LastName = "Donnici"
 	m.PostNominal = "B.Sc.Agr"
-	m.QualificationsOther = "Grad. Cert. Computing"
+	m.QualificationsInfo = "Grad. Cert. Computing"
 	m.Mobile = "0402 400 191"
 	m.PrimaryEmail = "michael@8o8.io"
 	m.SecondaryEmail = "michael.donnici@gmail.com"
@@ -188,6 +189,107 @@ func testAddMember(t *testing.T) {
 	if got != want {
 		t.Errorf("member.Member.Tags count = %d, want %d", got, want)
 	}
+}
+
+// testInsertRowJSON tests the creation of a new member record from a JSON doc
+func testInsertRowJSON(t *testing.T) {
+
+	j := `{
+		"trainee": false,
+		"type": "Associate",
+		"gender": "Male",
+		"title": "Dr",
+		"titleId": 3,
+		"firstName": "Mike",
+		"middleNames": "Peter",
+		"lastName": "Donnici",
+		"dateOfBirth": "1970-11-03",
+		"primaryEmail": "michael@somewhere.com",
+		"secondaryEmail": "michael@somewhereelse.com",
+		"mobile": "+61402400191",
+		"nominator": {
+			"id": null,
+			"name": ""
+		},
+		"seconder": {
+			"id": null,
+			"name": ""
+		},
+		"nominatorInfo": "ghggh",
+		"qualifications": [
+			{
+				"qualificationId": 2,
+				"name": "Bachelor of Medicine, Bachelor of Surgery",
+				"abbreviation": "MBBS",
+				"year": 1998,
+				"organisationId": 311,
+				"organisationName": "University of Adelaide"
+			}
+		],
+		"qualificationsInfo": "ABC123",
+		"interests": [
+			"Electrophysiology and Pacing"
+		],
+		"councils": [
+			"General Cardiology"
+		],
+		"ishr": false,
+		"consentDirectory": true,
+		"consentContact": true,
+		"consentRequestInfo": true
+	}`
+
+	row, err := member.InsertRowFromJSON(data.Store, j)
+	if err != nil {
+		t.Fatalf("member.RowFromJSON() err = %s", err)
+	}
+
+	// verify a few things about the member record
+	mem, err := member.ByID(data.Store, row.ID)
+	if err != nil {
+		t.Fatalf("member.ByID(%d) err = %s", row.ID, err)
+	}
+
+	// check number of qualifications
+	want := 1
+	got := len(mem.Qualifications)
+	if got != want {
+		t.Errorf("Member.Qualifications count = %d, want %d", got, want)
+	}
+
+	wantQualOther := "ABC123"
+	gotQualOther := mem.QualificationsOther
+	if gotQualOther != wantQualOther {
+		t.Errorf("Member.QualificationsOther = %q, want %q", gotQualOther, wantQualOther)
+	}
+
+	// check number of positions
+	// want = 2
+	// got = len(mem.Positions)
+	// if got != want {
+	// 	t.Errorf("member.Member.Positions count = %d, want %d", got, want)
+	// }
+
+	// // check number of specialities
+	// want = 1
+	// got = len(mem.Specialities)
+	// if got != want {
+	// 	t.Errorf("member.Member.Specialities count = %d, want %d", got, want)
+	// }
+
+	// // check number of accreditations
+	// want = 1
+	// got = len(mem.Accreditations)
+	// if got != want {
+	// 	t.Errorf("member.Member.Accreditations count = %d, want %d", got, want)
+	// }
+
+	// // check number of tags
+	// want = 0
+	// got = len(mem.Tags)
+	// if got != want {
+	// 	t.Errorf("member.Member.Tags count = %d, want %d", got, want)
+	// }
 }
 
 func testByID(t *testing.T) {

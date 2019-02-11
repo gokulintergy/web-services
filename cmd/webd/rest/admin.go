@@ -831,6 +831,10 @@ func AdminReportPositionExcel(w http.ResponseWriter, r *http.Request) {
 //AdminNewMembershipApplication processes a request to create a new membership application
 func AdminNewMembershipApplication(w http.ResponseWriter, r *http.Request) {
 	p := NewResponder(UserAuthToken.Encoded)
+
+	// marshal the request body into an Application value
+	//a := Appl
+
 	p.Message = Message{http.StatusAccepted, "accepted", "application has been created"}
 	var body interface{}
 	json.NewDecoder(r.Body).Decode(&body)
