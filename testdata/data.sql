@@ -543,9 +543,9 @@ INSERT INTO `%s`.`ol_resource` VALUES
 INSERT INTO `%s`.`organisation` VALUES
   (1, NULL, 1, 1, 1, NOW(), NOW(), 'ABC', 'ABC Organisation', '', '', '', '', '', '', '', '', '', ''),
   (2, NULL, 1, 1, 1, NOW(), NOW(), 'DEF', 'DEF Organisation', '', '', '', '', '', '', '', '', '', ''),
-  (3, 1, 1, 1, 1, NOW(), NOW(), 'ABC-1', 'ABC Sub1', '', '', '', '', '', '', '', '', '', ''),
-  (4, 1, 1, 1, 1, NOW(), NOW(), 'ABC-2', 'ABC Sub2', '', '', '', '', '', '', '', '', '', ''),
-  (5, 1, 1, 1, 1, NOW(), NOW(), 'ABC-3', 'ABC Sub3', '', '', '', '', '', '', '', '', '', '');
+  (3, 1, 2, 1, 1, NOW(), NOW(), 'ABC-1', 'ABC Sub1', '', '', '', '', '', '', '', '', '', ''),
+  (4, 1, 3, 1, 1, NOW(), NOW(), 'ABC-2', 'ABC Sub2', '', '', '', '', '', '', '', '', '', ''),
+  (5, 1, 4, 1, 1, NOW(), NOW(), 'ABC-3', 'ABC Sub3', '', '', '', '', '', '', '', '', '', '');
 
 -- name: insert-data-organisation_type
 INSERT INTO `%s`.`organisation_type` VALUES
