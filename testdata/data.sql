@@ -420,8 +420,8 @@ INSERT INTO `%s`.`mp_tag` VALUES
   (1, 1, NOW(), NOW(), 'Allied Health', ''),
   (2, 1, NOW(), NOW(), 'Nurse', ''),
   (3, 1, NOW(), NOW(), 'Surgeon', ''),
-  (4, 1, '2013-06-12 16:27:22', '2013-06-12 16:27:22', 'Advanced Trainee', ''),
-  (5, 1, '2013-07-15 14:19:37', '2013-07-15 14:19:37', 'Retired / Comp', 'Complimentary subscription');
+  (4, 1, NOW(), NOW(), 'Advanced Trainee', ''),
+  (5, 1, NOW(), NOW(), 'Retired / Comp', 'Complimentary subscription');
 
 -- name: insert-data-ms_m_application
 INSERT INTO `%s`.`ms_m_application` VALUES
