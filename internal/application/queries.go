@@ -4,7 +4,6 @@ var queries = map[string]string{
 	"select-applications":             selectActiveApplications,
 	"select-application-by-id":        selectApplicationByID,
 	"select-applications-by-memberid": selectApplicationsByMemberID,
-	"insert-application-row":   insertApplicationRow,
 }
 
 const selectApplications = `SELECT 
@@ -38,14 +37,3 @@ const selectActiveApplications = selectApplications + ` AND ma.active = 1 `
 const selectApplicationByID = selectActiveApplications + ` AND ma.id = %v `
 
 const selectApplicationsByMemberID = selectActiveApplications + ` AND ma.member_id = %v `
-
-const insertApplicationRow = `
-INSERT INTO ms_m_application(
-  member_id, 
-  member_id_nominator, 
-  member_id_seconder, 
-  ms_title_id, 
-  updated_at, 
-  applied_on, 
-  comment) 
-VALUES (%d, %d, %d, %d, NOW(), NOW(), %q)`

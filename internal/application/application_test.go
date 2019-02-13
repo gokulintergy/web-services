@@ -29,7 +29,6 @@ func TestApplication(t *testing.T) {
 		t.Run("testByNonExistentMemberID", testByNonExistentMemberID)
 		t.Run("testQuery", testQuery)
 		t.Run("testExcelReport", testExcelReport)
-		t.Run("testInsertRow", testInsertRow)
 	})
 }
 
@@ -208,26 +207,5 @@ func testExcelReport(t *testing.T) {
 	got := len(rows)
 	if got != want {
 		t.Errorf("GetRows() row count = %d, want %d", got, want)
-	}
-}
-
-// test insert application row
-func testInsertRow(t *testing.T) {
-	a := application.Application{
-		MemberID:    3,
-		NominatorID: 586,
-		ForTitleID:  4,
-		Comment:     "Submitted online",
-	}
-	err := application.InsertRow(ds, a)
-	if err != nil {
-		t.Fatalf("application.InsertRow() err = %s", err)
-	}
-
-	// expect an error if the Application.ID is already set
-	a.ID = 123
-	err = application.InsertRow(ds, a)
-	if err == nil {
-		t.Fatalf("application.InsertRow() err = nil, want !nil")
 	}
 }
