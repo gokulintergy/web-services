@@ -13,7 +13,7 @@ import (
 
 var ds datastore.Datastore
 
-func TestAll(t *testing.T) {
+func TestApplication(t *testing.T) {
 
 	var teardown func()
 	ds, teardown = setup()
@@ -29,6 +29,7 @@ func TestAll(t *testing.T) {
 		t.Run("testByNonExistentMemberID", testByNonExistentMemberID)
 		t.Run("testQuery", testQuery)
 		t.Run("testExcelReport", testExcelReport)
+		t.Run("testInsertRow", testInsertRow)
 	})
 }
 
@@ -202,7 +203,7 @@ func testExcelReport(t *testing.T) {
 	if err != nil {
 		t.Fatalf("application.ExcelReport() err = %s", err)
 	}
-	
+
 	rows := f.GetRows(f.GetSheetName(f.GetActiveSheetIndex())) // rows is [][]string
 	got := len(rows)
 	if got != want {
@@ -210,3 +211,23 @@ func testExcelReport(t *testing.T) {
 	}
 }
 
+// test insert application row
+func testInsertRow(t *testing.T) {
+	a := application.Application{
+		MemberID:    3,
+		NominatorID: 586,
+		ForTitleID:  4,
+		Comment:     "Submitted online",
+	}
+	err := application.InsertRow(ds, a)
+	if err != nil {
+		t.Fatalf("application.InsertRow() err = %s", err)
+	}
+
+	// expect an error if the Application.ID is already set
+	a.ID = 123
+	err = application.InsertRow(ds, a)
+	if err == nil {
+		t.Fatalf("application.InsertRow() err = nil, want !nil")
+	}
+}

@@ -3,6 +3,7 @@ package application
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -22,7 +23,8 @@ type Application struct {
 	SeconderID  int       `json:"seconderId" bson:"seconderId"`
 	Seconder    string    `json:"seconder" bson:"seconder"`
 	Date        time.Time `json:"date" bson:"date"`
-	For         string    `json:"applyingFor" bson:"applyingFor"`
+	ForTitle    string    `json:"forTitle" bson:"forTitle"`
+	ForTitleID  int       `json:"forTitleId" bson:"forTitleId"`
 	Status      int       `json:"status" bson:"status"`
 	Comment     string    `json:"comment" bson:"comment"`
 }
@@ -59,6 +61,24 @@ func ByMemberID(ds datastore.Datastore, memberID int) ([]Application, error) {
 func Query(ds datastore.Datastore, clause string) ([]Application, error) {
 	q := fmt.Sprintf(queries["select-applications"]+" %s", clause)
 	return execute(ds, q)
+}
+
+// InsertRow inserts a new application row using values from the Application value.
+// Note that not all the Application fields are used / required and if the Application
+// already has an ID it will not be inserted.
+func InsertRow(ds datastore.Datastore, app Application) error {
+	if app.ID > 0 {
+		return errors.New("cannot insert new row as Application.ID has a value")
+	}
+	q := fmt.Sprintf(queries["insert-application-row"],
+		app.MemberID,
+		app.NominatorID,
+		app.SeconderID,
+		app.ForTitleID,
+		app.Comment,
+	)
+	_, err := ds.MySQL.Session.Exec(q)
+	return err
 }
 
 func execute(ds datastore.Datastore, query string) ([]Application, error) {
@@ -105,7 +125,7 @@ func scanRow(row *sql.Rows) (Application, error) {
 		&a.SeconderID,
 		&a.Seconder,
 		&applicationDate,
-		&a.For,
+		&a.ForTitle,
 		&a.Status,
 		&a.Comment,
 	)

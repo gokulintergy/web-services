@@ -65,7 +65,7 @@ func ExcelReport(ds datastore.Datastore, applications []Application) (*excelize.
 			a.Nominator,
 			a.SeconderID,
 			a.Seconder,
-			a.For,
+			a.ForTitle,
 			tags,
 			region,
 			status,
