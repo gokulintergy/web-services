@@ -14,22 +14,9 @@ const MemberRoleId = 1
 type Application struct {
 
 	// Member row contains the basic member data
-	member.Row
-
-	// member record - generates id for subsequent records
-    // "gender": "Male",
-    // "title": "Prof",
-    // "firstName": "Mike",
-    // "middleNames": "",
-    // "lastName": "Donnici",
-    // "dateOfBirth": "1970-11-03",
-    // "primaryEmail": "michael@mesa.net.au",
-    // "secondaryEmail": "michael@mesa.net.au",
-    // "mobile": "+61402400191",
-    // "qualificationInfo": "", // qualification_other?
-    // "consentDirectory": true,
-    // "consentContact": true,
-
+    Member member.Row
+    
+    
     // IF TRUE - mp_m_tag with mp_tag_id = 4 (Advanced Trainee)
     "trainee": true,
 

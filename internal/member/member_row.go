@@ -17,7 +17,7 @@ type Row struct {
 	RoleID             int    `json:"roleId"`             // acl_member_role_id
 	NamePrefixID       int    `json:"titleId"`            // a_name_prefix_id
 	CountryID          int    `json:"countryId"`          // country_id
-	ConsentDirectory   bool   `json:"consetDirectory"`    // consent_directory
+	ConsentDirectory   bool   `json:"consentDirectory"`   // consent_directory
 	ConsentContact     bool   `json:"consentContact"`     // consent_contact
 	UpdatedAt          string `json:"updatedAt"`          // updated_at
 	DateOfBirth        string `json:"dateOfBirth"`        // date_of_birth
@@ -37,6 +37,7 @@ type Row struct {
 	PositionRows      []PositionRow      `json:"positions"`
 	AccreditationRows []AccreditationRow `json:"accreditations"`
 	TagRows           []TagRow           `json:"tags"`
+	ApplicationRow    ApplicationRow     `json:"application"`
 
 	// todo
 	//Contact        Contact         `json:"contact"`
@@ -90,6 +91,16 @@ type TagRow struct {
 	TagID    int `json:"tagID"`
 }
 
+// ApplicationRow represents a member's application
+type ApplicationRow struct {
+	ID          int
+	MemberID    int
+	ForTitleID  int    `json:"forTitleId"`
+	NominatorID int    `json:"nominatorId"`
+	SeconderID  int    `json:"seconderId"`
+	Comment     string `json:"nominatorInfo"`
+}
+
 // Insert inserts a member row into the database. If successful it will set the member id.
 func (r *Row) Insert(ds datastore.Datastore) error {
 
@@ -127,6 +138,7 @@ func (r *Row) Insert(ds datastore.Datastore) error {
 		return err
 	}
 
+	// get member id
 	id, err := res.LastInsertId()
 	if err != nil {
 		return err
@@ -154,6 +166,11 @@ func (r *Row) Insert(ds datastore.Datastore) error {
 	}
 
 	err = r.insertTags(ds)
+	if err != nil {
+		return err
+	}
+
+	err = r.insertApplication(ds)
 	if err != nil {
 		return err
 	}
@@ -216,6 +233,11 @@ func (r *Row) insertTags(ds datastore.Datastore) error {
 	return nil
 }
 
+// insertApplication creates an application record for the member
+func (r *Row) insertApplication(ds datastore.Datastore) error {
+	return r.ApplicationRow.insert(ds, r.ID)
+}
+
 // insert a member qualification row in the junction table
 func (qr QualificationRow) insert(ds datastore.Datastore, memberID int) error {
 	query := fmt.Sprintf(queries["insert-member-qualification-row"],
@@ -271,6 +293,18 @@ func (tr TagRow) insert(ds datastore.Datastore, memberID int) error {
 		memberID,
 		tr.TagID)
 	_, err := ds.MySQL.Session.Exec(query)
+	return err
+}
+
+func (ar ApplicationRow) insert(ds datastore.Datastore, memberID int) error {
+	q := fmt.Sprintf(queries["insert-member-application-row"],
+		memberID,
+		ar.NominatorID,
+		ar.SeconderID,
+		ar.ForTitleID,
+		ar.Comment,
+	)
+	_, err := ds.MySQL.Session.Exec(q)
 	return err
 }
 

@@ -194,9 +194,10 @@ func testInsertRow(t *testing.T) {
 // testInsertRowJSON tests the creation of a new member record from a JSON doc
 func testInsertRowJSON(t *testing.T) {
 
+	// When this test is passing, below is the format for JSON posted to create a new application
 	j := `{
-		"trainee": false,
-		"type": "Associate",
+		"roleId" : 2,
+		"countryId": 17, 
 		"gender": "Male",
 		"title": "Dr",
 		"titleId": 3,
@@ -207,15 +208,14 @@ func testInsertRowJSON(t *testing.T) {
 		"primaryEmail": "michael@somewhere.com",
 		"secondaryEmail": "michael@somewhereelse.com",
 		"mobile": "+61402400191",
-		"nominator": {
-			"id": null,
-			"name": ""
-		},
-		"seconder": {
-			"id": null,
-			"name": ""
-		},
-		"nominatorInfo": "ghggh",
+		"consentDirectory": true,
+		"consentContact": true,
+
+		"trainee": true,
+		"tags" : [
+			{"tagId": 4}
+		],
+
 		"qualifications": [
 			{
 				"qualificationId": 2,
@@ -227,15 +227,27 @@ func testInsertRowJSON(t *testing.T) {
 			}
 		],
 		"qualificationsInfo": "ABC123",
+
 		"interests": [
-			"Electrophysiology and Pacing"
+			{
+				"specialityId": 1,
+				"name": "Cardiac Care Nurse (Medical)"
+			}, 
+			{
+				"specialityId": 2,
+				"name": "Cardiac Cath Lab Nurse"
+			}
 		],
-		"councils": [
-			"General Cardiology"
-		],
+
+		"application": {
+			"forTitle": "Associate",
+			"forTitleID": 1,
+			"nominatorId": 586,
+			"seconderId": 587,
+			"nominatorInfo": "ghggh"
+		}, 
+		
 		"ishr": false,
-		"consentDirectory": true,
-		"consentContact": true,
 		"consentRequestInfo": true
 	}`
 
