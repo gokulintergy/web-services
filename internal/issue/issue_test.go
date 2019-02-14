@@ -4,6 +4,7 @@ import (
 	"log"
 	"testing"
 
+	"github.com/cardiacsociety/web-services/internal/issue"
 	"github.com/cardiacsociety/web-services/internal/platform/datastore"
 	"github.com/cardiacsociety/web-services/testdata"
 )
@@ -18,6 +19,8 @@ func TestIssue(t *testing.T) {
 
 	t.Run("issue", func(t *testing.T) {
 		t.Run("testPingDatabase", testPingDatabase)
+		t.Run("testInsertRowErrorIDNotNil", testInsertRowErrorIDNotNil)
+		t.Run("testInsertRowErrorNoTypeID", testInsertRowErrorNoTypeID)
 	})
 }
 
@@ -42,6 +45,30 @@ func testPingDatabase(t *testing.T) {
 	}
 }
 
-func testNewIssue(t *testing.T) {
-	i := issue.New()
+// test an attempt to insert an issue row when the Issue.ID has a value
+func testInsertRowErrorIDNotNil(t *testing.T) {
+	i := issue.Issue{
+		ID:          1,
+		Type:        issue.Type{ID: 2},
+		Description: "This is the description",
+		Action:      "This is what must be done",
+	}
+	err := i.InsertRow(ds)
+	want := issue.ErrorIDNotNil
+	if err == nil {
+		t.Errorf("Issue.InsertRow() err = nil, want %s", want)
+	}
+}
+
+// test an attempt to insert an issue row with Issue.Type.ID not set
+func testInsertRowErrorNoTypeID(t *testing.T) {
+	i := issue.Issue{
+		Description: "This is the description",
+		Action:      "This is what must be done",
+	}
+	err := i.InsertRow(ds)
+	want := issue.ErrorNoTypeID
+	if err == nil {
+		t.Errorf("Issue.InsertRow() err = nil, want %s", want)
+	}
 }
