@@ -1,7 +1,9 @@
 package issue_test
 
 import (
+	"encoding/json"
 	"log"
+	"reflect"
 	"testing"
 
 	"github.com/cardiacsociety/web-services/internal/issue"
@@ -13,12 +15,13 @@ var ds datastore.Datastore
 
 func TestIssue(t *testing.T) {
 
-	// var teardown func()
-	ds, _ = setup()
-	// defer teardown()
+	var teardown func()
+	ds, teardown = setup()
+	defer teardown()
 
 	t.Run("issue", func(t *testing.T) {
 		t.Run("testPingDatabase", testPingDatabase)
+		t.Run("testByID", testByID)
 		t.Run("testInsertRowErrorIDNotNil", testInsertRowErrorIDNotNil)
 		t.Run("testInsertRowErrorNoTypeID", testInsertRowErrorNoTypeID)
 		t.Run("testInsertRowErrorNoDescription", testInsertRowErrorNoDescription)
@@ -27,6 +30,7 @@ func TestIssue(t *testing.T) {
 		t.Run("testInsertRowErrorAssociationID", testInsertRowErrorAssociationID)
 		t.Run("testInsertRowErrorAssociationEntity", testInsertRowErrorAssociationEntity)
 		t.Run("testInsertRow", testInsertRow)
+		t.Run("testInsertRowWithAssociation", testInsertRowWithAssociation)
 	})
 }
 
@@ -48,6 +52,41 @@ func testPingDatabase(t *testing.T) {
 	err := ds.MySQL.Session.Ping()
 	if err != nil {
 		t.Fatalf("Ping() err = %s", err)
+	}
+}
+
+func testByID(t *testing.T) {
+	arg := 1 // issue id in test data
+	got, err := issue.ByID(ds, arg)
+	if err != nil {
+		t.Fatalf("issue.ByID(%d) err = %s", arg, err)
+	}
+
+	// This is what we expect in return
+	want := issue.Issue{
+		ID:       1,
+		Resolved: true,
+		Visible:  true,
+		Type: issue.Type{
+			ID:          1,
+			Name:        "Invoice Raised",
+			Description: "A new invoice has been raised and is pending payment.",
+			Category: issue.Category{
+				ID:          4,
+				Name:        "Finance",
+				Description: "Issues relating to Subscriptions, Invoicing and Payments.",
+			},
+		},
+		Description:   "A new invoice has been raised and is pending payment. (INV0001)",
+		Action:        "Members can pay online or by alternate methods specified on the invoice.",
+		Notes:         nil,
+		MemberID:      502,
+		Association:   "invoice",
+		AssociationID: 1,
+	}
+
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("issue.ByID(%d) got !DeepEqual want", arg)
 	}
 }
 
@@ -156,7 +195,7 @@ func testInsertRowErrorAssociationEntity(t *testing.T) {
 	}
 }
 
-// test insert an error row
+// test insert a row without an association
 func testInsertRow(t *testing.T) {
 	i := issue.Issue{
 		Type:        issue.Type{ID: 2},
@@ -167,4 +206,43 @@ func testInsertRow(t *testing.T) {
 	if err != nil {
 		t.Errorf("Issue.InsertRow() err = %s", err)
 	}
+}
+
+// test insert a row with an association
+func testInsertRowWithAssociation(t *testing.T) {
+	i := issue.Issue{
+		Type:          issue.Type{ID: 2},
+		Description:   "This is the description",
+		Action:        "This is what must be done",
+		MemberID:      123,
+		AssociationID: 456,
+		Association:   "application",
+	}
+	err := i.InsertRow(ds)
+	if err != nil {
+		t.Errorf("Issue.InsertRow() err = %s", err)
+	}
+
+	// Verify the association
+	iss, err := issue.ByID(ds, i.ID)
+	if err != nil {
+		t.Fatalf("issue.ByID(%d) err = %s", i.ID, err)
+	}
+	gotAssociationID := iss.AssociationID
+	wantAssociationID := i.AssociationID
+	if gotAssociationID != wantAssociationID {
+		t.Errorf("Issue.AssociationID = %d, want %d", gotAssociationID, wantAssociationID)
+	}
+	gotAssociation := iss.Association
+	wantAssociation := i.Association
+	if gotAssociation != wantAssociation {
+		t.Errorf("Issue.Association = %q, want %q", gotAssociation, wantAssociation)
+	}
+
+	t.Log(toJSON(iss))
+}
+
+func toJSON(i interface{}) string {
+	xb, _ := json.MarshalIndent(i, "", " ")
+	return string(xb)
 }
