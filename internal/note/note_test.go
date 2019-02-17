@@ -23,6 +23,10 @@ func TestNote(t *testing.T) {
 		t.Run("testNoteType", testNoteType)
 		t.Run("testMemberNote", testMemberNote)
 		t.Run("testNoteFirstAttachmentUrl", testNoteFirstAttachmentUrl)
+		t.Run("testInsertRowErrorIDNotNil", testInsertRowErrorIDNotNil)
+		t.Run("testInsertRowErrorNoMemberID", testInsertRowErrorNoMemberID)
+		t.Run("testInsertRowErrorNoTypeID", testInsertRowErrorNoTypeID)
+		t.Run("testInsertRowErrorNoContent", testInsertRowErrorNoContent)
 	})
 }
 
@@ -117,5 +121,67 @@ func testNoteFirstAttachmentUrl(t *testing.T) {
 		if got != c.want {
 			t.Errorf("Note.Attachments[0].URL = %s, want %s", got, c.want)
 		}
+	}
+}
+
+// test an attempt to insert an issue row when the Issue.ID has a value
+func testInsertRowErrorIDNotNil(t *testing.T) {
+	n := note.Note{
+		ID:       1,
+		TypeID:   2,
+		MemberID: 234,
+		Content:  "This is the note content",
+	}
+	var err error
+	err = n.InsertRow(ds)
+	got := err.Error()
+	want := note.ErrorIDNotNil
+	if got != want {
+		t.Errorf("Note.InsertRow() err = %q, want %q", got, want)
+	}
+}
+
+// test an attempt to insert a note row with no MemberID
+func testInsertRowErrorNoMemberID(t *testing.T) {
+	n := note.Note{
+		TypeID:  2,
+		Content: "This is the note content",
+	}
+	var err error
+	err = n.InsertRow(ds)
+	got := err.Error()
+	want := note.ErrorNoMemberID
+	if got != want {
+		t.Errorf("Note.InsertRow() err = %q, want %q", got, want)
+	}
+}
+
+// test an attempt to insert a note row with no TypeID
+func testInsertRowErrorNoTypeID(t *testing.T) {
+	n := note.Note{
+		MemberID: 123,
+		Content:  "This is the note content",
+	}
+	var err error
+	err = n.InsertRow(ds)
+	got := err.Error()
+	want := note.ErrorNoTypeID
+	if got != want {
+		t.Errorf("Note.InsertRow() err = %q, want %q", got, want)
+	}
+}
+
+// test an attempt to insert a note row with no content
+func testInsertRowErrorNoContent(t *testing.T) {
+	n := note.Note{
+		MemberID: 123,
+		TypeID: 2,
+	}
+	var err error
+	err = n.InsertRow(ds)
+	got := err.Error()
+	want := note.ErrorNoContent
+	if got != want {
+		t.Errorf("Note.InsertRow() err = %q, want %q", got, want)
 	}
 }

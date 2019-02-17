@@ -1,3 +1,4 @@
+// Package issue provides management of issue data
 package issue
 
 import (
@@ -16,7 +17,7 @@ const (
 	ErrorAssociationNoMemberID = "cannot associate issue with another entity unless a member id is specified"
 	ErrorAssociation           = "association entity not specified"
 	ErrorAssociationID         = "association entity ID not specified"
-	ErrorAssociationEntity     = "association entity unknown"
+	ErrorAssociationEntity     = "association entity invalid"
 )
 
 // Issue represents a workflow issue

@@ -1,16 +1,33 @@
-// Packages notes provides access to Notes data
+// Package note provides management of notes data
 package note
 
 import (
+	"errors"
+	"fmt"
+
 	"github.com/cardiacsociety/web-services/internal/platform/datastore"
 )
 
-// Note represents a record of a comment, document or anything else. A Note can be linked to a member and
-// other entities such as an application, or an issue
+// Error messages
+const (
+	ErrorIDNotNil              = "cannot insert a note row because Note.ID already has a value"
+	ErrorNoMemberID            = "cannot insert a note row because Note.MemberID field is not set"
+	ErrorNoTypeID              = "cannot insert a note row because Note.TypeID field is not set"
+	ErrorNoContent             = "cannot insert a note row because Note.Content is empty"
+	ErrorAssociation           = "association entity not specified"
+	ErrorAssociationID         = "association entity ID not specified"
+	ErrorAssociationEntity     = "association entity invalid"
+)
+
+// Note represents a record of a comment, document or anything else. A Note is always linked to a member 
+// and can also be associated with an application or an issue
 type Note struct {
-	ID            int          `json:"id" bson:"id"`
-	Type          string       `json:"type" bson:"type"`
+	ID            int `json:"id" bson:"id"`
 	MemberID      int          `json:"memberId" bson:"memberId"`
+	TypeID        int
+	Type          string       `json:"type" bson:"type"`
+	Association   string // either "application" or "invoice"
+	AssociationID int    // the id of the associated application or invoice record
 	DateCreated   string       `json:"dateCreated" bson:"dateCreated"`
 	DateUpdated   string       `json:"dateUpdated" bson:"dateUpdated"`
 	DateEffective string       `json:"dateEffective" bson:"dateEffective"`
@@ -23,6 +40,63 @@ type Attachment struct {
 	ID   int    `json:"id" bson:"id"`
 	Name string `json:"name" bson:"name"`
 	URL  string `json:"url" bson:"url"`
+}
+
+// InsertRow creates a new note row with fields from Note
+func (n *Note) InsertRow(ds datastore.Datastore) error {
+	switch {
+	case n.ID > 0:
+		return errors.New(ErrorIDNotNil)
+	case n.MemberID == 0:
+		return errors.New(ErrorNoMemberID)
+	case n.TypeID == 0:
+		return errors.New(ErrorNoTypeID)
+	case n.Content == "":
+		return errors.New(ErrorNoContent)
+	}
+	q := fmt.Sprintf(queries["insert-note"], n.TypeID, n.Content)
+	res, err := ds.MySQL.Session.Exec(q)
+	if err != nil {
+		return err
+	}
+	id, err := res.LastInsertId()
+	if err != nil {
+		return err
+	}
+	n.ID = int(id) // from int64
+
+	// Associate other data if fields are set
+	if n.AssociationID > 0 || n.Association != "" {
+		err := n.checkAssociatioData()
+		if err != nil {
+			return err
+		}
+		q := fmt.Sprintf(queries["insert-note-association"], n.ID, n.MemberID, n.AssociationID, n.Association)
+		_, err = ds.MySQL.Session.Exec(q)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// checkAssociatioData verifies fields required to associate an issue with other data
+func (n *Note) checkAssociatioData() error {
+	// no association
+	if n.Association == "" && n.AssociationID == 0 {
+		return nil
+	}
+	if n.Association != "" || n.AssociationID > 0 {
+		switch {
+		case n.Association == "":
+			return errors.New(ErrorAssociation)
+		case n.AssociationID == 0:
+			return errors.New(ErrorAssociationID)
+		case n.Association != "application" && n.Association != "issue":
+			return errors.New(ErrorAssociationEntity)
+		}
+	}
+	return nil
 }
 
 // ByID fetches a Note from the specified datastore - used for testing
@@ -40,7 +114,7 @@ func noteByID(ds datastore.Datastore, id int) (Note, error) {
 
 	n := Note{ID: id}
 
-	query := Queries["select-note"] + " WHERE wn.id = ?"
+	query := queries["select-note"] + " WHERE wn.id = ?"
 	err := ds.MySQL.Session.QueryRow(query, id).Scan(
 		&n.ID,
 		&n.Type,
@@ -63,7 +137,7 @@ func notesByMemberID(ds datastore.Datastore, memberID int) ([]Note, error) {
 
 	var xn []Note
 
-	query := Queries["select-note"] + " WHERE m.id = ? ORDER BY wn.effective_on DESC"
+	query := queries["select-note"] + " WHERE m.id = ? ORDER BY wn.effective_on DESC"
 	rows, err := ds.MySQL.Session.Query(query, memberID)
 	if err != nil {
 		return xn, err
@@ -98,7 +172,7 @@ func attachments(ds datastore.Datastore, noteID int) ([]Attachment, error) {
 
 	var xa []Attachment
 
-	query := Queries["select-attachments"] + " WHERE wa.wf_note_id = ?"
+	query := queries["select-attachments"] + " WHERE wa.wf_note_id = ?"
 	rows, err := ds.MySQL.Session.Query(query, noteID)
 	if err != nil {
 		return xa, err
