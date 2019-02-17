@@ -5,18 +5,17 @@ import (
 	"testing"
 
 	"github.com/cardiacsociety/web-services/internal/note"
+	"github.com/cardiacsociety/web-services/internal/platform/datastore"
 	"github.com/cardiacsociety/web-services/testdata"
 )
 
-var db = testdata.NewDataStore()
-var helper = testdata.NewHelper()
+var ds datastore.Datastore
 
 func TestNote(t *testing.T) {
-	err := db.SetupMySQL()
-	if err != nil {
-		log.Fatalln(err)
-	}
-	defer db.TearDownMySQL()
+
+	var teardown func()
+	ds, teardown = setup()
+	defer teardown()
 
 	t.Run("note", func(t *testing.T) {
 		t.Run("testPingDatabase", testPingDatabase)
@@ -27,74 +26,96 @@ func TestNote(t *testing.T) {
 	})
 }
 
+func setup() (datastore.Datastore, func()) {
+	var db = testdata.NewDataStore()
+	err := db.SetupMySQL()
+	if err != nil {
+		log.Fatalf("db.SetupMySQL() err = %s", err)
+	}
+	return db.Store, func() {
+		err := db.TearDownMySQL()
+		if err != nil {
+			log.Fatalf("db.TearDownMySQL() err = %s", err)
+		}
+	}
+}
+
 func testPingDatabase(t *testing.T) {
-	err := db.Store.MySQL.Session.Ping()
+	err := ds.MySQL.Session.Ping()
 	if err != nil {
 		t.Fatal("Could not ping database")
 	}
 }
 
 func testNoteContent(t *testing.T) {
-
 	cases := []struct {
-		ID     int
-		Expect string
+		arg  int
+		want string
 	}{
 		{1, "Application note"},
 		{2, "Issue raised"},
 	}
-
 	for _, c := range cases {
-		r, err := note.ByID(db.Store, c.ID)
+		n, err := note.ByID(ds, c.arg)
 		if err != nil {
-			t.Fatalf("Database error: %s", err)
+			t.Errorf("note.ByID(%d) err = %s", c.arg, err)
 		}
-		helper.Result(t, c.Expect, r.Content)
+		got := n.Content
+		if got != c.want {
+			t.Errorf("Note.Content = %q, want %q", got, c.want)
+		}
 	}
 }
 
 func testNoteType(t *testing.T) {
-
 	cases := []struct {
-		ID     int
-		Expect string
+		arg  int
+		want string
 	}{
 		{1, "General"},
 		{2, "System"},
 	}
-
 	for _, c := range cases {
-		r, err := note.ByID(db.Store, c.ID)
+		n, err := note.ByID(ds, c.arg)
 		if err != nil {
-			t.Fatalf("Database error: %s", err)
+			t.Errorf("note.ByID(%d) err = %s", c.arg, err)
 		}
-		helper.Result(t, c.Expect, r.Type)
+		got := n.Type
+		if got != c.want {
+			t.Errorf("Note.Type = %q, want %q", got, c.want)
+		}
 	}
 }
 
 func testMemberNote(t *testing.T) {
-
-	xn, err := note.ByMemberID(db.Store, 1)
+	arg := 1 // member id
+	xn, err := note.ByMemberID(ds, 1)
 	if err != nil {
-		t.Fatalf("Database error: %s", err)
+		t.Fatalf("note.ByMemberID(%d) err = %s", arg, err)
 	}
-	helper.Result(t, 3, len(xn))
+	got := len(xn)
+	want := 3
+	if got != want {
+		t.Errorf("note.ByMemberID(%d) count = %d, want %d", arg, got, want)
+	}
 }
 
 func testNoteFirstAttachmentUrl(t *testing.T) {
-
 	cases := []struct {
-		ID     int
-		Expect string
+		arg  int    // note id
+		want string // file url
 	}{
 		{1, "https://cdn.test.com/note/1/1-filename.ext"},
 	}
 
 	for _, c := range cases {
-		n, err := note.ByID(db.Store, c.ID)
+		n, err := note.ByID(ds, c.arg)
 		if err != nil {
-			t.Fatalf("Database error: %s", err)
+			t.Errorf("note.ByID(%d) err = %s", c.arg, err)
 		}
-		helper.Result(t, c.Expect, n.Attachments[0].URL)
+		got := n.Attachments[0].URL
+		if got != c.want {
+			t.Errorf("Note.Attachments[0].URL = %s, want %s", got, c.want)
+		}
 	}
 }
