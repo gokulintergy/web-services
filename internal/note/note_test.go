@@ -27,6 +27,8 @@ func TestNote(t *testing.T) {
 		t.Run("testInsertRowErrorNoMemberID", testInsertRowErrorNoMemberID)
 		t.Run("testInsertRowErrorNoTypeID", testInsertRowErrorNoTypeID)
 		t.Run("testInsertRowErrorNoContent", testInsertRowErrorNoContent)
+		t.Run("testInsertRow", testInsertRow)
+		t.Run("testInsertRowAssociation", testInsertRowAssociation)
 	})
 }
 
@@ -117,7 +119,10 @@ func testNoteFirstAttachmentUrl(t *testing.T) {
 		if err != nil {
 			t.Errorf("note.ByID(%d) err = %s", c.arg, err)
 		}
-		got := n.Attachments[0].URL
+		var got string
+		if len(n.Attachments) > 0 {
+			got = n.Attachments[0].URL
+		}
 		if got != c.want {
 			t.Errorf("Note.Attachments[0].URL = %s, want %s", got, c.want)
 		}
@@ -128,8 +133,8 @@ func testNoteFirstAttachmentUrl(t *testing.T) {
 func testInsertRowErrorIDNotNil(t *testing.T) {
 	n := note.Note{
 		ID:       1,
-		TypeID:   2,
-		MemberID: 234,
+		TypeID:   10001,
+		MemberID: 1,
 		Content:  "This is the note content",
 	}
 	var err error
@@ -144,7 +149,7 @@ func testInsertRowErrorIDNotNil(t *testing.T) {
 // test an attempt to insert a note row with no MemberID
 func testInsertRowErrorNoMemberID(t *testing.T) {
 	n := note.Note{
-		TypeID:  2,
+		TypeID:  10001,
 		Content: "This is the note content",
 	}
 	var err error
@@ -159,7 +164,7 @@ func testInsertRowErrorNoMemberID(t *testing.T) {
 // test an attempt to insert a note row with no TypeID
 func testInsertRowErrorNoTypeID(t *testing.T) {
 	n := note.Note{
-		MemberID: 123,
+		MemberID: 1,
 		Content:  "This is the note content",
 	}
 	var err error
@@ -174,8 +179,8 @@ func testInsertRowErrorNoTypeID(t *testing.T) {
 // test an attempt to insert a note row with no content
 func testInsertRowErrorNoContent(t *testing.T) {
 	n := note.Note{
-		MemberID: 123,
-		TypeID: 2,
+		MemberID: 1,
+		TypeID: 10001,
 	}
 	var err error
 	err = n.InsertRow(ds)
@@ -183,5 +188,53 @@ func testInsertRowErrorNoContent(t *testing.T) {
 	want := note.ErrorNoContent
 	if got != want {
 		t.Errorf("Note.InsertRow() err = %q, want %q", got, want)
+	}
+}
+
+// test insert a row - will always have an association record for memberID
+func testInsertRow(t *testing.T) {
+	n := note.Note{
+		TypeID: 10001,
+		MemberID: 1,
+		Content:  "This is the note content",
+	}
+	err := n.InsertRow(ds)
+	if err != nil {
+		t.Errorf("Note.InsertRow() err = %s", err)
+	}
+	// Re-fetch the note and verify the member id
+	n2, err := note.ByID(ds, n.ID)
+	if err != nil {
+		t.Fatalf("note.ByID(%d) err = %s", n.ID, err)
+	}
+	got := n2.MemberID
+	want := n.MemberID
+	if got != want {
+		t.Errorf("note.MemberID = %d, want %d", got, want)
+	}
+}
+
+// test insert a row with an association with other data
+func testInsertRowAssociation(t *testing.T) {
+	n := note.Note{
+		TypeID: 10001,
+		MemberID: 1,
+		Content:  "This is the note content",
+		Association: "application",
+		AssociationID: 1,
+	}
+	err := n.InsertRow(ds)
+	if err != nil {
+		t.Errorf("Note.InsertRow() err = %s", err)
+	}
+	// Re-fetch the note and verify the association
+	n2, err := note.ByID(ds, n.ID)
+	if err != nil {
+		t.Fatalf("note.ByID(%d) err = %s", n.ID, err)
+	}
+	got := n2.Association
+	want := n.Association
+	if got != want {
+		t.Errorf("note.Association = %q, want %q", got, want)
 	}
 }
