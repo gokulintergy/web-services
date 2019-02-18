@@ -22,7 +22,7 @@ func TestMember(t *testing.T) {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	//defer data.TearDownMySQL()
+	defer data.TearDownMySQL()
 
 	err = data.SetupMongoDB()
 	if err != nil {
@@ -159,35 +159,35 @@ func testInsertRow(t *testing.T) {
 	want := 2
 	got := len(mem.Qualifications)
 	if got != want {
-		t.Errorf("member.Member.Qualifcations count = %d, want %d", got, want)
+		t.Errorf("Member.Qualifcations count = %d, want %d", got, want)
 	}
 
 	// check number of positions
 	want = 2
 	got = len(mem.Positions)
 	if got != want {
-		t.Errorf("member.Member.Positions count = %d, want %d", got, want)
+		t.Errorf("Member.Positions count = %d, want %d", got, want)
 	}
 
 	// check number of specialities
 	want = 1
 	got = len(mem.Specialities)
 	if got != want {
-		t.Errorf("member.Member.Specialities count = %d, want %d", got, want)
+		t.Errorf("Member.Specialities count = %d, want %d", got, want)
 	}
 
 	// check number of accreditations
 	want = 1
 	got = len(mem.Accreditations)
 	if got != want {
-		t.Errorf("member.Member.Accreditations count = %d, want %d", got, want)
+		t.Errorf("Member.Accreditations count = %d, want %d", got, want)
 	}
 
 	// check number of tags
 	want = 3
 	got = len(mem.Tags)
 	if got != want {
-		t.Errorf("member.Member.Tags count = %d, want %d", got, want)
+		t.Errorf("Member.Tags count = %d, want %d", got, want)
 	}
 }
 
@@ -294,29 +294,22 @@ func testInsertRowJSON(t *testing.T) {
 	want = 3
 	got = len(mem.Positions)
 	if got != want {
-		t.Errorf("member.Member.Positions count = %d, want %d", got, want)
+		t.Errorf("Member.Positions count = %d, want %d", got, want)
 	}
 
-	// // check number of specialities
-	// want = 1
-	// got = len(mem.Specialities)
-	// if got != want {
-	// 	t.Errorf("member.Member.Specialities count = %d, want %d", got, want)
-	// }
+	// check number of specialities
+	want = 2
+	got = len(mem.Specialities)
+	if got != want {
+		t.Errorf("Member.Specialities count = %d, want %d", got, want)
+	}
 
-	// // check number of accreditations
-	// want = 1
-	// got = len(mem.Accreditations)
-	// if got != want {
-	// 	t.Errorf("member.Member.Accreditations count = %d, want %d", got, want)
-	// }
-
-	// // check number of tags
-	// want = 0
-	// got = len(mem.Tags)
-	// if got != want {
-	// 	t.Errorf("member.Member.Tags count = %d, want %d", got, want)
-	// }
+	// check number of tags
+	want = 1
+	got = len(mem.Tags)
+	if got != want {
+		t.Errorf("Member.Tags count = %d, want %d", got, want)
+	}
 }
 
 func testByID(t *testing.T) {
