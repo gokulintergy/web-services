@@ -83,7 +83,7 @@ func testByIDs(t *testing.T) {
 	for _, c := range cases {
 		xi, err := invoice.ByIDs(ds, c.arg)
 		if err != nil {
-			t.Errorf("invooice.ByIDs(%v) err = %s", c.arg, err)
+			t.Errorf("invoice.ByIDs(%v) err = %s", c.arg, err)
 		}
 		gotCount := len(xi)
 		if gotCount != c.wantCount {

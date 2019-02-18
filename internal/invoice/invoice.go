@@ -16,6 +16,8 @@ type Invoice struct {
 	UpdatedAt time.Time `json:"updatedAt" bson:"updatedAt"`
 	MemberID  int       `json:"memberId" bson:"memberId"`
 	Member    string    `json:"member" bson:"member"`
+	Email     string    `json:"email" bson:"email"`
+	Mobile    string    `json:"mobile" bson:"mobile"`
 	IssueDate time.Time `json:"issueDate" bson:"issueDate"`
 	DueDate   time.Time `json:"dueDate" bson:"dueDate"`
 
@@ -92,6 +94,8 @@ func scanRow(row *sql.Rows) (Invoice, error) {
 		&updatedAt,
 		&i.MemberID,
 		&i.Member,
+		&i.Email,
+		&i.Mobile,
 		&issueDate,
 		&dueDate,
 		&i.SubscriptionID,

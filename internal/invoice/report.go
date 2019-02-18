@@ -18,6 +18,8 @@ func ExcelReport(ds datastore.Datastore, invoices []Invoice) (*excelize.File, er
 		"Invoice date",
 		"Due date",
 		"Member",
+		"Email",
+		"Mobile",
 		"Subscription",
 		"Amount",
 		"Paid",
@@ -38,6 +40,8 @@ func ExcelReport(ds datastore.Datastore, invoices []Invoice) (*excelize.File, er
 			i.IssueDate,
 			i.DueDate,
 			i.Member + " [" + strconv.Itoa(i.MemberID) + "]",
+			i.Email,
+			i.Mobile,
 			i.Subscription,
 			i.Amount,
 			paid,
@@ -54,7 +58,7 @@ func ExcelReport(ds datastore.Datastore, invoices []Invoice) (*excelize.File, er
 	}
 
 	// total row
-	r := []interface{}{"", "", "", "", "Total", total, "", ""}
+	r := []interface{}{"", "", "", "", "", "", "Total", total, "", ""}
 	err := f.AddRow(r)
 	if err != nil {
 		msg := fmt.Sprintf("AddRow() err = %s\n", err)
