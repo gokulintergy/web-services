@@ -44,9 +44,9 @@ INSERT INTO member (
     secondary_email,
     password
 ) VALUES (
-    %d, %d, %d, %d, %d, 
+    ?, ?, ?, ?, ?, 
     NOW(), NOW(), 
-    %q, %q, %q, %q, %q, %q, %q, %q, %q, %q,
+    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
     ""
 )`
 
@@ -60,7 +60,7 @@ INSERT INTO mp_m_qualification (
     year, 
     qualification_suffix,
     comment
-) VALUES (%d, %d, %d, NOW(), NOW(), %d, %q, %q)
+) VALUES (?, ?, ?, NOW(), NOW(), ?, ?, ?)
 `
 
 const insertMemberPositionRow = `
@@ -70,11 +70,22 @@ INSERT INTO mp_m_position (
     organisation_id, 
     created_at, 
     updated_at, 
-    start_on, 
-    end_on,
-    comment
-) VALUES (%d, %d, %d, NOW(), NOW(), %q, %q, %q)
+    start_on
+) VALUES (?, ?, ?, NOW(), NOW(), NOW())
 `
+
+// const insertMemberPositionRow = `
+// INSERT INTO mp_m_position (
+//     member_id, 
+//     mp_position_id, 
+//     organisation_id, 
+//     created_at, 
+//     updated_at, 
+//     start_on, 
+//     end_on,
+//     comment
+// ) VALUES (%d, %d, %d, NOW(), NOW(), %q, %q, %q)
+// `
 
 const insertMemberSpecialityRow = `
 INSERT INTO mp_m_speciality (
@@ -84,7 +95,7 @@ INSERT INTO mp_m_speciality (
     updated_at, 
     preference,
     comment
-) VALUES (%d, %d, NOW(), NOW(), %d, %q)
+) VALUES (?, ?, NOW(), NOW(), ?, ?)
 `
 
 const insertMemberAccreditationRow = `
@@ -96,7 +107,7 @@ INSERT INTO mp_m_accreditation (
     start_on,
     end_on,
     comment
-) VALUES (%d, %d, NOW(), NOW(), %q, %q, %q)
+) VALUES (?, ?, NOW(), NOW(), ?, ?, ?)
 `
 
 const insertMemberTagRow = `
@@ -105,7 +116,7 @@ INSERT INTO mp_m_tag (
     mp_tag_id, 
     created_at, 
     updated_at
-) VALUES (%d, %d, NOW(), NOW())
+) VALUES (?, ?, NOW(), NOW())
 `
 
 const insertMemberApplicationRow = `
@@ -117,7 +128,7 @@ INSERT INTO ms_m_application(
   updated_at, 
   applied_on, 
   comment) 
-VALUES (%d, %d, %d, %d, NOW(), NOW(), %q)`
+VALUES (?, ?, ?, ?, NOW(), NOW(), ?)`
 
 const selectMember = `SELECT 
 	active,

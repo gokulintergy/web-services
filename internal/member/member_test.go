@@ -239,6 +239,21 @@ func testInsertRowJSON(t *testing.T) {
 			}
 		],
 
+		"positions": [
+			{
+				"positionId": 1,
+				"organisationId": 4
+			},
+			{
+				"positionId": 2,
+				"organisationId": 2
+			},
+			{
+				"positionId": 3,
+				"organisationId": 11
+			} 
+		],
+
 		"application": {
 			"forTitle": "Associate",
 			"forTitleID": 1,
@@ -276,11 +291,11 @@ func testInsertRowJSON(t *testing.T) {
 	}
 
 	// check number of positions
-	// want = 2
-	// got = len(mem.Positions)
-	// if got != want {
-	// 	t.Errorf("member.Member.Positions count = %d, want %d", got, want)
-	// }
+	want = 3
+	got = len(mem.Positions)
+	if got != want {
+		t.Errorf("member.Member.Positions count = %d, want %d", got, want)
+	}
 
 	// // check number of specialities
 	// want = 1

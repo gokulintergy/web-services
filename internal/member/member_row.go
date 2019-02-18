@@ -2,7 +2,6 @@ package member
 
 import (
 	"encoding/json"
-	"fmt"
 	"strings"
 
 	"github.com/cardiacsociety/web-services/internal/platform/datastore"
@@ -116,7 +115,7 @@ func (r *Row) Insert(ds datastore.Datastore) error {
 	// gender stored as 'M' or 'F', so capitalise first letter of gender string
 	r.Gender = strings.ToUpper(string(strings.TrimSpace(r.Gender)[0]))
 
-	query := fmt.Sprintf(queries["insert-member-row"],
+	res, err := ds.MySQL.Session.Exec(queries["insert-member-row"],
 		r.RoleID,
 		r.NamePrefixID,
 		r.CountryID,
@@ -131,9 +130,7 @@ func (r *Row) Insert(ds datastore.Datastore) error {
 		r.QualificationsInfo,
 		r.Mobile,
 		r.PrimaryEmail,
-		r.SecondaryEmail,
-	)
-	res, err := ds.MySQL.Session.Exec(query)
+		r.SecondaryEmail)
 	if err != nil {
 		return err
 	}
@@ -240,71 +237,62 @@ func (r *Row) insertApplication(ds datastore.Datastore) error {
 
 // insert a member qualification row in the junction table
 func (qr QualificationRow) insert(ds datastore.Datastore, memberID int) error {
-	query := fmt.Sprintf(queries["insert-member-qualification-row"],
+	_, err := ds.MySQL.Session.Exec(queries["insert-member-qualification-row"],
 		memberID,
 		qr.QualificationID,
 		qr.OrganisationID,
 		qr.YearObtained,
 		qr.Abbreviation,
 		qr.Comment)
-	_, err := ds.MySQL.Session.Exec(query)
 	return err
 }
 
 // insert a member position row in the junction table
 func (pr PositionRow) insert(ds datastore.Datastore, memberID int) error {
-	query := fmt.Sprintf(queries["insert-member-position-row"],
+	_, err := ds.MySQL.Session.Exec(queries["insert-member-position-row"],
 		memberID,
 		pr.PositionID,
 		pr.OrganisationID,
-		pr.StartDate,
-		pr.EndDate,
-		pr.Comment)
-	_, err := ds.MySQL.Session.Exec(query)
+	)
 	return err
 }
 
 // insert a member speciality row in the junction table
 func (sr SpecialityRow) insert(ds datastore.Datastore, memberID int) error {
-	query := fmt.Sprintf(queries["insert-member-speciality-row"],
+	_, err := ds.MySQL.Session.Exec(queries["insert-member-speciality-row"],
 		memberID,
 		sr.SpecialityID,
 		sr.Preference,
 		sr.Comment)
-	_, err := ds.MySQL.Session.Exec(query)
 	return err
 }
 
 // insert a member accreditation row in the junction table
 func (ar AccreditationRow) insert(ds datastore.Datastore, memberID int) error {
-	query := fmt.Sprintf(queries["insert-member-accreditation-row"],
+	_, err := ds.MySQL.Session.Exec(queries["insert-member-accreditation-row"],
 		memberID,
 		ar.AccreditationID,
 		ar.StartDate,
 		ar.EndDate,
 		ar.Comment)
-	_, err := ds.MySQL.Session.Exec(query)
 	return err
 }
 
 // insert a member tag row in the junction table
 func (tr TagRow) insert(ds datastore.Datastore, memberID int) error {
-	query := fmt.Sprintf(queries["insert-member-tag-row"],
+	_, err := ds.MySQL.Session.Exec(queries["insert-member-tag-row"],
 		memberID,
 		tr.TagID)
-	_, err := ds.MySQL.Session.Exec(query)
 	return err
 }
 
 func (ar ApplicationRow) insert(ds datastore.Datastore, memberID int) error {
-	q := fmt.Sprintf(queries["insert-member-application-row"],
+	_, err := ds.MySQL.Session.Exec(queries["insert-member-application-row"],
 		memberID,
 		ar.NominatorID,
 		ar.SeconderID,
 		ar.ForTitleID,
-		ar.Comment,
-	)
-	_, err := ds.MySQL.Session.Exec(q)
+		ar.Comment)
 	return err
 }
 
