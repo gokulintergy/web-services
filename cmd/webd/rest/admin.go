@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -832,12 +833,23 @@ func AdminReportPositionExcel(w http.ResponseWriter, r *http.Request) {
 func AdminNewMembershipApplication(w http.ResponseWriter, r *http.Request) {
 	p := NewResponder(UserAuthToken.Encoded)
 
-	// marshal the request body into an Application value
-	//a := Appl
+	xb, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		msg := fmt.Sprintf("Could not read request body - %s", err)
+		p.Message = Message{http.StatusBadRequest, "failed", msg}
+		p.Send(w)
+		return
+	}
 
-	p.Message = Message{http.StatusAccepted, "accepted", "application has been created"}
-	var body interface{}
-	json.NewDecoder(r.Body).Decode(&body)
-	p.Data = body
+	_, err = member.InsertRowFromJSON(DS, string(xb))
+	if err != nil {
+		msg := fmt.Sprintf("Could not create records from request body - %s", err)
+		p.Message = Message{http.StatusInternalServerError, "failed", msg}
+		p.Send(w)
+		return
+	}
+
+	p.Message = Message{http.StatusAccepted, "accepted", "membership application data has been created"}
+	p.Data = string(xb)
 	p.Send(w)
 }

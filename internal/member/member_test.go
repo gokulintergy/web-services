@@ -197,10 +197,10 @@ func testInsertRowJSON(t *testing.T) {
 	// When this test is passing, below is the format for JSON posted to create a new application
 	j := `{
 		"roleId" : 2,
-		"countryId": 17, 
+		"countryId": 14, 
 		"gender": "Male",
 		"title": "Dr",
-		"titleId": 3,
+		"titleId": 5,
 		"firstName": "Mike",
 		"middleNames": "Peter",
 		"lastName": "Donnici",
@@ -256,7 +256,7 @@ func testInsertRowJSON(t *testing.T) {
 
 		"application": {
 			"forTitle": "Associate",
-			"forTitleID": 1,
+			"forTitleId": 2,
 			"nominatorId": 586,
 			"seconderId": 587,
 			"nominatorInfo": "ghggh"
