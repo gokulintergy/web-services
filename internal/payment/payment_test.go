@@ -22,11 +22,6 @@ func TestAll(t *testing.T) {
 		t.Run("testPingDatabase", testPingDatabase)
 		t.Run("testByID", testByID)
 		t.Run("testByIDs", testByIDs)
-		// t.Run("testByID_notFound", testByID_notFound)
-		// t.Run("testByMemberID", testByMemberID)
-		// t.Run("testByMemberID_notFound", testByMemberID_notFound)
-		// t.Run("testByNonExistentMemberID", testByNonExistentMemberID)
-		// t.Run("testQuery", testQuery)
 	})
 }
 
