@@ -6,22 +6,20 @@ import (
 	"testing"
 
 	"github.com/cardiacsociety/web-services/internal/auth"
-	//"github.com/cardiacsociety/web-services/internal/auth"
+	"github.com/cardiacsociety/web-services/internal/platform/datastore"
 	"github.com/cardiacsociety/web-services/testdata"
 )
 
-var db = testdata.NewDataStore()
-var helper = testdata.NewHelper()
+var ds datastore.Datastore
 
 func TestAuth(t *testing.T) {
-	err := db.SetupMySQL()
-	if err != nil {
-		log.Fatalln(err)
-	}
-	defer db.TearDownMySQL()
+
+	var teardown func()
+	ds, teardown = setup()
+	defer teardown()
 
 	t.Run("auth", func(t *testing.T) {
-		t.Run("testPingDatabase", testPingDatabase)
+		//t.Run("testPingDatabase", testPingDatabase)
 		t.Run("testAuthMemberClearPass", testAuthMemberClearPass)
 		t.Run("testAuthMemberMD5Pass", testAuthMemberMD5Pass)
 		t.Run("testAuthMemberFail", testAuthMemberFail)
@@ -31,66 +29,106 @@ func TestAuth(t *testing.T) {
 	})
 }
 
-func testPingDatabase(t *testing.T) {
-	err := db.Store.MySQL.Session.Ping()
+func setup() (datastore.Datastore, func()) {
+	var db = testdata.NewDataStore()
+	err := db.SetupMySQL()
 	if err != nil {
-		t.Fatal("Could not ping database")
+		log.Fatalf("SetupMySQL() err = %s", err)
+	}
+	return db.Store, func() {
+		err := db.TearDownMySQL()
+		if err != nil {
+			log.Fatalf("TearDownMySQL() err = %s", err)
+		}
+	}
+}
+
+func testPingDatabase(t *testing.T) {
+	err := ds.MySQL.Session.Ping()
+	if err != nil {
+		t.Fatalf("Ping() err = %s", err)
 	}
 }
 
 func testAuthMemberClearPass(t *testing.T) {
-	id, name, err := auth.AuthMember(db.Store, "michael@mesa.net.au", "password")
+	gotId, gotName, err := auth.AuthMember(ds, "michael@mesa.net.au", "password")
 	if err != nil {
-		t.Fatalf("Database error: %s", err)
+		t.Fatalf("auth.AuthMember() err = %s", err)
 	}
-	helper.Result(t, 1, id)
-	helper.Result(t, "Michael Donnici", name)
+	wantId := 1
+	if gotId != wantId {
+		t.Errorf("Auth.AuthMember() id = %d, want %d", gotId, wantId)
+	}
+	wantName := "Michael Donnici"
+	if gotName != wantName {
+		t.Errorf("Auth.AuthMember() name = %q, want %q", gotName, wantName)
+	}
 }
 
 func testAuthMemberMD5Pass(t *testing.T) {
-	id, name, err := auth.AuthMember(db.Store, "michael@mesa.net.au", "5f4dcc3b5aa765d61d8327deb882cf99")
+	gotId, gotName, err := auth.AuthMember(ds, "michael@mesa.net.au", "5f4dcc3b5aa765d61d8327deb882cf99")
 	if err != nil {
-		t.Fatalf("Database error: %s", err)
+		t.Fatalf("auth.AuthMember() err = %s", err)
 	}
-	helper.Result(t, 1, id)
-	helper.Result(t, "Michael Donnici", name)
+	wantId := 1
+	if gotId != wantId {
+		t.Errorf("Auth.AuthMember() id = %d, want %d", gotId, wantId)
+	}
+	wantName := "Michael Donnici"
+	if gotName != wantName {
+		t.Errorf("Auth.AuthMember() name = %q, want %q", gotName, wantName)
+	}
 }
 
 func testAuthMemberFail(t *testing.T) {
-	id, _, err := auth.AuthMember(db.Store, "michael@mesa.net.au", "wrongPassword")
+	_, _, err := auth.AuthMember(ds, "michael@mesa.net.au", "wrongPassword")
 	if err != nil && err != sql.ErrNoRows {
-		t.Fatalf("Database error: %s", err)
+		t.Fatalf("auth.AuthMember() err = %s", err)
 	}
-	helper.Result(t, sql.ErrNoRows, err)
-	helper.Result(t, 0, id)
+	if err == nil {
+		t.Errorf("auth.AuthMember() err = %v, want %v", err, sql.ErrNoRows)
+	}
 }
 
 func testAuthAdminClearPass(t *testing.T) {
-	id, name, err := auth.AdminAuth(db.Store, "demo-admin", "demo-admin")
-	if err == sql.ErrNoRows {
-		t.Log("Expected result to fail login")
+	gotId, gotName, err := auth.AdminAuth(ds, "demo-admin", "demo-admin")
+	if err != nil {
+		t.Fatalf("auth.AdminAuth() err = %s", err)
 	}
-	if err != nil && err != sql.ErrNoRows {
-		t.Fatalf("Database error: %s", err)
+	wantId := 1
+	if gotId != wantId {
+		t.Errorf("Auth.AdminAuth() id = %d, want %d", gotId, wantId)
 	}
-	helper.Result(t, 1, id)
-	helper.Result(t, "Demo Admin", name)
+	wantName := "Demo Admin"
+	if gotName != wantName {
+		t.Errorf("Auth.AdminAuth() name = %q, want %q", gotName, wantName)
+	}
 }
 
 func testAuthAdminMD5Pass(t *testing.T) {
-	id, name, err := auth.AdminAuth(db.Store, "demo-admin", "41d0510a9067999b72f38ba0ce9f6195")
+	gotId, gotName, err := auth.AdminAuth(ds, "demo-admin", "41d0510a9067999b72f38ba0ce9f6195")
 	if err != nil {
-		t.Fatalf("Database error: %s", err)
+		t.Fatalf("auth.AdminAuth() err = %s", err)
 	}
-	helper.Result(t, 1, id)
-	helper.Result(t, "Demo Admin", name)
+	wantId := 1
+	if gotId != wantId {
+		t.Errorf("Auth.AdminAuth() id = %d, want %d", gotId, wantId)
+	}
+	wantName := "Demo Admin"
+	if gotName != wantName {
+		t.Errorf("Auth.AdminAuth() name = %q, want %q", gotName, wantName)
+	}
 }
 
 func testAuthAdminFail(t *testing.T) {
-	id, _, err := auth.AdminAuth(db.Store, "demo-admin", "wrongPassword")
+	_, _, err := auth.AdminAuth(ds, "demo-admin", "wrongPassword")
 	if err != nil && err != sql.ErrNoRows {
-		t.Fatalf("Database error: %s", err)
+		t.Fatalf("auth.AdminAuth() err = %s", err)
 	}
-	helper.Result(t, sql.ErrNoRows, err)
-	helper.Result(t, 0, id)
+	if err != nil && err != sql.ErrNoRows {
+		t.Fatalf("auth.AdminAuth() err = %s", err)
+	}
+	if err == nil {
+		t.Errorf("auth.AdminAuth() err = %v, want %v", err, sql.ErrNoRows)
+	}
 }
