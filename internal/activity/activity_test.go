@@ -9,12 +9,12 @@ import (
 	"github.com/cardiacsociety/web-services/testdata"
 )
 
-var store datastore.Datastore
+var ds datastore.Datastore
 
-func TestAll(t *testing.T) {
+func TestActivity(t *testing.T) {
 
 	var teardown func()
-	store, teardown = setup()
+	ds, teardown = setup()
 	defer teardown()
 
 	t.Run("activity", func(t *testing.T) {
@@ -41,14 +41,14 @@ func setup() (datastore.Datastore, func()) {
 }
 
 func testPingDatabase(t *testing.T) {
-	err := store.MySQL.Session.Ping()
+	err := ds.MySQL.Session.Ping()
 	if err != nil {
 		t.Fatalf("Ping() err = %s", err)
 	}
 }
 
 func testActivityCount(t *testing.T) {
-	xa, err := activity.All(store)
+	xa, err := activity.All(ds)
 	if err != nil {
 		t.Fatalf("activity.All() err = %s", err)
 	}
@@ -70,7 +70,7 @@ func testActivityTypesCount(t *testing.T) {
 		{24, 5},
 	}
 	for _, c := range cases {
-		xa, err := activity.Types(store, c.arg)
+		xa, err := activity.Types(ds, c.arg)
 		if err != nil {
 			t.Fatalf("activity.Types() err = %s", err)
 		}
@@ -90,7 +90,7 @@ func testActivityByID(t *testing.T) {
 		{23, "Group Learning"},
 	}
 	for _, c := range cases {
-		a, err := activity.ByID(store, c.arg)
+		a, err := activity.ByID(ds, c.arg)
 		if err != nil {
 			t.Fatalf("activity.ByID() err = %s", err)
 		}
@@ -113,7 +113,7 @@ func testActivityByTypeID(t *testing.T) {
 		{36, 24},
 	}
 	for _, c := range cases {
-		a, err := activity.ByTypeID(store, c.arg)
+		a, err := activity.ByTypeID(ds, c.arg)
 		if err != nil {
 			t.Fatalf("activity.ByTypeID() err = %s", err)
 		}
