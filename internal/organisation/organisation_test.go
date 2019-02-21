@@ -6,17 +6,17 @@ import (
 	"testing"
 
 	"github.com/cardiacsociety/web-services/internal/organisation"
+	"github.com/cardiacsociety/web-services/internal/platform/datastore"
 	"github.com/cardiacsociety/web-services/testdata"
 )
 
-var db = testdata.NewDataStore()
+var ds datastore.Datastore
 
 func TestOrganisation(t *testing.T) {
-	err := db.SetupMySQL()
-	if err != nil {
-		log.Fatalln(err)
-	}
-	defer db.TearDownMySQL()
+
+	var teardown func()
+	ds, teardown = setup()
+	defer teardown()
 
 	t.Run("organisation", func(t *testing.T) {
 		t.Run("testPingDatabase", testPingDatabase)
@@ -28,15 +28,26 @@ func TestOrganisation(t *testing.T) {
 	})
 }
 
+func setup() (datastore.Datastore, func()) {
+	var db = testdata.NewDataStore()
+	err := db.SetupMySQL()
+	if err != nil {
+		log.Fatalf("SetupMySQL() err = %s", err)
+	}
+	return db.Store, func() {
+		db.TearDownMySQL()
+	}
+}
+
 func testPingDatabase(t *testing.T) {
-	err := db.Store.MySQL.Session.Ping()
+	err := ds.MySQL.Session.Ping()
 	if err != nil {
 		t.Fatalf("Ping() err = %s", err)
 	}
 }
 
 func testOrganisationByID(t *testing.T) {
-	org, err := organisation.ByID(db.Store, 1)
+	org, err := organisation.ByID(ds, 1)
 	if err != nil {
 		t.Fatalf("organisation.ByID() err = %s", err)
 	}
@@ -60,7 +71,7 @@ func testOrganisationDeepEqual(t *testing.T) {
 		},
 	}
 
-	o, err := organisation.ByID(db.Store, 1)
+	o, err := organisation.ByID(ds, 1)
 	if err != nil {
 		t.Fatalf("organisation.ByID() err = %s", err)
 	}
@@ -74,7 +85,7 @@ func testOrganisationDeepEqual(t *testing.T) {
 
 // Test data has 2 parent organisations
 func testOrganisationCount(t *testing.T) {
-	xo, err := organisation.All(db.Store)
+	xo, err := organisation.All(ds)
 	if err != nil {
 		t.Fatalf("organisation.All() err = %s", err)
 	}
@@ -87,7 +98,7 @@ func testOrganisationCount(t *testing.T) {
 
 // Test data has 3 child organisations belonging to parent id 1
 func testChildOrganisationCount(t *testing.T) {
-	o, err := organisation.ByID(db.Store, 1)
+	o, err := organisation.ByID(ds, 1)
 	if err != nil {
 		t.Fatalf("organisation.ByID() err = %s", err)
 	}
@@ -110,7 +121,7 @@ func testOrganisationByTypeID(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		xo, err := organisation.ByTypeID(db.Store, c.arg)
+		xo, err := organisation.ByTypeID(ds, c.arg)
 		if err != nil {
 			t.Fatalf("organisation.ByTypeID(%d) err = %s", c.arg, err)
 		}
