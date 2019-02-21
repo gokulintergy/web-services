@@ -40,7 +40,7 @@ func setup() (datastore.Datastore, func()) {
 func testPingDatabase(t *testing.T) {
 	err := ds.MySQL.Session.Ping()
 	if err != nil {
-		t.Fatal("Could not ping database")
+		t.Fatalf("MySQL.Session.Ping() err = %s", err)
 	}
 }
 
