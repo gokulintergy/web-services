@@ -27,7 +27,7 @@ func setup() (datastore.Datastore, func()) {
 	db := testdata.NewDataStore()
 	err := db.SetupMySQL()
 	if err != nil {
-		log.Fatalf("db.SetupMySQL() err = %s", err)
+		log.Fatalf("SetupMySQL() err = %s", err)
 	}
 	return db.Store, func() {
 		err := db.TearDownMySQL()

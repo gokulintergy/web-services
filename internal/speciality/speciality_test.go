@@ -4,27 +4,41 @@ import (
 	"log"
 	"testing"
 
+	"github.com/cardiacsociety/web-services/internal/platform/datastore"
 	"github.com/cardiacsociety/web-services/internal/speciality"
 	"github.com/cardiacsociety/web-services/testdata"
 )
 
-var db = testdata.NewDataStore()
+var ds datastore.Datastore
 
 func TestSpeciality(t *testing.T) {
-	err := db.SetupMySQL()
-	if err != nil {
-		log.Fatalln(err)
-	}
-	defer db.TearDownMySQL()
 
-	t.Run("Specialities", func(t *testing.T) {
+	var teardown func()
+	ds, teardown = setup()
+	defer teardown()
+
+	t.Run("speciality", func(t *testing.T) {
 		t.Run("testPingDatabase", testPingDatabase)
 		t.Run("testAll", testAll)
 	})
 }
 
+func setup() (datastore.Datastore, func()) {
+	db := testdata.NewDataStore()
+	err := db.SetupMySQL()
+	if err != nil {
+		log.Fatalf("SetupMySQL() err = %s", err)
+	}
+	return db.Store, func() {
+		err := db.TearDownMySQL()
+		if err != nil {
+			log.Fatalf("TearDownMySQL() err = %s", err)
+		}
+	}
+}
+
 func testPingDatabase(t *testing.T) {
-	err := db.Store.MySQL.Session.Ping()
+	err := ds.MySQL.Session.Ping()
 	if err != nil {
 		t.Fatalf("Ping() err = %s", err)
 	}
@@ -32,7 +46,7 @@ func testPingDatabase(t *testing.T) {
 
 // fetch the list of specialities
 func testAll(t *testing.T) {
-	xs, err := speciality.All(db.Store)
+	xs, err := speciality.All(ds)
 	if err != nil {
 		t.Fatalf("speciality.All() err = %s", err)
 	}
