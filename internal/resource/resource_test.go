@@ -14,13 +14,13 @@ import (
 
 var ds datastore.Datastore
 
-func TestResources(t *testing.T) {
+func TestResource(t *testing.T) {
 
 	var teardown func()
 	ds, teardown = setup()
 	defer teardown()
 
-	t.Run("resources", func(t *testing.T) {
+	t.Run("resource", func(t *testing.T) {
 		t.Run("testPingDatabases", testPingDatabases)
 		t.Run("testByID", testByID)
 		t.Run("testDocResourcesAll", testDocResourcesAll)
