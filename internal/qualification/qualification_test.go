@@ -4,19 +4,18 @@ import (
 	"log"
 	"testing"
 
+	"github.com/cardiacsociety/web-services/internal/platform/datastore"
 	"github.com/cardiacsociety/web-services/internal/qualification"
 	"github.com/cardiacsociety/web-services/testdata"
 )
 
-var db = testdata.NewDataStore()
-var helper = testdata.NewHelper()
+var ds datastore.Datastore
 
 func TestQualification(t *testing.T) {
-	err := db.SetupMySQL()
-	if err != nil {
-		log.Fatalln(err)
-	}
-	defer db.TearDownMySQL()
+
+	var teardown func()
+	ds, teardown = setup()
+	defer teardown()
 
 	t.Run("Qualifications", func(t *testing.T) {
 		t.Run("testPingDatabase", testPingDatabase)
@@ -24,8 +23,22 @@ func TestQualification(t *testing.T) {
 	})
 }
 
+func setup() (datastore.Datastore, func()) {
+	db := testdata.NewDataStore()
+	err := db.SetupMySQL()
+	if err != nil {
+		log.Fatalf("db.SetupMySQL() err = %s", err)
+	}
+	return db.Store, func() {
+		err := db.TearDownMySQL()
+		if err != nil {
+			log.Fatalf("TearDownMySQL() err = %s", err)
+		}
+	}
+}
+
 func testPingDatabase(t *testing.T) {
-	err := db.Store.MySQL.Session.Ping()
+	err := ds.MySQL.Session.Ping()
 	if err != nil {
 		t.Fatal("Could not ping database")
 	}
@@ -33,9 +46,13 @@ func testPingDatabase(t *testing.T) {
 
 // fetch the list of qualifications
 func testAll(t *testing.T) {
-	xq, err := qualification.All(db.Store)
+	xq, err := qualification.All(ds)
 	if err != nil {
-		t.Fatalf("Database error: %s", err)
+		t.Fatalf("qualification.All() err = %s", err)
 	}
-	helper.Result(t, 29, len(xq))
+	got := len(xq)
+	want := 29 // from testdata
+	if got != want {
+		t.Errorf("qualification.All() count = %d, want %d", got, want)
+	}
 }
