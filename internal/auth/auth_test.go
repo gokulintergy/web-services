@@ -19,7 +19,7 @@ func TestAuth(t *testing.T) {
 	defer teardown()
 
 	t.Run("auth", func(t *testing.T) {
-		//t.Run("testPingDatabase", testPingDatabase)
+		t.Run("testPingDatabase", testPingDatabase)
 		t.Run("testAuthMemberClearPass", testAuthMemberClearPass)
 		t.Run("testAuthMemberMD5Pass", testAuthMemberMD5Pass)
 		t.Run("testAuthMemberFail", testAuthMemberFail)
