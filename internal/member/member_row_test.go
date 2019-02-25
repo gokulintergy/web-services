@@ -15,12 +15,12 @@ var ds2 datastore.Datastore
 
 func TestMemberRow(t *testing.T) {
 
-	var teardown func()
-	ds2, teardown = setup2()
-	defer teardown()
+	//var teardown func()
+	ds2, _ = setup2()
+	//defer teardown()
 
 	t.Run("member_row", func(t *testing.T) {
-		t.Run("testInsertRow", testInsertRow)
+		//t.Run("testInsertRow", testInsertRow)
 		t.Run("testInsertRowJSON", testInsertRowJSON)
 	})
 }
@@ -131,6 +131,35 @@ func testInsertRow(t *testing.T) {
 		},
 	}
 
+	m.ContactRows = []member.ContactRow{
+		member.ContactRow{
+			MemberID: m.ID,
+			TypeID: 2, // Directory
+			CountryID: 14,
+			Phone: "02 444 66 789",
+			Fax: "02 444 66 890",
+			Email: "any@oldemail.com",
+			Web: "https://thesite.com",
+			Address1: "Leve 12",
+			Address2: "123 Some Street",
+			Address3: "Some large building",
+			Locality: "CityTown",
+			State: "NewShire",
+			Postcode: "1234",
+		},
+		member.ContactRow{
+			MemberID: m.ID,
+			TypeID: 1, // Mail
+			CountryID: 14,
+			Address1: "Level 12",
+			Address2: "123 Some Street",
+			Address3: "Some large building",
+			Locality: "CityTown",
+			State: "NewShire",
+			Postcode: "1234",
+		},
+	}	
+
 	err := m.Insert(ds2)
 	if err != nil {
 		t.Fatalf("member.Row.Insert() err = %s", err)
@@ -179,6 +208,13 @@ func testInsertRow(t *testing.T) {
 	if got != want {
 		t.Errorf("Member.Tags count = %d, want %d", got, want)
 	}
+
+	// check number of contacts
+	want = 2
+	got = len(mem.Contact.Locations)
+	if got != want {
+		t.Errorf("Member.Contact.Locations count = %d, want %d", got, want)
+	}
 }
 
 // testInsertRowJSON tests the creation of a new member record from a JSON doc
@@ -200,6 +236,35 @@ func testInsertRowJSON(t *testing.T) {
 		"mobile": "+61402400191",
 		"consentDirectory": true,
 		"consentContact": true,
+
+		"contacts": [
+			{
+				"contactTypeId": 2,
+				"countryId": 14,
+				"phone": "02 444 66 789",
+				"fax": "02 444 66 890",
+				"email": "any@oldemail.com",
+				"web": "https://thesite.com",
+				"address1": "Level 12",
+				"address2": "123 Some Street",
+				"address3": "Some large building",
+				"locality": "CityTown",	
+				"state": "NewShire",
+				"postcode": "1234"
+			},
+			{
+				"contactTypeId": 1,
+				"countryId": 14,
+				"phone": "02 444 66 789",
+				"fax": "02 444 66 890",
+				"address1": "Level 12",
+				"address2": "123 Some Street",
+				"address3": "Some large building",
+				"locality": "CityTown",	
+				"state": "NewShire",
+				"postcode": "1234"
+			}
+		],
 
 		"trainee": true,
 		"tags" : [
@@ -299,5 +364,12 @@ func testInsertRowJSON(t *testing.T) {
 	got = len(mem.Tags)
 	if got != want {
 		t.Errorf("Member.Tags count = %d, want %d", got, want)
+	}
+
+	// check number of contacts
+	want = 2
+	got = len(mem.Contact.Locations)
+	if got != want {
+		t.Errorf("Member.Contact.Locations count = %d, want %d", got, want)
 	}
 }

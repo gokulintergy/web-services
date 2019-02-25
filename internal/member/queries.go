@@ -8,6 +8,7 @@ var queries = map[string]string{
 	"insert-member-accreditation-row":  insertMemberAccreditationRow,
 	"insert-member-tag-row":            insertMemberTagRow,
 	"insert-member-application-row":    insertMemberApplicationRow,
+	"insert-member-contact-row":        insertMemberContactRow,
 	"select-member":                    selectMember,
 	"select-member-honorific":          selectMemberHonorific,
 	"select-member-country":            selectMemberCountry,
@@ -76,12 +77,12 @@ INSERT INTO mp_m_position (
 
 // const insertMemberPositionRow = `
 // INSERT INTO mp_m_position (
-//     member_id, 
-//     mp_position_id, 
-//     organisation_id, 
-//     created_at, 
-//     updated_at, 
-//     start_on, 
+//     member_id,
+//     mp_position_id,
+//     organisation_id,
+//     created_at,
+//     updated_at,
+//     start_on,
 //     end_on,
 //     comment
 // ) VALUES (%d, %d, %d, NOW(), NOW(), %q, %q, %q)
@@ -129,6 +130,25 @@ INSERT INTO ms_m_application(
   applied_on, 
   comment) 
 VALUES (?, ?, ?, ?, NOW(), NOW(), ?)`
+
+const insertMemberContactRow = `
+INSERT INTO mp_m_contact(
+  member_id, 
+  mp_contact_type_id, 
+  country_id,
+  updated_at,
+  phone,
+  fax,
+  email,
+  web,
+  address1,
+  address2,
+  address3,
+  locality,
+  state,
+  postcode 
+  ) 
+VALUES (?, ?, ?, NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 
 const selectMember = `SELECT 
 	active,

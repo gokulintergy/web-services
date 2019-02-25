@@ -37,9 +37,7 @@ type Row struct {
 	AccreditationRows []AccreditationRow `json:"accreditations"`
 	TagRows           []TagRow           `json:"tags"`
 	ApplicationRow    ApplicationRow     `json:"application"`
-
-	// todo
-	//Contact        Contact         `json:"contact"`
+	ContactRows       []ContactRow       `json:"contacts"`
 }
 
 // QualificationRow represents a member qualification in a junction table.
@@ -98,6 +96,24 @@ type ApplicationRow struct {
 	NominatorID int    `json:"nominatorId"`
 	SeconderID  int    `json:"seconderId"`
 	Comment     string `json:"nominatorInfo"`
+}
+
+// ContactRow represents a contact location
+type ContactRow struct {
+	ID        int
+	MemberID  int
+	TypeID    int    `json:"contactTypeId"`
+	Phone     string `json:"phone"`
+	Fax       string `json:"fax"`
+	Email     string `json:"email"`
+	Web       string `json:"web"`
+	Address1  string `json:"address1"`
+	Address2  string `json:"address2"`
+	Address3  string `json:"address3"`
+	Locality  string `json:"locality"`
+	State     string `json:"state"`
+	Postcode  string `json:"postcode"`
+	CountryID int    `json:"countryId"`
 }
 
 // Insert inserts a member row into the database. If successful it will set the member id.
@@ -172,6 +188,11 @@ func (r *Row) Insert(ds datastore.Datastore) error {
 		return err
 	}
 
+	err = r.insertContacts(ds)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -235,6 +256,17 @@ func (r *Row) insertApplication(ds datastore.Datastore) error {
 	return r.ApplicationRow.insert(ds, r.ID)
 }
 
+// insertContacts inserts the member contact rows
+func (r *Row) insertContacts(ds datastore.Datastore) error {
+	for _, c := range r.ContactRows {
+		err := c.insert(ds, r.ID)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // insert a member qualification row in the junction table
 func (qr QualificationRow) insert(ds datastore.Datastore, memberID int) error {
 	_, err := ds.MySQL.Session.Exec(queries["insert-member-qualification-row"],
@@ -293,6 +325,25 @@ func (ar ApplicationRow) insert(ds datastore.Datastore, memberID int) error {
 		ar.SeconderID,
 		ar.ForTitleID,
 		ar.Comment)
+	return err
+}
+
+func (cr ContactRow) insert(ds datastore.Datastore, memberID int) error {
+	_, err := ds.MySQL.Session.Exec(queries["insert-member-contact-row"],
+		memberID,
+		cr.TypeID,
+		cr.CountryID,
+		cr.Phone,
+		cr.Fax,
+		cr.Email,
+		cr.Web,
+		cr.Address1,
+		cr.Address2,
+		cr.Address3,
+		cr.Locality,
+		cr.State,
+		cr.Postcode,
+	)
 	return err
 }
 
