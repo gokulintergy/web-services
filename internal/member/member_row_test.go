@@ -225,7 +225,6 @@ func testInsertRowJSON(t *testing.T) {
 		"roleId" : 2,
 		"countryId": 14, 
 		"gender": "Male",
-		"title": "Dr",
 		"titleId": 5,
 		"firstName": "Mike",
 		"middleNames": "Peter",
@@ -237,88 +236,97 @@ func testInsertRowJSON(t *testing.T) {
 		"consentDirectory": true,
 		"consentContact": true,
 
-		"contacts": [
-			{
-				"contactTypeId": 2,
-				"countryId": 14,
-				"phone": "02 444 66 789",
-				"fax": "02 444 66 890",
-				"email": "any@oldemail.com",
-				"web": "https://thesite.com",
-				"address1": "Level 12",
-				"address2": "123 Some Street",
-				"address3": "Some large building",
-				"locality": "CityTown",	
-				"state": "NewShire",
-				"postcode": "1234"
-			},
-			{
-				"contactTypeId": 1,
-				"countryId": 14,
-				"phone": "02 444 66 789",
-				"fax": "02 444 66 890",
-				"address1": "Level 12",
-				"address2": "123 Some Street",
-				"address3": "Some large building",
-				"locality": "CityTown",	
-				"state": "NewShire",
-				"postcode": "1234"
-			}
-		],
-
-		"trainee": true,
-		"tags" : [
-			{"tagId": 4}
-		],
-
 		"qualifications": [
 			{
 				"qualificationId": 2,
 				"name": "Bachelor of Medicine, Bachelor of Surgery",
 				"abbreviation": "MBBS",
+				"year": 2000,
+				"organisationId": 237,
+				"organisationName": "University of Sydney"
+			},
+			{
+				"qualificationId": 3,
+				"name": "Bachelor of Science",
+				"abbreviation": "BSc",
 				"year": 1998,
-				"organisationId": 311,
-				"organisationName": "University of Adelaide"
+				"organisationId": 237,
+				"organisationName": "University of Sydney"
 			}
 		],
 		"qualificationsInfo": "ABC123",
 
 		"interests": [
 			{
-				"specialityId": 1,
-				"name": "Cardiac Care Nurse (Medical)"
-			}, 
+				"specialityId": 36,
+				"name": "Physiotherapist"
+			},
 			{
-				"specialityId": 2,
-				"name": "Cardiac Cath Lab Nurse"
+				"specialityId": 37,
+				"name": "Radiographer"
+			},
+			{
+				"specialityId": 38,
+				"name": "Rehab Exercise and Prevention"
+			}
+		],
+
+		"contacts": [
+			{
+				"contactTypeId": 1,
+				"address1": "123 Some Street",
+				"address2": "The second liner",
+				"address3": "Third floor",
+				"locality": "C-Bay",
+				"state": "NSW",
+				"postcode": "2999",
+				"countryId": 14,
+				"phone": "02 6122 3456",
+				"fax": "02 6134 5555",
+				"email": "bas@das.io",
+				"web": "https://baz.io"
+			},
+			{
+				"contactTypeId": 2,
+				"address1": "123 Some Street",
+				"address2": "The second liner",
+				"address3": "Third floor",
+				"locality": "C-Bay",
+				"state": "NSW",
+				"postcode": "2999",
+				"countryId": 14,
+				"phone": "02 6122 3456",
+				"fax": "02 6134 5555",
+				"email": "bas@das.io",
+				"web": "https://baz.io"
 			}
 		],
 
 		"positions": [
 			{
 				"positionId": 1,
-				"organisationId": 4
+				"organisationId": 9
 			},
 			{
 				"positionId": 2,
-				"organisationId": 2
+				"organisationId": 7
 			},
 			{
 				"positionId": 3,
-				"organisationId": 11
-			} 
+				"organisationId": 10
+			}
+		],
+
+		"tags": [
+			{
+				"tagId": 4  
+			}
 		],
 
 		"application": {
-			"forTitle": "Associate",
 			"forTitleId": 2,
-			"nominatorId": 586,
-			"seconderId": 587,
-			"nominatorInfo": "ghggh"
-		}, 
-		
-		"ishr": false,
-		"consentRequestInfo": true
+			"nominatorId": 399
+		}
 	}`
 
 	row, err := member.InsertRowFromJSON(ds2, j)
@@ -333,7 +341,7 @@ func testInsertRowJSON(t *testing.T) {
 	}
 
 	// check number of qualifications
-	want := 1
+	want := 2
 	got := len(mem.Qualifications)
 	if got != want {
 		t.Errorf("Member.Qualifications count = %d, want %d", got, want)
@@ -353,7 +361,7 @@ func testInsertRowJSON(t *testing.T) {
 	}
 
 	// check number of specialities
-	want = 2
+	want = 3
 	got = len(mem.Specialities)
 	if got != want {
 		t.Errorf("Member.Specialities count = %d, want %d", got, want)
