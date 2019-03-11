@@ -65,9 +65,9 @@ func (n *Note) InsertRow(ds datastore.Datastore) error {
 	n.ID = int(id) // from int64
 
 	// Notes differ from issues in that they always require an associated
-	// record in wf_note_association as they must always be associated with
+	// record in wf_note_association. That is, they must always be associated with
 	// at least a member id. The member id has already been checked (above).
-	err = n.checkAssociatioData()
+	err = n.checkAssociationData()
 	if err != nil {
 		return err
 	}
@@ -84,8 +84,10 @@ func (n *Note) InsertRow(ds datastore.Datastore) error {
 	return nil
 }
 
-// checkAssociatioData verifies fields required to associate an issue with other data
-func (n *Note) checkAssociatioData() error {
+// checkAssociatioData verifies fields required to associate an issue with other data. 
+// To associate a Note record with another entity requires the entity name as a string, 
+// ie 'application' or 'issue', as well as the id of the record from that entity table.
+func (n *Note) checkAssociationData() error {
 	// no association
 	if n.Association == "" && n.AssociationID == 0 {
 		return nil

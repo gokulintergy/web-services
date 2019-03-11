@@ -841,7 +841,7 @@ func AdminNewMembershipApplication(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = member.InsertRowFromJSON(DS, string(xb))
+	data, err := member.InsertRowFromJSON(DS, string(xb))
 	if err != nil {
 		msg := fmt.Sprintf("Could not create records from request body - %s", err)
 		p.Message = Message{http.StatusInternalServerError, "failed", msg}
@@ -850,6 +850,6 @@ func AdminNewMembershipApplication(w http.ResponseWriter, r *http.Request) {
 	}
 
 	p.Message = Message{http.StatusAccepted, "accepted", "membership application data has been created"}
-	p.Data = string(xb)
+	p.Data = data
 	p.Send(w)
 }

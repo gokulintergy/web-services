@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/cardiacsociety/web-services/internal/member"
+	"github.com/cardiacsociety/web-services/internal/note"
 	"github.com/cardiacsociety/web-services/internal/platform/datastore"
 	"github.com/cardiacsociety/web-services/testdata"
 )
@@ -15,12 +16,12 @@ var ds2 datastore.Datastore
 
 func TestMemberRow(t *testing.T) {
 
-	//var teardown func()
-	ds2, _ = setup2()
-	//defer teardown()
+	var teardown func()
+	ds2, teardown = setup2()
+	defer teardown()
 
 	t.Run("member_row", func(t *testing.T) {
-		//t.Run("testInsertRow", testInsertRow)
+		t.Run("testInsertRow", testInsertRow)
 		t.Run("testInsertRowJSON", testInsertRowJSON)
 	})
 }
@@ -54,14 +55,12 @@ func testInsertRow(t *testing.T) {
 	m.MiddleNames = "Peter"
 	m.LastName = "Donnici"
 	m.PostNominal = "B.Sc.Agr"
-	m.QualificationsInfo = "Grad. Cert. Computing"
 	m.Mobile = "0402 400 191"
 	m.PrimaryEmail = "michael@8o8.io"
 	m.SecondaryEmail = "michael.donnici@gmail.com"
 
-	m.QualificationRows = []member.QualificationRow{
+	m.Qualifications = []member.QualificationRow{
 		member.QualificationRow{
-			MemberID:        m.ID,
 			QualificationID: 11,
 			OrganisationID:  222,
 			YearObtained:    1992,
@@ -69,7 +68,6 @@ func testInsertRow(t *testing.T) {
 			Comment:         "Major in Crop Science",
 		},
 		member.QualificationRow{
-			MemberID:        m.ID,
 			QualificationID: 22,
 			OrganisationID:  223,
 			YearObtained:    1996,
@@ -78,9 +76,8 @@ func testInsertRow(t *testing.T) {
 		},
 	}
 
-	m.PositionRows = []member.PositionRow{
+	m.Positions = []member.PositionRow{
 		member.PositionRow{
-			MemberID:       m.ID,
 			PositionID:     11,
 			OrganisationID: 222,
 			StartDate:      "2010-01-01",
@@ -88,7 +85,6 @@ func testInsertRow(t *testing.T) {
 			Comment:        "This is a comment",
 		},
 		member.PositionRow{
-			MemberID:       m.ID,
 			PositionID:     22,
 			OrganisationID: 223,
 			StartDate:      "2010-01-01",
@@ -97,18 +93,16 @@ func testInsertRow(t *testing.T) {
 		},
 	}
 
-	m.SpecialityRows = []member.SpecialityRow{
+	m.Specialities = []member.SpecialityRow{
 		member.SpecialityRow{
-			MemberID:     m.ID,
 			SpecialityID: 11,
 			Preference:   1,
 			Comment:      "This is a comment",
 		},
 	}
 
-	m.AccreditationRows = []member.AccreditationRow{
+	m.Accreditations = []member.AccreditationRow{
 		member.AccreditationRow{
-			MemberID:        m.ID,
 			AccreditationID: 11,
 			StartDate:       "2010-01-01",
 			EndDate:         "2012-12-31",
@@ -116,49 +110,44 @@ func testInsertRow(t *testing.T) {
 		},
 	}
 
-	m.TagRows = []member.TagRow{
+	m.Tags = []member.TagRow{
 		member.TagRow{
-			MemberID: m.ID,
-			TagID:    1,
+			TagID: 1,
 		},
 		member.TagRow{
-			MemberID: m.ID,
-			TagID:    2,
+			TagID: 2,
 		},
 		member.TagRow{
-			MemberID: m.ID,
-			TagID:    3,
+			TagID: 3,
 		},
 	}
 
-	m.ContactRows = []member.ContactRow{
+	m.Contacts = []member.ContactRow{
 		member.ContactRow{
-			MemberID: m.ID,
-			TypeID: 2, // Directory
+			TypeID:    2, // Directory
 			CountryID: 14,
-			Phone: "02 444 66 789",
-			Fax: "02 444 66 890",
-			Email: "any@oldemail.com",
-			Web: "https://thesite.com",
-			Address1: "Leve 12",
-			Address2: "123 Some Street",
-			Address3: "Some large building",
-			Locality: "CityTown",
-			State: "NewShire",
-			Postcode: "1234",
+			Phone:     "02 444 66 789",
+			Fax:       "02 444 66 890",
+			Email:     "any@oldemail.com",
+			Web:       "https://thesite.com",
+			Address1:  "Leve 12",
+			Address2:  "123 Some Street",
+			Address3:  "Some large building",
+			Locality:  "CityTown",
+			State:     "NewShire",
+			Postcode:  "1234",
 		},
 		member.ContactRow{
-			MemberID: m.ID,
-			TypeID: 1, // Mail
+			TypeID:    1, // Mail
 			CountryID: 14,
-			Address1: "Level 12",
-			Address2: "123 Some Street",
-			Address3: "Some large building",
-			Locality: "CityTown",
-			State: "NewShire",
-			Postcode: "1234",
+			Address1:  "Level 12",
+			Address2:  "123 Some Street",
+			Address3:  "Some large building",
+			Locality:  "CityTown",
+			State:     "NewShire",
+			Postcode:  "1234",
 		},
-	}	
+	}
 
 	err := m.Insert(ds2)
 	if err != nil {
@@ -254,7 +243,6 @@ func testInsertRowJSON(t *testing.T) {
 				"organisationName": "University of Sydney"
 			}
 		],
-		"qualificationsInfo": "ABC123",
 
 		"interests": [
 			{
@@ -325,7 +313,15 @@ func testInsertRowJSON(t *testing.T) {
 
 		"application": {
 			"forTitleId": 2,
-			"nominatorId": 399
+			"nominatorId": 399,
+			"note": {
+        		"qualificationsInfo": "some additional info about my qualifications",
+        		"nominatorInfo": "some additional info about my nominators",
+				"ishr": true,
+				"agreePrivacy": true,
+				"agreeConstitution": true,
+				"consentRequestInfo": true
+			}
 		}
 	}`
 
@@ -345,12 +341,6 @@ func testInsertRowJSON(t *testing.T) {
 	got := len(mem.Qualifications)
 	if got != want {
 		t.Errorf("Member.Qualifications count = %d, want %d", got, want)
-	}
-
-	wantQualOther := "ABC123"
-	gotQualOther := mem.QualificationsOther
-	if gotQualOther != wantQualOther {
-		t.Errorf("Member.QualificationsOther = %q, want %q", gotQualOther, wantQualOther)
 	}
 
 	// check number of positions
@@ -379,5 +369,16 @@ func testInsertRowJSON(t *testing.T) {
 	got = len(mem.Contact.Locations)
 	if got != want {
 		t.Errorf("Member.Contact.Locations count = %d, want %d", got, want)
+	}
+
+	// Check 2 notes were created
+	xn, err := note.ByMemberID(ds2, row.ID)
+	if err != nil {
+		t.Errorf("note.ByMemberID(%d) err = %s", row.ID, err)
+	}
+	want = 2
+	got = len(xn)
+	if got != want {
+		t.Errorf("note.ByMemberID() count = %d, want %d", got, want)
 	}
 }

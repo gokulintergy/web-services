@@ -39,7 +39,6 @@ INSERT INTO member (
     middle_names, 
     last_name, 
     suffix, 
-    qualifications_other, 
     mobile_phone, 
     primary_email, 
     secondary_email,
@@ -47,7 +46,7 @@ INSERT INTO member (
 ) VALUES (
     ?, ?, ?, ?, ?, 
     NOW(), NOW(), 
-    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+    ?, ?, ?, ?, ?, ?, ?, ?, ?,
     ""
 )`
 

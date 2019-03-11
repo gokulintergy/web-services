@@ -632,8 +632,7 @@ INSERT INTO `%s`.`wf_note` VALUES
 INSERT INTO `%s`.`wf_note_association` VALUES
   (1, 1, 1, 1, 1, NOW(), NOW(), 'application'),
   (2, 2, 1, 1, 1, NOW(), NOW(), 'issue'),
-  (3, 3, 1, 2, 1, NOW(), NOW(), 'issue'),
-  (4, 4, 2, 3, 1, NOW(), NOW(), 'issue');
+  (3, 3, 1, 2, 1, NOW(), NOW(), 'issue');
 
 -- name: insert-data-wf_note_type
 INSERT INTO `%s`.`wf_note_type` (`id`,`active`,`system`,`created_at`,`updated_at`,`name`,`description`) VALUES

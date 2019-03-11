@@ -4,46 +4,53 @@ import (
 	"encoding/json"
 	"strings"
 
+	"github.com/cardiacsociety/web-services/internal/note"
 	"github.com/cardiacsociety/web-services/internal/platform/datastore"
 )
 
-// Row represents a raw record from the member table in the SQL database. This type is
-// primarily for inserting new records. Junction table data are represented with []int containing
-// a list of foreign key ids for the relevant table. The comment next to JSON tags match the
-// relational db columns names.
+// Row represents a raw record from the member table in the SQL database. This
+// type is primarily for inserting new records. Junction table data are
+// represented with []int containing a list of foreign key ids for the relevant
+// table. The comment next to JSON tags match the relational db columns names.
 type Row struct {
-	ID                 int    `json:"id"`
-	RoleID             int    `json:"roleId"`             // acl_member_role_id
-	NamePrefixID       int    `json:"titleId"`            // a_name_prefix_id
-	CountryID          int    `json:"countryId"`          // country_id
-	ConsentDirectory   bool   `json:"consentDirectory"`   // consent_directory
-	ConsentContact     bool   `json:"consentContact"`     // consent_contact
-	UpdatedAt          string `json:"updatedAt"`          // updated_at
-	DateOfBirth        string `json:"dateOfBirth"`        // date_of_birth
-	Gender             string `json:"gender"`             // gender
-	FirstName          string `json:"firstName"`          // first_name
-	MiddleNames        string `json:"middleNames"`        // middle_names
-	LastName           string `json:"lastName"`           // last_name
-	PostNominal        string `json:"postNominal"`        // suffix
-	QualificationsInfo string `json:"qualificationsInfo"` // qualifications_other
-	Mobile             string `json:"mobile"`             // mobile_phone
-	PrimaryEmail       string `json:"primaryEmail"`       // primary_email
-	SecondaryEmail     string `json:"secondaryEmail"`     // secondary_email
+	ID               int    `json:"id"`
+	RoleID           int    `json:"roleId"`           // acl_member_role_id
+	NamePrefixID     int    `json:"titleId"`          // a_name_prefix_id
+	CountryID        int    `json:"countryId"`        // country_id
+	ConsentDirectory bool   `json:"consentDirectory"` // consent_directory
+	ConsentContact   bool   `json:"consentContact"`   // consent_contact
+	UpdatedAt        string `json:"updatedAt"`        // updated_at
+	DateOfBirth      string `json:"dateOfBirth"`      // date_of_birth
+	Gender           string `json:"gender"`           // gender
+	FirstName        string `json:"firstName"`        // first_name
+	MiddleNames      string `json:"middleNames"`      // middle_names
+	LastName         string `json:"lastName"`         // last_name
+	PostNominal      string `json:"postNominal"`      // suffix
+	//QualificationsInfo string `json:"qualificationsInfo"` // qualifications_other
+	Mobile         string `json:"mobile"`         // mobile_phone
+	PrimaryEmail   string `json:"primaryEmail"`   // primary_email
+	SecondaryEmail string `json:"secondaryEmail"` // secondary_email
 
 	// The following fields are values represented in junction tables
-	QualificationRows []QualificationRow `json:"qualifications"`
-	SpecialityRows    []SpecialityRow    `json:"interests"`
-	PositionRows      []PositionRow      `json:"positions"`
-	AccreditationRows []AccreditationRow `json:"accreditations"`
-	TagRows           []TagRow           `json:"tags"`
-	ApplicationRow    ApplicationRow     `json:"application"`
-	ContactRows       []ContactRow       `json:"contacts"`
+	Qualifications []QualificationRow `json:"qualifications"`
+	Specialities   []SpecialityRow    `json:"interests"`
+	Positions      []PositionRow      `json:"positions"`
+	Accreditations []AccreditationRow `json:"accreditations"`
+	Tags           []TagRow           `json:"tags"`
+	Contacts       []ContactRow       `json:"contacts"`
+
+	Application ApplicationRow `json:"application"`
+
+	// A file note is created in order to associate uploaded files which are
+	// uploaded using the signed url
+	//FileNoteID        int    `json:"memberNoteID"`
+	//FileNoteSignedURL string `json:"applicationNoteSignedUrl"`
 }
 
-// QualificationRow represents a member qualification in a junction table.
+// QualificationRow represents a member qualification in a junction table. The
+// ID of the junction record and the member id are not represented as they are
+// not really required.
 type QualificationRow struct {
-	ID              int    `json:"id"` // id of the junction record
-	MemberID        int    `json:"memberId"`
 	QualificationID int    `json:"qualificationId"`
 	OrganisationID  int    `json:"organisationId"`
 	YearObtained    int    `json:"year"`
@@ -51,10 +58,10 @@ type QualificationRow struct {
 	Comment         string `json:"comment"`
 }
 
-// PositionRow represents a member position in a junction table.
+// PositionRow represents a member position in a junction table. The ID of the
+// junction record and the member id are not represented as they are not really
+// required.
 type PositionRow struct {
-	ID             int    `json:"id"` // id of the junction record
-	MemberID       int    `json:"memberId"`
 	PositionID     int    `json:"positionId"`
 	OrganisationID int    `json:"organisationId"`
 	StartDate      string `json:"startDate"`
@@ -62,46 +69,57 @@ type PositionRow struct {
 	Comment        string `json:"comment"`
 }
 
-// SpecialityRow represents a member speciality in a junction table.
+// SpecialityRow represents a member speciality in a junction table. The ID of
+// the junction record and the member id are not represented as they are not
+// really required.
 type SpecialityRow struct {
-	ID           int    `json:"id"`
-	MemberID     int    `json:"memberId"`
 	SpecialityID int    `json:"specialityId"`
 	Preference   int    `json:"preference"`
 	Comment      string `json:"comment"`
 }
 
-// AccreditationRow represents a member accreditation in a junction table.
+// AccreditationRow represents a member accreditation in a junction table. The
+// ID of the junction record and the member id are not represented as they are
+// not really required.
 type AccreditationRow struct {
-	ID              int    `json:"id"`
-	MemberID        int    `json:"memberID"`
 	AccreditationID int    `json:"accreditationID"`
 	StartDate       string `json:"startDate"`
 	EndDate         string `json:"endDate"`
 	Comment         string `json:"comment"`
 }
 
-// TagRow represents a member tag in a junction table.
+// TagRow represents a member tag in a junction table. The ID of the junction
+// record and the member id are not represented as they are not really required.
 type TagRow struct {
-	ID       int `json:"id"`
-	MemberID int `json:"memberID"`
-	TagID    int `json:"tagID"`
+	TagID int `json:"tagID"`
 }
 
-// ApplicationRow represents a member's application
+// ApplicationRow represents a member's application.
 type ApplicationRow struct {
 	ID          int
-	MemberID    int
-	ForTitleID  int    `json:"forTitleId"`
-	NominatorID int    `json:"nominatorId"`
-	SeconderID  int    `json:"seconderId"`
-	Comment     string `json:"nominatorInfo"`
+	ForTitleID  int             `json:"forTitleId"`
+	NominatorID int             `json:"nominatorId"`
+	SeconderID  int             `json:"seconderId"`
+	Comment     string          `json:"nominatorInfo"`
+	Note        ApplicationNote `json:"note"`
 }
 
-// ContactRow represents a contact location
+// ApplicationNote represents additional data that may not map directly to
+// specific database fields, or that may require some human-interpretation
+// before being commited as. This information can be formatted into a note that
+// is associated with an application.
+type ApplicationNote struct {
+	QualificationsInfo string `json:"qualificationsInfo"`
+	NominatorInfo      string `json:"nominatorInfo"`
+	ISHR               bool   `json:"ishr"`
+	AgreePrivacy       bool   `json:"agreePrivacy"`
+	AgreeConstitution  bool   `json:"agreeConstitution"`
+	ConsentRequestInfo bool   `json:"consentRequestInfo"`
+}
+
+// ContactRow represents a contact location. The ID of the junction record and
+// the member id are not represented as they are not really required.
 type ContactRow struct {
-	ID        int
-	MemberID  int
 	TypeID    int    `json:"contactTypeId"`
 	Phone     string `json:"phone"`
 	Fax       string `json:"fax"`
@@ -116,7 +134,8 @@ type ContactRow struct {
 	CountryID int    `json:"countryId"`
 }
 
-// Insert inserts a member row into the database. If successful it will set the member id.
+// Insert inserts a member row into the database. If successful it will set the
+// member id.
 func (r *Row) Insert(ds datastore.Datastore) error {
 
 	// convert bools to 0/1
@@ -143,15 +162,12 @@ func (r *Row) Insert(ds datastore.Datastore) error {
 		r.MiddleNames,
 		r.LastName,
 		r.PostNominal,
-		r.QualificationsInfo,
 		r.Mobile,
 		r.PrimaryEmail,
 		r.SecondaryEmail)
 	if err != nil {
 		return err
 	}
-
-	// get member id
 	id, err := res.LastInsertId()
 	if err != nil {
 		return err
@@ -193,12 +209,39 @@ func (r *Row) Insert(ds datastore.Datastore) error {
 		return err
 	}
 
+	// Create a new file note (TypeID = 10006  ) and associate it with this
+	// member id - note.ID will be set if this is successful.
+	n1 := note.Note{
+		MemberID: r.ID,
+		TypeID:   10006,
+		Content:  "this is a test file note",
+	}
+	err = n1.InsertRow(ds)
+	if err != nil {
+		return err
+	}
+
+	// Create a system note (TypeID = 1) associated with this application for
+	// additional data
+	xb, err := json.MarshalIndent(r.Application, "", "  ")
+	n2 := note.Note{
+		MemberID:      r.ID,
+		TypeID:        1,
+		Association:   "application",
+		AssociationID: r.Application.ID,
+		Content:       string(xb),
+	}
+	err = n2.InsertRow(ds)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
 // insertQualifications inserts the member qualifications present in the Row value
 func (r *Row) insertQualifications(ds datastore.Datastore) error {
-	for _, q := range r.QualificationRows {
+	for _, q := range r.Qualifications {
 		err := q.insert(ds, r.ID)
 		if err != nil {
 			return err
@@ -209,7 +252,7 @@ func (r *Row) insertQualifications(ds datastore.Datastore) error {
 
 // insertPositions inserts the member positions present in the Row value
 func (r *Row) insertPositions(ds datastore.Datastore) error {
-	for _, p := range r.PositionRows {
+	for _, p := range r.Positions {
 		err := p.insert(ds, r.ID)
 		if err != nil {
 			return err
@@ -220,7 +263,7 @@ func (r *Row) insertPositions(ds datastore.Datastore) error {
 
 // insertSpecialities inserts the member specialities present in the Row value
 func (r *Row) insertSpecialities(ds datastore.Datastore) error {
-	for _, s := range r.SpecialityRows {
+	for _, s := range r.Specialities {
 		err := s.insert(ds, r.ID)
 		if err != nil {
 			return err
@@ -231,7 +274,7 @@ func (r *Row) insertSpecialities(ds datastore.Datastore) error {
 
 // insertAccreditations inserts the member accreditations present in the Row value
 func (r *Row) insertAccreditations(ds datastore.Datastore) error {
-	for _, a := range r.AccreditationRows {
+	for _, a := range r.Accreditations {
 		err := a.insert(ds, r.ID)
 		if err != nil {
 			return err
@@ -242,7 +285,7 @@ func (r *Row) insertAccreditations(ds datastore.Datastore) error {
 
 // insertTags inserts the member tags present in the Row value
 func (r *Row) insertTags(ds datastore.Datastore) error {
-	for _, t := range r.TagRows {
+	for _, t := range r.Tags {
 		err := t.insert(ds, r.ID)
 		if err != nil {
 			return err
@@ -251,14 +294,20 @@ func (r *Row) insertTags(ds datastore.Datastore) error {
 	return nil
 }
 
-// insertApplication creates an application record for the member
+// insertApplication creates an application record for the member and sets the
+// Application ID on success.
 func (r *Row) insertApplication(ds datastore.Datastore) error {
-	return r.ApplicationRow.insert(ds, r.ID)
+	id, err := r.Application.insert(ds, r.ID)
+	if err != nil {
+		return err
+	}
+	r.Application.ID = id
+	return nil
 }
 
 // insertContacts inserts the member contact rows
 func (r *Row) insertContacts(ds datastore.Datastore) error {
-	for _, c := range r.ContactRows {
+	for _, c := range r.Contacts {
 		err := c.insert(ds, r.ID)
 		if err != nil {
 			return err
@@ -318,14 +367,19 @@ func (tr TagRow) insert(ds datastore.Datastore, memberID int) error {
 	return err
 }
 
-func (ar ApplicationRow) insert(ds datastore.Datastore, memberID int) error {
-	_, err := ds.MySQL.Session.Exec(queries["insert-member-application-row"],
+// insert methods creates a new application record, returns id on success
+func (ar ApplicationRow) insert(ds datastore.Datastore, memberID int) (int, error) {
+	res, err := ds.MySQL.Session.Exec(queries["insert-member-application-row"],
 		memberID,
 		ar.NominatorID,
 		ar.SeconderID,
 		ar.ForTitleID,
 		ar.Comment)
-	return err
+	if err != nil {
+		return 0, err
+	}
+	id, err := res.LastInsertId()
+	return int(id), err
 }
 
 func (cr ContactRow) insert(ds datastore.Datastore, memberID int) error {
@@ -347,8 +401,8 @@ func (cr ContactRow) insert(ds datastore.Datastore, memberID int) error {
 	return err
 }
 
-// InsertRowFromJSON creates a member Row from a JSON object. This is used for online
-// membership applications and returns a new member Row on success.
+// InsertRowFromJSON creates a new member (applicant) Row from a JSON object as well as various
+// related rows required for the application process.
 func InsertRowFromJSON(ds datastore.Datastore, s string) (Row, error) {
 	r := Row{}
 
