@@ -26,10 +26,9 @@ type Row struct {
 	MiddleNames      string `json:"middleNames"`      // middle_names
 	LastName         string `json:"lastName"`         // last_name
 	PostNominal      string `json:"postNominal"`      // suffix
-	//QualificationsInfo string `json:"qualificationsInfo"` // qualifications_other
-	Mobile         string `json:"mobile"`         // mobile_phone
-	PrimaryEmail   string `json:"primaryEmail"`   // primary_email
-	SecondaryEmail string `json:"secondaryEmail"` // secondary_email
+	Mobile           string `json:"mobile"`           // mobile_phone
+	PrimaryEmail     string `json:"primaryEmail"`     // primary_email
+	SecondaryEmail   string `json:"secondaryEmail"`   // secondary_email
 
 	// The following fields are values represented in junction tables
 	Qualifications []QualificationRow `json:"qualifications"`
@@ -39,6 +38,7 @@ type Row struct {
 	Tags           []TagRow           `json:"tags"`
 	Contacts       []ContactRow       `json:"contacts"`
 
+	// Application-related info
 	Application ApplicationRow `json:"application"`
 
 	// A file note is created in order to associate uploaded files which are
@@ -97,24 +97,10 @@ type TagRow struct {
 // ApplicationRow represents a member's application.
 type ApplicationRow struct {
 	ID          int
-	ForTitleID  int             `json:"forTitleId"`
-	NominatorID int             `json:"nominatorId"`
-	SeconderID  int             `json:"seconderId"`
-	Comment     string          `json:"nominatorInfo"`
-	Note        ApplicationNote `json:"note"`
-}
-
-// ApplicationNote represents additional data that may not map directly to
-// specific database fields, or that may require some human-interpretation
-// before being commited as. This information can be formatted into a note that
-// is associated with an application.
-type ApplicationNote struct {
-	QualificationsInfo string `json:"qualificationsInfo"`
-	NominatorInfo      string `json:"nominatorInfo"`
-	ISHR               bool   `json:"ishr"`
-	AgreePrivacy       bool   `json:"agreePrivacy"`
-	AgreeConstitution  bool   `json:"agreeConstitution"`
-	ConsentRequestInfo bool   `json:"consentRequestInfo"`
+	ForTitleID  int    `json:"forTitleId"`
+	NominatorID int    `json:"nominatorId"`
+	SeconderID  int    `json:"seconderId"`
+	Comment     string `json:"note"`
 }
 
 // ContactRow represents a contact location. The ID of the junction record and
@@ -214,24 +200,9 @@ func (r *Row) Insert(ds datastore.Datastore) error {
 	n1 := note.Note{
 		MemberID: r.ID,
 		TypeID:   10006,
-		Content:  "this is a test file note",
+		Content:  "Membership application file attachments",
 	}
 	err = n1.InsertRow(ds)
-	if err != nil {
-		return err
-	}
-
-	// Create a system note (TypeID = 1) associated with this application for
-	// additional data
-	xb, err := json.MarshalIndent(r.Application, "", "  ")
-	n2 := note.Note{
-		MemberID:      r.ID,
-		TypeID:        1,
-		Association:   "application",
-		AssociationID: r.Application.ID,
-		Content:       string(xb),
-	}
-	err = n2.InsertRow(ds)
 	if err != nil {
 		return err
 	}

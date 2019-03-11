@@ -314,14 +314,7 @@ func testInsertRowJSON(t *testing.T) {
 		"application": {
 			"forTitleId": 2,
 			"nominatorId": 399,
-			"note": {
-        		"qualificationsInfo": "some additional info about my qualifications",
-        		"nominatorInfo": "some additional info about my nominators",
-				"ishr": true,
-				"agreePrivacy": true,
-				"agreeConstitution": true,
-				"consentRequestInfo": true
-			}
+			"note": "qualification note: some additional info about my qualifications\r\nnominators note: some additional info about my nominators\r\nishr: true\r\nagreePrivacy: true\r\nagreeConstitution: true\r\nconsentRequestInfo: true"
 		}
 	}`
 
@@ -371,12 +364,12 @@ func testInsertRowJSON(t *testing.T) {
 		t.Errorf("Member.Contact.Locations count = %d, want %d", got, want)
 	}
 
-	// Check 2 notes were created
+	// Check file note was created
 	xn, err := note.ByMemberID(ds2, row.ID)
 	if err != nil {
 		t.Errorf("note.ByMemberID(%d) err = %s", row.ID, err)
 	}
-	want = 2
+	want = 1
 	got = len(xn)
 	if got != want {
 		t.Errorf("note.ByMemberID() count = %d, want %d", got, want)
