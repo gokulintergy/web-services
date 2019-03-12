@@ -4,8 +4,15 @@ import (
 	"encoding/json"
 	"strings"
 
+	"github.com/cardiacsociety/web-services/internal/issue"
 	"github.com/cardiacsociety/web-services/internal/note"
 	"github.com/cardiacsociety/web-services/internal/platform/datastore"
+)
+
+// Foreign Key values for creating required record relationships
+const (
+	fileNoteTypeID            = 10006
+	newApplicationIssueTypeID = 10
 )
 
 // Row represents a raw record from the member table in the SQL database. This
@@ -40,11 +47,6 @@ type Row struct {
 
 	// Application-related info
 	Application ApplicationRow `json:"application"`
-
-	// A file note is created in order to associate uploaded files which are
-	// uploaded using the signed url
-	//FileNoteID        int    `json:"memberNoteID"`
-	//FileNoteSignedURL string `json:"applicationNoteSignedUrl"`
 }
 
 // QualificationRow represents a member qualification in a junction table. The
@@ -101,6 +103,8 @@ type ApplicationRow struct {
 	NominatorID int    `json:"nominatorId"`
 	SeconderID  int    `json:"seconderId"`
 	Comment     string `json:"note"`
+	FileNote    string `json:"fileNote"`
+	FileNoteID  int    `json:"fileNoteID"`
 }
 
 // ContactRow represents a contact location. The ID of the junction record and
@@ -185,24 +189,22 @@ func (r *Row) Insert(ds datastore.Datastore) error {
 		return err
 	}
 
-	err = r.insertApplication(ds)
-	if err != nil {
-		return err
-	}
-
 	err = r.insertContacts(ds)
 	if err != nil {
 		return err
 	}
 
-	// Create a new file note (TypeID = 10006  ) and associate it with this
-	// member id - note.ID will be set if this is successful.
-	n1 := note.Note{
-		MemberID: r.ID,
-		TypeID:   10006,
-		Content:  "Membership application file attachments",
+	err = r.insertApplication(ds)
+	if err != nil {
+		return err
 	}
-	err = n1.InsertRow(ds)
+
+	err = r.insertFileNote(ds)
+	if err != nil {
+		return err
+	}
+
+	err = r.insertIssue(ds)
 	if err != nil {
 		return err
 	}
@@ -285,6 +287,49 @@ func (r *Row) insertContacts(ds datastore.Datastore) error {
 		}
 	}
 	return nil
+}
+
+// insertFileNote creates a note record associated with this member id and sets
+// the Application.FileNoteID on success.
+func (r *Row) insertFileNote(ds datastore.Datastore) error {
+
+	// Empty note content will return an error, so ensure it has a value
+	if r.Application.FileNote == "" {
+		r.Application.FileNote = "Files attached"
+	}
+
+	n := note.Note{
+		MemberID: r.ID,
+		TypeID:   fileNoteTypeID,
+		Content:  r.Application.FileNote,
+	}
+
+	// noteInsertRow will set note.ID
+	err := n.InsertRow(ds)
+	if err != nil {
+		return err
+	}
+	r.Application.FileNoteID = n.ID
+	return nil
+}
+
+// insertIssue raises an issue, of the appropriate type, relating to the new
+// application
+func (r *Row) insertIssue(ds datastore.Datastore) error {
+
+	// get default deescription and action for the issue type
+	issType, err := issue.TypeByID(ds, newApplicationIssueTypeID)
+	if err != nil {
+		return err
+	}
+
+	i := issue.Issue{
+		Type:        issue.Type{ID: newApplicationIssueTypeID},
+		MemberID:    r.ID,
+		Description: issType.Description,
+		Action:      issType.Action,
+	}
+	return i.InsertRow(ds)
 }
 
 // insert a member qualification row in the junction table

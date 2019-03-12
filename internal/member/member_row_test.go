@@ -19,6 +19,7 @@ func TestMemberRow(t *testing.T) {
 	var teardown func()
 	ds2, teardown = setup2()
 	defer teardown()
+	//ds2, _ = setup2() // keep db
 
 	t.Run("member_row", func(t *testing.T) {
 		t.Run("testInsertRow", testInsertRow)
@@ -314,7 +315,8 @@ func testInsertRowJSON(t *testing.T) {
 		"application": {
 			"forTitleId": 2,
 			"nominatorId": 399,
-			"note": "qualification note: some additional info about my qualifications\r\nnominators note: some additional info about my nominators\r\nishr: true\r\nagreePrivacy: true\r\nagreeConstitution: true\r\nconsentRequestInfo: true"
+			"note": "qualification note: some additional info about my qualifications\r\nnominators note: some additional info about my nominators\r\nishr: true\r\nagreePrivacy: true\r\nagreeConstitution: true\r\nconsentRequestInfo: true",
+			"fileNote": "Uploaded by applicant"
 		}
 	}`
 
