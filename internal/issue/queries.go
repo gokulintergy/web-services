@@ -4,6 +4,7 @@ var queries = map[string]string{
 	"insert-issue":             insertIssue,
 	"insert-issue-association": insertIssueAssociation,
 	"select-issue-by-id":       selectIssueByID,
+	"select-issue-type-by-id": selectIssueTypeByID,
 }
 
 const insertIssue = `
@@ -51,3 +52,21 @@ FROM
 WHERE 1`
 
 const selectIssueByID = selectIssue + ` AND i.id = ?`
+
+const selectIssueType = `
+SELECT 
+    t.id AS TypeID,
+    t.name AS Type,
+    t.description AS Description,
+    t.required_action AS Action,
+    c.id AS CategoryID,
+    c.name AS CategoryName,
+    c.description AS CategoryDescription
+FROM
+    wf_issue_type t
+LEFT JOIN wf_issue_category c ON t.wf_issue_category_id = c.id    
+WHERE
+	t.active = 1`
+
+const selectIssueTypeByID = selectIssueType + ` AND t.id = ?`
+

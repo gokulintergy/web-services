@@ -46,6 +46,7 @@ type Type struct {
 	ID          int
 	Name        string
 	Description string
+	Action      string
 	Category    Category
 }
 
@@ -146,4 +147,20 @@ func ByID(ds datastore.Datastore, id int) (Issue, error) {
 		i.Visible = true
 	}
 	return i, err
+}
+
+// TypeByID fetches an issue type by id
+func TypeByID(ds datastore.Datastore, id int) (Type, error) {
+	t := Type{}
+	q := queries["select-issue-type-by-id"]
+	err := ds.MySQL.Session.QueryRow(q, id).Scan(
+		&t.ID,
+		&t.Name,
+		&t.Description,
+		&t.Action,
+		&t.Category.ID,
+		&t.Category.Name,
+		&t.Category.Description,
+	)
+	return t, err
 }

@@ -21,7 +21,8 @@ func TestIssue(t *testing.T) {
 
 	t.Run("issue", func(t *testing.T) {
 		t.Run("testPingDatabase", testPingDatabase)
-		t.Run("testByID", testByID)
+		t.Run("testIssueByID", testIssueByID)
+		t.Run("testIssueTypeByID", testIssueTypeByID)
 		t.Run("testInsertRowErrorIDNotNil", testInsertRowErrorIDNotNil)
 		t.Run("testInsertRowErrorNoTypeID", testInsertRowErrorNoTypeID)
 		t.Run("testInsertRowErrorNoDescription", testInsertRowErrorNoDescription)
@@ -55,7 +56,7 @@ func testPingDatabase(t *testing.T) {
 	}
 }
 
-func testByID(t *testing.T) {
+func testIssueByID(t *testing.T) {
 	arg := 1 // issue id in test data
 	got, err := issue.ByID(ds, arg)
 	if err != nil {
@@ -87,6 +88,32 @@ func testByID(t *testing.T) {
 
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("issue.ByID(%d) got !DeepEqual want", arg)
+	}
+}
+
+// test selecting just the issue type
+func testIssueTypeByID(t *testing.T) {
+	arg := 1 // issue type id in test data
+	got, err := issue.TypeByID(ds, arg)
+	if err != nil {
+		t.Fatalf("issueTypeByID(%d) err = %s", arg, err)
+	}
+
+	// This is what we expect in return
+	want := issue.Type{
+		ID:          1,
+		Name:        "Invoice Raised",
+		Description: "A new invoice has been raised and is pending payment.",
+		Action:      "Members can pay online or by alternate methods specified on the invoice.",
+		Category: issue.Category{
+			ID:          4,
+			Name:        "Finance",
+			Description: "Issues relating to Subscriptions, Invoicing and Payments.",
+		},
+	}
+
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("issue.TypeByID(%d) got !DeepEqual want", arg)
 	}
 }
 
