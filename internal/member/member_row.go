@@ -104,7 +104,7 @@ type ApplicationRow struct {
 	SeconderID  int    `json:"seconderId"`
 	Comment     string `json:"note"`
 	FileNote    string `json:"fileNote"`
-	FileNoteID  int    `json:"fileNoteID"`
+	FileNoteID  int    `json:"fileNoteId"`
 }
 
 // ContactRow represents a contact location. The ID of the junction record and
