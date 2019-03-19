@@ -594,32 +594,17 @@ INSERT INTO `%s`.`wf_issue_category` VALUES
   (5, 1, '2013-07-04 14:36:36', '2013-07-04 14:36:36', 'Data Integrity', 'Issues relating to missing or broken data.');
 
 -- name: insert-data-wf_issue_type
-INSERT INTO `%s`.`wf_issue_type` VALUES
-  (1, 4, NULL, 1, 1, 1, 1, '2013-07-04 14:37:45', '2013-11-27 17:53:14', 'Invoice Raised',
-      'A new invoice has been raised and is pending payment.',
-   'Members can pay online or by alternate methods specified on the invoice.', NULL),
-  (2, 4, NULL, 1, 1, 1, 1, '2013-07-04 14:38:26', '2013-11-27 17:54:15', 'Invoice Past Due',
-      'Invoice is past due and pending payment.', 'Please pay online or by alternate methods specified on the invoice.',
-   NULL), (3, 5, NULL, 1, 1, 1, 0, '2013-09-03 16:32:00', '2013-09-09 14:16:40', 'Missing Primary Email',
-              'All active members require a primary email to access the system and for communications.',
-           'Add a primary email address to member profile.', NULL),
-  (4, 5, NULL, 1, 1, 1, 0, '2013-09-03 16:34:11', '2013-09-09 14:15:49', 'Missing Membership Subscription',
-      'All active members require a membership subscription, even if that subscription is complimentary.',
-   'Assign the appropriate membership subscription.', NULL),
-  (5, 5, NULL, 1, 1, 1, 0, '2013-09-03 16:36:54', '2013-09-09 14:18:07', 'Empty Contact Card',
-      'All active members require at least one field to be filled in for each persistent contact card.',
-   'Edit member contact information and provide at least one value (or \'n/a\') in each of the persistent contact cards.',
-   NULL), (6, 4, NULL, 1, 1, 1, 1, '2013-11-07 11:48:01', '2013-11-27 17:55:38', 'Invoice Final Notice',
-              'Invoice is past due and a final notice has been issued by email.',
-           'Please note no further notices will be emailed.  If your subscription is not paid immediately, your Membership of the Society will be cancelled.',
-           NULL), (8, 1, NULL, 1, 1, 0, 0, '2015-04-08 22:38:32', '2015-04-08 22:38:32', 'Email Communication Failure',
-                      'A recent email communication failed for some reason. ',
-                   'Check the specific messages in the Member\'s communication tab for clues as to the appropriate follow up.',
-                   NULL), (9, 4, NULL, 1, 1, 0, 0, '2016-03-20 16:13:08', '2016-03-20 16:13:08', 'Invoice Overpaid',
-                              'Total of payments allocated to invoice exceeds the invoice total. ',
-                           'Require manual intervention to remove payment allocations as well as refund if applicable.',
-                           NULL),
-  (10000, 1, NULL, 1, 0, 0, 0, '2013-09-10 21:06:29', '2013-09-11 15:53:12', 'General Admin', '-', '-', NULL);
+INSERT INTO `%s`.`wf_issue_type` VALUES 
+(1,4,NULL,1,1,1,1,'2013-07-05 10:37:45','2013-11-28 15:53:14','Invoice Raised','A new invoice has been raised and is pending payment.','Members can pay online or by alternate methods specified on the invoice.',NULL),
+(2,4,NULL,1,1,1,1,'2013-07-05 10:38:26','2013-11-28 15:54:15','Invoice Past Due','Invoice is past due and pending payment.','Please pay online or by alternate methods specified on the invoice.',NULL),
+(3,5,NULL,1,1,1,0,'2013-09-04 12:32:00','2013-09-10 10:16:40','Missing Primary Email','All active members require a primary email to access the system and for communications.','Add a primary email address to member profile.',NULL),
+(4,5,NULL,1,1,1,0,'2013-09-04 12:34:11','2013-09-10 10:15:49','Missing Membership Subscription','All active members require a membership subscription, even if that subscription is complimentary.','Assign the appropriate membership subscription.',NULL),
+(5,5,NULL,1,1,1,0,'2013-09-04 12:36:54','2013-09-10 10:18:07','Empty Contact Card','All active members require at least one field to be filled in for each persistent contact card.','Edit member contact information and provide at least one value (or \'n/a\') in each of the persistent contact cards.',NULL),
+(6,4,NULL,1,1,1,1,'2013-11-08 09:48:01','2013-11-28 15:55:38','Invoice Final Notice','Invoice is past due and a final notice has been issued by email.','Please note no further notices will be emailed.  If your subscription is not paid immediately, your Membership of the Society will be cancelled.',NULL),
+(8,1,NULL,1,1,0,0,'2015-04-09 18:38:32','2015-04-09 18:38:32','Email Communication Failure','A recent email communication failed for some reason. ','Check the specific messages in the Members communication tab for clues as to the appropriate follow up.',NULL),
+(9,4,NULL,1,1,0,0,'2016-03-21 14:12:09','2016-03-21 14:12:09','Invoice Overpaid','Total of payments allocated to invoice exceeds the invoice total. ','Require manual intervention to remove payment allocations as well as refund if applicable.',NULL),
+(10,2,NULL,1,1,0,0,'2019-03-12 10:45:07','2019-03-12 10:45:07','Online Application','Online applications pending acceptance.','Check supplied information, assign appropriate title and status, allocate to meetings.',NULL),
+(10000,1,NULL,1,0,0,0,'2013-09-11 17:06:29','2013-09-12 11:53:12','General Admin','-','-',NULL);
 
 -- name: insert-data-wf_note
 INSERT INTO `%s`.`wf_note` VALUES

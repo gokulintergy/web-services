@@ -40,12 +40,12 @@ INSERT INTO member (
     last_name, 
     suffix, 
     mobile_phone, 
-    primary_email, 
+    primary_email,
     password
 ) VALUES (
     ?, ?, ?, ?, ?, 
     NOW(), NOW(), 
-    ?, ?, ?, ?, ?, ?, ?, ?, ""
+    ?, ?, ?, ?, ?, ?, ?, ?, MD5("a-not-so-random-string")
 )`
 
 const insertMemberQualificationRow = `
