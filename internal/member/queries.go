@@ -67,9 +67,8 @@ INSERT INTO mp_m_position (
     mp_position_id, 
     organisation_id, 
     created_at, 
-    updated_at, 
-    start_on
-) VALUES (?, ?, ?, NOW(), NOW(), NOW())
+    updated_at
+) VALUES (?, ?, ?, NOW(), NOW())
 `
 
 // const insertMemberPositionRow = `
