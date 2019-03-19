@@ -58,7 +58,6 @@ func testInsertRow(t *testing.T) {
 	m.PostNominal = "B.Sc.Agr"
 	m.Mobile = "0402 400 191"
 	m.PrimaryEmail = "michael@8o8.io"
-	m.SecondaryEmail = "michael.donnici@gmail.com"
 
 	m.Qualifications = []member.QualificationRow{
 		member.QualificationRow{
@@ -221,7 +220,6 @@ func testInsertRowJSON(t *testing.T) {
 		"lastName": "Donnici",
 		"dateOfBirth": "1970-11-03",
 		"primaryEmail": "michael@somewhere.com",
-		"secondaryEmail": "michael@somewhereelse.com",
 		"mobile": "+61402400191",
 		"consentDirectory": true,
 		"consentContact": true,

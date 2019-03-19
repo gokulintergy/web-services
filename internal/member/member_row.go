@@ -2,6 +2,7 @@ package member
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
 
 	"github.com/cardiacsociety/web-services/internal/issue"
@@ -35,7 +36,6 @@ type Row struct {
 	PostNominal      string `json:"postNominal"`      // suffix
 	Mobile           string `json:"mobile"`           // mobile_phone
 	PrimaryEmail     string `json:"primaryEmail"`     // primary_email
-	SecondaryEmail   string `json:"secondaryEmail"`   // secondary_email
 
 	// The following fields are values represented in junction tables
 	Qualifications []QualificationRow `json:"qualifications"`
@@ -153,60 +153,59 @@ func (r *Row) Insert(ds datastore.Datastore) error {
 		r.LastName,
 		r.PostNominal,
 		r.Mobile,
-		r.PrimaryEmail,
-		r.SecondaryEmail)
+		r.PrimaryEmail)
 	if err != nil {
 		return err
 	}
 	id, err := res.LastInsertId()
 	if err != nil {
-		return err
+		return fmt.Errorf("LastInsertID() err = %s", err)
 	}
 	r.ID = int(id) // from int64
 
 	err = r.insertQualifications(ds)
 	if err != nil {
-		return err
+		return fmt.Errorf("insertQualifications() err = %s", err)
 	}
 
 	err = r.insertPositions(ds)
 	if err != nil {
-		return err
+		return fmt.Errorf("insertPositions() err = %s", err)
 	}
 
 	err = r.insertSpecialities(ds)
 	if err != nil {
-		return err
+		return fmt.Errorf("insertSpecialities() err = %s", err)
 	}
 
 	err = r.insertAccreditations(ds)
 	if err != nil {
-		return err
+		return fmt.Errorf("insertAccreditations() err = %s", err)
 	}
 
 	err = r.insertTags(ds)
 	if err != nil {
-		return err
+		return fmt.Errorf("insertTags() err = %s", err)
 	}
 
 	err = r.insertContacts(ds)
 	if err != nil {
-		return err
+		return fmt.Errorf("insertContacts() err = %s", err)
 	}
 
 	err = r.insertApplication(ds)
 	if err != nil {
-		return err
+		return fmt.Errorf("insertApplication() err = %s", err)
 	}
 
 	err = r.insertFileNote(ds)
 	if err != nil {
-		return err
+		return fmt.Errorf("insertFileNote() err = %s", err)
 	}
 
 	err = r.insertIssue(ds)
 	if err != nil {
-		return err
+		return fmt.Errorf("insertIssue() err = %s", err)
 	}
 
 	return nil

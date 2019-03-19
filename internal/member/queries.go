@@ -41,13 +41,11 @@ INSERT INTO member (
     suffix, 
     mobile_phone, 
     primary_email, 
-    secondary_email,
     password
 ) VALUES (
     ?, ?, ?, ?, ?, 
     NOW(), NOW(), 
-    ?, ?, ?, ?, ?, ?, ?, ?, ?,
-    ""
+    ?, ?, ?, ?, ?, ?, ?, ?, ""
 )`
 
 const insertMemberQualificationRow = `
