@@ -71,19 +71,6 @@ INSERT INTO mp_m_position (
 ) VALUES (?, ?, ?, NOW(), NOW())
 `
 
-// const insertMemberPositionRow = `
-// INSERT INTO mp_m_position (
-//     member_id,
-//     mp_position_id,
-//     organisation_id,
-//     created_at,
-//     updated_at,
-//     start_on,
-//     end_on,
-//     comment
-// ) VALUES (%d, %d, %d, NOW(), NOW(), %q, %q, %q)
-// `
-
 const insertMemberSpecialityRow = `
 INSERT INTO mp_m_speciality (
     member_id, 
