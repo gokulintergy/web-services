@@ -16,11 +16,17 @@ import (
 
 var ds datastore.Datastore
 
+const doTeardown = true
+
 func TestMember(t *testing.T) {
 
-	var teardown func()
-	ds, teardown = setup()
-	defer teardown()
+	if doTeardown {
+		var teardown func()
+		ds, teardown = setup()
+		defer teardown()
+	} else {
+		ds, _ = setup()
+	}
 
 	t.Run("member", func(t *testing.T) {
 		t.Run("testPingDatabase", testPingDatabase)
@@ -30,6 +36,7 @@ func TestMember(t *testing.T) {
 		t.Run("testSyncUpdated", testSyncUpdated)
 		t.Run("testExcelReport", testExcelReport)
 		t.Run("testExcelReportJournal", testExcelReportJournal)
+		t.Run("testLapse", testLapse)
 	})
 }
 
@@ -187,6 +194,18 @@ func testExcelReportJournal(t *testing.T) {
 	got := len(rows)
 	if got != want {
 		t.Errorf("GetRows() row count = %d, want %d", got, want)
+	}
+}
+
+// test lapsing a member - @todo: check the actual result
+func testLapse(t *testing.T) {
+	m, err := member.ByID(ds, 1)
+	if err != nil {
+		t.Fatalf("ByID() err = %s", err)
+	}
+	err = m.Lapse(ds)
+	if err != nil {
+		t.Fatalf("member.Lapse() err = %s", err)
 	}
 }
 

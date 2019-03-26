@@ -17,6 +17,11 @@ import (
 	"github.com/pkg/errors"
 )
 
+const (
+	lapsedStatusID = 10004
+)
+
+
 // Member represents a Member record in document format
 type Member struct {
 	OID       bson.ObjectId `json:"_id,omitempty" bson:"_id,omitempty"`
@@ -725,7 +730,7 @@ func SearchDocDB(ds datastore.Datastore, query bson.M) ([]Member, error) {
 		return nil, err
 	}
 
-	// .All(0 never returns ErrNotFound so need to check for results length = 0
+	// .All() never returns ErrNotFound so need to check for results length = 0
 	err = members.Find(query).All(&xm)
 	if err != nil {
 		return nil, err
@@ -735,4 +740,26 @@ func SearchDocDB(ds datastore.Datastore, query bson.M) ([]Member, error) {
 	}
 
 	return xm, nil
+}
+
+// Lapse will lapse a member by setting their status to 'lapsed' and
+// soft-deleting their subcription(s)
+func (m *Member)Lapse(ds datastore.Datastore) error {
+
+	// This creates new status of lapsed, and sets others to current = 0
+	sr := StatusRow{
+		StatusID: lapsedStatusID,
+		Current: true, 
+	}
+	if err := sr.insert(ds, m.ID); err != nil {
+		return err
+	}
+
+	// De-activate all financial subscriptions
+	_, err := ds.MySQL.Session.Exec(queries["update-member-deactivate-subscriptions"], m.ID)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

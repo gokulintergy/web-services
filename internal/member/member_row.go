@@ -124,6 +124,15 @@ type ContactRow struct {
 	CountryID int    `json:"countryId"`
 }
 
+// StatusRow represents a member's status record
+type StatusRow struct {
+	ID       int
+	MemberID int
+	StatusID int
+	Current  bool
+	Comment  string
+}
+
 // Insert inserts a member row into the database. If successful it will set the
 // member id.
 func (r *Row) Insert(ds datastore.Datastore) error {
@@ -414,6 +423,45 @@ func (cr ContactRow) insert(ds datastore.Datastore, memberID int) error {
 		cr.Postcode,
 	)
 	return err
+}
+
+// insert a member status row and, if it is set to current, ensure it is the
+// only record with current = 1
+func (sr StatusRow) insert(ds datastore.Datastore, memberID int) error {
+
+	sr.MemberID = memberID
+
+	// In the db current is stores as an int, so convert to int from bool
+	var current int
+	if sr.Current {
+		current = 1
+	}
+	res, err := ds.MySQL.Session.Exec(queries["insert-member-status-row"],
+		memberID,
+		sr.StatusID,
+		current,
+		sr.Comment,
+	)
+	if err != nil {
+		return err
+	}
+
+	id, err := res.LastInsertId()
+	if err != nil {
+		return err
+	}
+	sr.ID = int(id)
+
+	// If true also need to set current = 0 for all other status
+	// records for the member - can only have one status at a time.
+	if sr.Current {
+		_, err := ds.MySQL.Session.Exec(queries["update-member-current-status"], sr.ID, memberID)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // InsertRowFromJSON creates a new member (applicant) Row from a JSON object as well as various

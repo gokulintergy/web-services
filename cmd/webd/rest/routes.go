@@ -63,6 +63,10 @@ func AdminSubRouter(prefix string) *mux.Router {
 
 	// Membership application
 	admin.Methods("POST").Path("/applications").HandlerFunc(AdminNewMembershipApplication)
+	
+	// Lapse members
+	admin.Methods("PUT").Path("/lapsedmembers").HandlerFunc(AdminLapseMembers)
+
 
 	return admin
 }

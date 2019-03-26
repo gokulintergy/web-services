@@ -1,27 +1,30 @@
 package member
 
 var queries = map[string]string{
-	"insert-member-row":                insertMemberRow,
-	"insert-member-qualification-row":  insertMemberQualificationRow,
-	"insert-member-position-row":       insertMemberPositionRow,
-	"insert-member-speciality-row":     insertMemberSpecialityRow,
-	"insert-member-accreditation-row":  insertMemberAccreditationRow,
-	"insert-member-tag-row":            insertMemberTagRow,
-	"insert-member-application-row":    insertMemberApplicationRow,
-	"insert-member-contact-row":        insertMemberContactRow,
-	"select-member":                    selectMember,
-	"select-member-honorific":          selectMemberHonorific,
-	"select-member-country":            selectMemberCountry,
-	"select-member-contact-locations":  selectMemberContactLocations,
-	"select-membership-title":          selectMembershipTitle,
-	"select-membership-title-history":  selectMembershipTitleHistory,
-	"select-membership-status":         selectMembershipStatus,
-	"select-membership-status-history": selectMembershipStatusHistory,
-	"select-member-qualifications":     selectMemberQualifications,
-	"select-member-accreditations":     selectMemberAccreditations,
-	"select-member-positions":          selectMemberPositions,
-	"select-member-specialities":       selectMemberSpecialities,
-	"select-member-tags":               selectMemberTags,
+	"insert-member-row":                      insertMemberRow,
+	"insert-member-qualification-row":        insertMemberQualificationRow,
+	"insert-member-position-row":             insertMemberPositionRow,
+	"insert-member-speciality-row":           insertMemberSpecialityRow,
+	"insert-member-accreditation-row":        insertMemberAccreditationRow,
+	"insert-member-tag-row":                  insertMemberTagRow,
+	"insert-member-application-row":          insertMemberApplicationRow,
+	"insert-member-contact-row":              insertMemberContactRow,
+	"insert-member-status-row":               insertMemberStatusRow,
+	"select-member":                          selectMember,
+	"select-member-honorific":                selectMemberHonorific,
+	"select-member-country":                  selectMemberCountry,
+	"select-member-contact-locations":        selectMemberContactLocations,
+	"select-membership-title":                selectMembershipTitle,
+	"select-membership-title-history":        selectMembershipTitleHistory,
+	"select-membership-status":               selectMembershipStatus,
+	"select-membership-status-history":       selectMembershipStatusHistory,
+	"select-member-qualifications":           selectMemberQualifications,
+	"select-member-accreditations":           selectMemberAccreditations,
+	"select-member-positions":                selectMemberPositions,
+	"select-member-specialities":             selectMemberSpecialities,
+	"select-member-tags":                     selectMemberTags,
+	"update-member-current-status":           updateMemberCurrentStatus,
+	"update-member-deactivate-subscriptions": updateMemberDeactivateSubscriptions,
 }
 
 const insertMemberRow = `
@@ -132,6 +135,16 @@ INSERT INTO mp_m_contact(
   postcode 
   ) 
 VALUES (?, ?, ?, NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+
+const insertMemberStatusRow = `
+INSERT INTO ms_m_status(
+    member_id, 
+    ms_status_id, 
+    current, 
+    updated_at,
+    comment
+) 
+VALUES (?, ?, ?, NOW(), ?)`
 
 const selectMember = `SELECT 
 	active,
@@ -302,3 +315,11 @@ FROM
     mp_tag t ON mt.mp_tag_id = t.id
 WHERE
     mt.member_id = ?`
+
+// ensure only ONE member status record is current
+const updateMemberCurrentStatus = `
+UPDATE ms_m_status SET current = 0 
+WHERE id != ? AND member_id = ?`
+
+// de-activate all subscriptions for a member
+const updateMemberDeactivateSubscriptions = `UPDATE fn_m_subscription SET active = 0 WHERE member_id = ?`

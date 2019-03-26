@@ -829,7 +829,7 @@ func AdminReportPositionExcel(w http.ResponseWriter, r *http.Request) {
 	}()
 }
 
-//AdminNewMembershipApplication processes a request to create a new membership application
+// AdminNewMembershipApplication processes a request to create a new membership application
 func AdminNewMembershipApplication(w http.ResponseWriter, r *http.Request) {
 	p := NewResponder(UserAuthToken.Encoded)
 
@@ -851,5 +851,41 @@ func AdminNewMembershipApplication(w http.ResponseWriter, r *http.Request) {
 
 	p.Message = Message{http.StatusAccepted, "accepted", "membership application data has been created"}
 	p.Data = data
+	p.Send(w)
+}
+
+// AdminLapseMembers processes a request to lapse members
+func AdminLapseMembers(w http.ResponseWriter, r *http.Request) {
+	p := NewResponder(UserAuthToken.Encoded)
+
+	// body should be a JSON array of member ids
+	memberIDs := []int{}
+	err := json.NewDecoder(r.Body).Decode(&memberIDs)
+	if err != nil {
+		msg := fmt.Sprintf("Could not read request body - %s", err)
+		p.Message = Message{http.StatusBadRequest, "failed", msg}
+		p.Send(w)
+		return
+	}
+
+	// collect any errros as a message
+	messages := []string{}
+	// lapse each of the ids
+	for _, id := range memberIDs {
+		m, err := member.ByID(DS, id)
+		if err != nil {
+			messages = append(messages, fmt.Sprintf("Could not get member id %v", id))
+			continue
+		}
+		if err := m.Lapse(DS); err != nil {
+			messages = append(messages, fmt.Sprintf("Error lapsing member id %v - %s", id, err))
+			continue
+		}
+		messages = append(messages, fmt.Sprintf("Successfully lapsed member id %v", id))
+	}
+
+	p.Meta = map[string]int{"count": len(memberIDs)}
+	p.Message = Message{http.StatusOK, "success", "Check data field for any errors"}
+	p.Data = messages
 	p.Send(w)
 }
