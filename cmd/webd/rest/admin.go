@@ -21,6 +21,7 @@ import (
 	"github.com/cardiacsociety/web-services/internal/invoice"
 	"github.com/cardiacsociety/web-services/internal/member"
 	"github.com/cardiacsociety/web-services/internal/note"
+	"github.com/cardiacsociety/web-services/internal/notification"
 	"github.com/cardiacsociety/web-services/internal/payment"
 	"github.com/cardiacsociety/web-services/internal/platform/s3"
 	"github.com/cardiacsociety/web-services/internal/position"
@@ -868,7 +869,7 @@ func AdminLapseMembers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// collect any errros as a message
+	// collect any errors as a message
 	messages := []string{}
 	// lapse each of the ids
 	for _, id := range memberIDs {
@@ -887,5 +888,61 @@ func AdminLapseMembers(w http.ResponseWriter, r *http.Request) {
 	p.Meta = map[string]int{"count": len(memberIDs)}
 	p.Message = Message{http.StatusOK, "success", "Check data field for any errors"}
 	p.Data = messages
+	p.Send(w)
+}
+
+// AdminSendNotifications sends email notifications
+func AdminSendNotifications(w http.ResponseWriter, r *http.Request) {
+	p := NewResponder(UserAuthToken.Encoded)
+
+	type recipient struct {
+		Name  string `json:"name"`
+		Email string `json:"email"`
+	}
+	var body struct {
+		SenderName  string      `json:"senderName"`
+		SenderEmail string      `json:"senderEmail"`
+		Recipients  []recipient `json:"recipients"`
+		Subject     string      `json:"subject"`
+		HTML        string      `json:"html"`
+		Text        string      `json:"text"`
+		Attachments []string    `json:"attachments"`
+	}
+	err := json.NewDecoder(r.Body).Decode(&body)
+	if err != nil {
+		msg := fmt.Sprintf("Could not read request body - %s", err)
+		p.Message = Message{http.StatusBadRequest, "failed", msg}
+		p.Send(w)
+		return
+	}
+
+	sent := []string{}
+	errors := []string{}
+
+	// map to notification.Email, add recipent in loop
+	em := notification.Email{
+		FromName:     body.SenderName,
+		FromEmail:    body.SenderEmail,
+		Subject:      body.Subject,
+		HTMLContent:  body.HTML,
+		PlainContent: body.Text,
+	}
+	for _, to := range body.Recipients {
+		em.ToName = to.Name
+		em.ToEmail = to.Email
+		fmt.Println("Sending to", em.ToName, em.ToEmail)
+		err := em.Send()
+		if err != nil {
+			msg := fmt.Sprintf("Could not sent to '%s' - %s", em.ToEmail, err)
+			errors = append(errors, msg)
+			continue
+		}
+		msg := fmt.Sprintf("Sent to '%s'", em.ToEmail)
+		sent = append(sent, msg)
+	}
+
+	p.Meta = map[string]int{"recipients": len(body.Recipients)}
+	p.Message = Message{http.StatusOK, "success", "Check data field for any errors"}
+	p.Data = map[string][]string{"errors": errors, "sent": sent}
 	p.Send(w)
 }

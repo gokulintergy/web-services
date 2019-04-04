@@ -67,6 +67,9 @@ func AdminSubRouter(prefix string) *mux.Router {
 	// Lapse members
 	admin.Methods("PUT").Path("/lapsedmembers").HandlerFunc(AdminLapseMembers)
 
+	// Notifications
+	admin.Methods("POST").Path("/notifications").HandlerFunc(AdminSendNotifications)
+
 
 	return admin
 }

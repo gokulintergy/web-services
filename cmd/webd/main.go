@@ -21,6 +21,9 @@ func init() {
 	env := envr.New("webdEnv", []string{
 		"AWS_ACCESS_KEY_ID",
 		"AWS_SECRET_ACCESS_KEY",
+		"AWS_SES_REGION",
+		"AWS_SES_ACCESS_KEY_ID",
+		"AWS_SES_SECRET_ACCESS_KEY",
 		"MAPPCPD_API_URL",
 		"MAPPCPD_JWT_TTL_HOURS",
 		"MAPPCPD_JWT_SIGNING_KEY",
