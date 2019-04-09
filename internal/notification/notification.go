@@ -31,7 +31,7 @@ func (e Email) Send() error {
 			os.Getenv("MAILGUN_API_KEY"),
 			os.Getenv("MAILGUN_DOMAIN"),
 		)
-	case "sengrid":
+	case "sendgrid":
 		fmt.Println("Sending email via Sendgrid")
 		return e.sendSendgrid(
 			os.Getenv("SENDGRID_API_KEY"),
