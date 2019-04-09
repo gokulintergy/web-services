@@ -3,6 +3,7 @@ package rest
 import (
 	"database/sql"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -10,6 +11,7 @@ import (
 
 	"github.com/cardiacsociety/web-services/internal/cpd"
 	"github.com/cardiacsociety/web-services/internal/member"
+	"github.com/cardiacsociety/web-services/internal/notification"
 	"github.com/cardiacsociety/web-services/internal/platform/email"
 )
 
@@ -160,5 +162,59 @@ func EmailCurrentActivityReport(w http.ResponseWriter, _ *http.Request) {
 	msg := fmt.Sprintf("Report has been created an emailed to %s.", e.ToEmail)
 	p.Message = Message{http.StatusOK, "success", msg}
 	p.Data = reportData
+	p.Send(w)
+}
+
+// MemberSendNotification sends an email to the member identified in the token
+func MemberSendNotification(w http.ResponseWriter, r *http.Request) {
+	p := NewResponder(UserAuthToken.Encoded)
+
+	// member record id in token
+	mem, err := member.ByID(DS, UserAuthToken.Claims.ID)
+	if err != nil {
+		msg := fmt.Sprintf("Could not find member record with id %v", UserAuthToken.Claims.ID)
+		p.Message = Message{http.StatusBadRequest, "failed", msg}
+		p.Send(w)
+		return
+	}
+
+	var body struct {
+		SenderName  string   `json:"senderName"`
+		SenderEmail string   `json:"senderEmail"`
+		Subject     string   `json:"subject"`
+		HTML        string   `json:"html"`
+		Text        string   `json:"text"`
+		Attachments []string `json:"attachments"`
+	}
+	err = json.NewDecoder(r.Body).Decode(&body)
+	if err != nil {
+		msg := fmt.Sprintf("Could not read request body - %s", err)
+		p.Message = Message{http.StatusBadRequest, "failed", msg}
+		p.Send(w)
+		return
+	}
+
+	// map to notification.Email
+	fullName := fmt.Sprintf("%s %s", mem.FirstName, mem.LastName)
+	em := notification.Email{
+		ToName:       fullName,
+		ToEmail:      mem.Contact.EmailPrimary,
+		FromName:     body.SenderName,
+		FromEmail:    body.SenderEmail,
+		Subject:      body.Subject,
+		HTMLContent:  body.HTML,
+		PlainContent: body.Text,
+	}
+	fmt.Println("Sending to", em.ToName, em.ToEmail)
+	err = em.Send()
+	if err != nil {
+		msg := fmt.Sprintf("Could not sent to '%s' - %s", em.ToEmail, err)
+		p.Message = Message{http.StatusInternalServerError, "failed", msg}
+		p.Send(w)
+		return
+	}
+
+	msg := fmt.Sprintf("Sent to '%s'", em.ToEmail)
+	p.Message = Message{http.StatusAccepted, "success", msg}
 	p.Send(w)
 }

@@ -173,6 +173,8 @@ func MemberSubRouter(prefix string) *mux.Router {
 
 	members.Methods("GET").Path("/evaluations").HandlerFunc(MembersEvaluation)
 
+	members.Methods("POST").Path("/notifications").HandlerFunc(MemberSendNotification)
+
 	members.Methods("GET").Path("/reports/cpd/current").HandlerFunc(CurrentActivityReport)
 	members.Methods("GET").Path("/reports/cpd/current/emailer").HandlerFunc(EmailCurrentActivityReport)
 	members.Methods("GET").Path("/reports//current/responder").HandlerFunc(EmailCurrentActivityReport)
