@@ -4,6 +4,8 @@ github.com/360EntSecGroup-Skylar/excelize v1.4.1 h1:l55mJb6rkkaUzOpSsgEeKYtS6/0g
 github.com/360EntSecGroup-Skylar/excelize v1.4.1/go.mod h1:vnax29X2usfl7HHkBrX5EvSCJcmH3dT9luvxzu8iGAE=
 github.com/8o8/email v0.0.0-20190404012250-f28016bbf015 h1:W2FcLHjbd8SHl400085yA8Ap9zdHsFb9sRg4bwUQuNI=
 github.com/8o8/email v0.0.0-20190404012250-f28016bbf015/go.mod h1:1gp4jpRrae8XH75vZsFkzZjyC8g3CBxkcxqWeuzBaAo=
+github.com/8o8/email v0.1.0 h1:flsL97kmeNLfcs4K86iVzWHzwVD2xV90DJg/aX+fZ20=
+github.com/8o8/email v0.1.0/go.mod h1:1gp4jpRrae8XH75vZsFkzZjyC8g3CBxkcxqWeuzBaAo=
 github.com/aws/aws-sdk-go v1.19.6/go.mod h1:KmX6BPdI08NWTb3/sm4ZGu5ShLoqVDhKgpiN924inxo=
 github.com/aws/aws-sdk-go v1.19.11 h1:tqaTGER6Byw3QvsjGW0p018U2UOqaJPeJuzoaF7jjoQ=
 github.com/aws/aws-sdk-go v1.19.11/go.mod h1:KmX6BPdI08NWTb3/sm4ZGu5ShLoqVDhKgpiN924inxo=
