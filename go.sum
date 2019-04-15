@@ -8,6 +8,8 @@ github.com/8o8/email v0.1.0 h1:flsL97kmeNLfcs4K86iVzWHzwVD2xV90DJg/aX+fZ20=
 github.com/8o8/email v0.1.0/go.mod h1:1gp4jpRrae8XH75vZsFkzZjyC8g3CBxkcxqWeuzBaAo=
 github.com/8o8/email v0.2.0 h1:4HYGzy0hTNMixlpjdhzRQ31zO/IDjzeBiByJMzzY7Nk=
 github.com/8o8/email v0.2.0/go.mod h1:HfES9IOdX6MtCnCyI8K1yX16bsGbDzulJDF80deVzbs=
+github.com/8o8/email v0.2.1 h1:uhp79ORzxOp4gSRKvzXE9zGuYSkeBvdUNSoUzDsObtk=
+github.com/8o8/email v0.2.1/go.mod h1:HfES9IOdX6MtCnCyI8K1yX16bsGbDzulJDF80deVzbs=
 github.com/aws/aws-sdk-go v1.19.6/go.mod h1:KmX6BPdI08NWTb3/sm4ZGu5ShLoqVDhKgpiN924inxo=
 github.com/aws/aws-sdk-go v1.19.11 h1:tqaTGER6Byw3QvsjGW0p018U2UOqaJPeJuzoaF7jjoQ=
 github.com/aws/aws-sdk-go v1.19.11/go.mod h1:KmX6BPdI08NWTb3/sm4ZGu5ShLoqVDhKgpiN924inxo=
@@ -86,6 +88,7 @@ golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACk
 golang.org/x/crypto v0.0.0-20190411191339-88737f569e3a/go.mod h1:WFFai1msRO1wXaEeE5yQxYXgSfI8pQAWXbQop6sCtWE=
 golang.org/x/net v0.0.0-20190404232315-eb5bcb51f2a3/go.mod h1:t9HGtf8HONx5eT2rtn7q6eTqICYqUVnKs3thJo3Qplg=
 golang.org/x/net v0.0.0-20190415100556-4a65cf94b679/go.mod h1:t9HGtf8HONx5eT2rtn7q6eTqICYqUVnKs3thJo3Qplg=
+golang.org/x/net v0.0.0-20190415214537-1da14a5a36f2/go.mod h1:t9HGtf8HONx5eT2rtn7q6eTqICYqUVnKs3thJo3Qplg=
 golang.org/x/sys v0.0.0-20190215142949-d0b11bdaac8a/go.mod h1:STP8DvDyc/dI5b8T5hshtkjS+E42TnysNCUPdjciGhY=
 golang.org/x/sys v0.0.0-20190403152447-81d4e9dc473e/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20190415145633-3fd5a3612ccd/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
