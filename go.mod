@@ -8,7 +8,7 @@ go 1.12
 require (
 	github.com/34South/envr v0.0.0-20170706023707-e57a7716f427
 	github.com/360EntSecGroup-Skylar/excelize v1.4.1
-	github.com/8o8/email v0.2.1
+	github.com/8o8/email v0.2.2
 	github.com/aws/aws-sdk-go v1.19.11
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/go-chi/chi v4.0.2+incompatible // indirect

@@ -899,14 +899,19 @@ func AdminSendNotifications(w http.ResponseWriter, r *http.Request) {
 		Name  string `json:"name"`
 		Email string `json:"email"`
 	}
+	type attachment struct {
+		MIMEType      string `json:"mimeType"`
+		FileName      string `json:"fileName"`
+		Base64Content string `json:"base64Content"`
+	}
 	var body struct {
-		SenderName  string      `json:"senderName"`
-		SenderEmail string      `json:"senderEmail"`
-		Recipients  []recipient `json:"recipients"`
-		Subject     string      `json:"subject"`
-		HTML        string      `json:"html"`
-		Text        string      `json:"text"`
-		Attachments []string    `json:"attachments"`
+		SenderName  string                    `json:"senderName"`
+		SenderEmail string                    `json:"senderEmail"`
+		Recipients  []recipient               `json:"recipients"`
+		Subject     string                    `json:"subject"`
+		HTML        string                    `json:"html"`
+		Text        string                    `json:"text"`
+		Attachments []notification.Attachment `json:"attachments"`
 	}
 	err := json.NewDecoder(r.Body).Decode(&body)
 	if err != nil {
@@ -916,33 +921,29 @@ func AdminSendNotifications(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sent := []string{}
-	errors := []string{}
-
-	// map to notification.Email, add recipent in loop
 	em := notification.Email{
 		FromName:     body.SenderName,
 		FromEmail:    body.SenderEmail,
 		Subject:      body.Subject,
 		HTMLContent:  body.HTML,
 		PlainContent: body.Text,
+		Attachments:  body.Attachments,
 	}
+
 	for _, to := range body.Recipients {
+
 		em.ToName = to.Name
 		em.ToEmail = to.Email
-		fmt.Println("Sending to", em.ToName, em.ToEmail)
-		err := em.Send()
-		if err != nil {
-			msg := fmt.Sprintf("Could not sent to '%s' - %s", em.ToEmail, err)
-			errors = append(errors, msg)
-			continue
-		}
-		msg := fmt.Sprintf("Sent to '%s'", em.ToEmail)
-		sent = append(sent, msg)
+
+		go func(e notification.Email) {
+			err := e.Send()
+			if err != nil {
+				log.Printf("notification.Send() err = %s, sending to %s", err, e.ToEmail)
+			}
+		}(em)
 	}
 
 	p.Meta = map[string]int{"recipients": len(body.Recipients)}
-	p.Message = Message{http.StatusOK, "success", "Check data field for any errors"}
-	p.Data = map[string][]string{"errors": errors, "sent": sent}
+	p.Message = Message{http.StatusAccepted, "success", "Notifications accepted for delivery"}
 	p.Send(w)
 }

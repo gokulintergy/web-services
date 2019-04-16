@@ -70,7 +70,6 @@ func AdminSubRouter(prefix string) *mux.Router {
 	// Notifications
 	admin.Methods("POST").Path("/notifications").HandlerFunc(AdminSendNotifications)
 
-
 	return admin
 }
 
