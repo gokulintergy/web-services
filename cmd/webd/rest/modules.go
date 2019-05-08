@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/cardiacsociety/web-services/internal/modules"
+	"github.com/cardiacsociety/web-services/internal/module"
 	"github.com/cardiacsociety/web-services/internal/platform/datastore"
 	"github.com/gorilla/mux"
 )
@@ -22,7 +22,7 @@ func ModulesID(w http.ResponseWriter, r *http.Request) {
 		p.Message = Message{http.StatusBadRequest, "failed", err.Error()}
 	}
 
-	m, err := modules.ModuleByID(DS, id)
+	m, err := module.ByID(DS, id)
 	// Response
 	switch {
 	case err == sql.ErrNoRows:
@@ -32,7 +32,7 @@ func ModulesID(w http.ResponseWriter, r *http.Request) {
 	default:
 		p.Message = Message{http.StatusOK, "success", "Data retrieved from ???"}
 		p.Data = m
-		modules.SyncModule(DS, m)
+		module.SyncModule(DS, m)
 	}
 
 	p.Send(w)
@@ -55,7 +55,7 @@ func ModulesCollection(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var res []interface{}
-	res, err = modules.QueryModulesCollection(DS, q)
+	res, err = module.QueryModulesCollection(DS, q)
 	if err != nil {
 		p.Message = Message{http.StatusInternalServerError, "failed", err.Error()}
 		p.Send(w)

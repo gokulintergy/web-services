@@ -547,13 +547,12 @@ func (m *Member) PositionByName(name string) (Position, error) {
 // SaveDocDB method upserts Member doc to MongoDB
 func (m *Member) SaveDocDB(ds datastore.Datastore) error {
 
-	selector := map[string]int{"id": m.ID}
-
 	mc, err := ds.MongoDB.MembersCollection()
 	if err != nil {
 		return errors.Wrap(err, "SaveDocDB could not get member collection")
 	}
 
+	selector := map[string]int{"id": m.ID}
 	_, err = mc.Upsert(selector, &m)
 	if err != nil {
 		return errors.Wrap(err, "SaveDocDB upsert error")
@@ -562,7 +561,10 @@ func (m *Member) SaveDocDB(ds datastore.Datastore) error {
 	return nil
 }
 
-// SyncUpdated synchronises a Member value to MongoDB based on the UpdatedAt field
+// SyncUpdated synchronises a Member value to MongoDB based on the UpdatedAt
+// field.
+// todo - too much logic in this fun - will deprecate and replace with
+// member.sync() and let the sync logic be handled separately.
 func (m *Member) SyncUpdated(ds datastore.Datastore) error {
 
 	xm, err := SearchDocDB(ds, bson.M{"id": m.ID})
@@ -585,6 +587,11 @@ func (m *Member) SyncUpdated(ds datastore.Datastore) error {
 
 	// do nothing
 	return nil
+}
+
+// Sync saves the member value to the document database.
+func (m *Member) Sync(ds datastore.Datastore) error {
+	return m.SaveDocDB(ds)
 }
 
 // ByID returns a pointer to a populated Member value

@@ -579,3 +579,25 @@ func ResourceDeepEqual(r, r2 *Resource) bool {
 
 	return true
 }
+
+// Sync saves the Resource to the document database.
+func (r *Resource) Sync(ds datastore.Datastore) error {
+	return r.SaveDoc(ds)
+}
+
+// SaveDoc upserts Resource doc to MongoDB
+func (r *Resource) SaveDoc(ds datastore.Datastore) error {
+
+	rc, err := ds.MongoDB.ResourcesCollection()
+	if err != nil {
+		return fmt.Errorf("resource.SaveDoc() err = %s", err)
+	}
+
+	selector := map[string]int{"id": r.ID}
+	_, err = rc.Upsert(selector, &r)
+	if err != nil {
+		return fmt.Errorf("resource.SaveDoc() err = %s", err)
+	}
+
+	return nil
+}
