@@ -1,11 +1,10 @@
-package rest
+package server
 
 import (
-	"fmt"
 	"net/http"
-	"os"
-	"strings"
 
+	"github.com/cardiacsociety/web-services/cmd/webd/graphql"
+	"github.com/cardiacsociety/web-services/internal/platform/datastore"
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
 )
@@ -16,10 +15,16 @@ const (
 	v1AdminBase   = "/v1/a"
 	v1GeneralBase = "/v1/g"
 	v1ReportBase  = "/v1/r"
+	graphQLBase = "/graphql"
 )
 
-// Start fires up the router that handles requests to REST api endpoints
-func StartServer(port string) {
+// DS represents the global datastore passed to internal packages by the handlers
+var DS datastore.Datastore
+
+// Router returns a http.Handler for all web service endpoints
+func Router(ds datastore.Datastore) http.Handler {
+
+	DS = ds
 
 	// Router
 	r := mux.NewRouter()
@@ -27,7 +32,6 @@ func StartServer(port string) {
 	// Ping and preflight, no middleware required
 	r.Methods("GET").Path("/").HandlerFunc(Index)
 	r.Methods("OPTIONS").HandlerFunc(Preflight)
-	//r.Methods("OPTIONS").Path("/").HandlerFunc(handlers.Preflight)
 
 	// Auth sub-router, no middleware required
 	rAuth := AuthSubRouter(v1AuthBase)
@@ -52,6 +56,10 @@ func StartServer(port string) {
 	rGeneralMiddleware := GeneralMiddleware(rGeneral)
 	r.PathPrefix(v1GeneralBase).Handler(rGeneralMiddleware)
 
+	// GraphQL
+	rGraphQL := graphql.Server(ds)
+	r.PathPrefix(graphQLBase).Handler(rGraphQL)
+
 	// CORS handler - needed to add OptionsPassThrough for preflight requests which use OPTIONS http method
 	//handler := cors.Default().Handler(r)
 	// Todo... tighten this up - not sure if needed  with preflightHandler??
@@ -64,8 +72,5 @@ func StartServer(port string) {
 		OptionsPassthrough: true,
 	}).Handler(r)
 
-	// strip port number if included in the env var, so we can add it again ;)
-	host := strings.Join(strings.Split(os.Getenv("MAPPCPD_API_URL"), ":")[:2], "")
-	fmt.Println("REST server listening at", host+":"+port)
-	http.ListenAndServe(":"+port, handler)
+	return handler
 }
