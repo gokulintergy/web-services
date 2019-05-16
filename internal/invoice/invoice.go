@@ -6,27 +6,25 @@ import (
 	"strings"
 	"time"
 
+	"github.com/cardiacsociety/web-services/internal/member"
+
 	"github.com/cardiacsociety/web-services/internal/platform/datastore"
 )
 
 // Invoice represents an invoice :)
 type Invoice struct {
-	ID        int       `json:"id" bson:"id"`
-	CreatedAt time.Time `json:"createdAt" bson:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt" bson:"updatedAt"`
-	MemberID  int       `json:"memberId" bson:"memberId"`
-	Member    string    `json:"member" bson:"member"`
-	Email     string    `json:"email" bson:"email"`
-	Mobile    string    `json:"mobile" bson:"mobile"`
-	IssueDate time.Time `json:"issueDate" bson:"issueDate"`
-	DueDate   time.Time `json:"dueDate" bson:"dueDate"`
-
-	SubscriptionID int    `json:"subscriptionID" bson:"subscriptionID"`
-	Subscription   string `json:"subscription" bson:"subscription"`
-
-	Amount  float64 `json:"Amount" bson:"Amount"`
-	Paid    bool    `json:"paid" bson:"paid"`
-	Comment string  `json:"comment" bson:"comment"`
+	ID             int           `json:"id" bson:"id"`
+	CreatedAt      time.Time     `json:"createdAt" bson:"createdAt"`
+	UpdatedAt      time.Time     `json:"updatedAt" bson:"updatedAt"`
+	MemberID       int           `json:"memberId" bson:"memberId"`
+	IssueDate      time.Time     `json:"issueDate" bson:"issueDate"`
+	DueDate        time.Time     `json:"dueDate" bson:"dueDate"`
+	SubscriptionID int           `json:"subscriptionID" bson:"subscriptionID"`
+	Subscription   string        `json:"subscription" bson:"subscription"`
+	Amount         float64       `json:"Amount" bson:"Amount"`
+	Paid           bool          `json:"paid" bson:"paid"`
+	Comment        string        `json:"comment" bson:"comment"`
+	Member         member.Member `json:"member"`
 }
 
 // ByID fetches an invoice by invoice ID
@@ -41,14 +39,39 @@ func ByID(ds datastore.Datastore, invoiceID int) (Invoice, error) {
 		return i, sql.ErrNoRows
 	}
 	i = xi[0] // one result
+
+	i.attachMember(ds)
+
 	return i, nil
+}
+
+func (i *Invoice) attachMember(ds datastore.Datastore) {
+	m, err := member.ByID(ds, i.MemberID)
+	if err != nil {
+		fmt.Println(err)
+	}
+	if err == nil {
+		i.Member = *m
+	}
 }
 
 // ByIDs returns multiple Invoice values identified by invoiceIDs
 func ByIDs(ds datastore.Datastore, invoiceIDs []int) ([]Invoice, error) {
+
+	var xi []Invoice
+
 	idList := strings.Trim(strings.Join(strings.Fields(fmt.Sprint(invoiceIDs)), ","), "[]")
 	q := queries["select-invoices"] + fmt.Sprintf(" AND i.id IN (%s)", idList)
-	return execute(ds, q)
+	xi, err := execute(ds, q)
+	if err != nil {
+		return nil, err
+	}
+
+	for i := range xi {
+		xi[i].attachMember(ds)
+	}
+
+	return xi, err
 }
 
 func execute(ds datastore.Datastore, query string) ([]Invoice, error) {
@@ -93,9 +116,6 @@ func scanRow(row *sql.Rows) (Invoice, error) {
 		&createdAt,
 		&updatedAt,
 		&i.MemberID,
-		&i.Member,
-		&i.Email,
-		&i.Mobile,
 		&issueDate,
 		&dueDate,
 		&i.SubscriptionID,

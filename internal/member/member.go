@@ -594,6 +594,12 @@ func (m *Member) Sync(ds datastore.Datastore) error {
 	return m.SaveDocDB(ds)
 }
 
+// ValueByID returns a Member value rather than a pointer
+func ValueByID(ds datastore.Datastore, id int) (Member, error) {
+	m, err := ByID(ds, id)
+	return *m, err
+}
+
 // ByID returns a pointer to a populated Member value
 func ByID(ds datastore.Datastore, id int) (*Member, error) {
 
