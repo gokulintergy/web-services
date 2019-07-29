@@ -1,6 +1,7 @@
 # pubmedr
 
-MappCPD worker that fetches articles from [Pubmed](https://www.ncbi.nlm.nih.gov/pubmed/) and inserts them into the primary MappCPD resources table.
+MappCPD worker that fetches articles from [Pubmed](https://www.ncbi.nlm.nih.gov/pubmed/) 
+and inserts them into the primary MappCPD resources table.
 
 ![resources](https://docs.google.com/drawings/d/1zJ4pQCb94syzpCvoqRBXwbMUvs8LhpFlFE2Gax6LTfM/pub?w=691&h=431)
 
@@ -28,7 +29,9 @@ MAPPCPD_PUBMED_RETMAX=200
 BATCH_FILE="https://s3-ap-southeast-1.amazonaws.com/demo-mappcpd/public/pubmedr/pubmed.json"
 ```
 
-The option for a remote batch config file was added so that the config did not have to be uploaded with the repo. It contains an array of one or more Pubmed fetch configurations, eg:
+The option for a remote batch config file was added so that the config 
+did not have to be uploaded with the repo. It contains an array of one 
+or more Pubmed fetch configurations, eg:
 
 ```json
 [{
@@ -70,15 +73,18 @@ Fields in the config:
 
 `relDate` : include articles published up to this many days back
 
-`attributes` : a json string used for faceting, optional however `category` should be included for multi-category resource libraries
+`attributes` : a json string used for faceting, optional however `category` 
+should be included for multi-category resource libraries
 
-`resourceTypeID` : id of the resource type from primary database `ol_resource_type` table, used to provide facet search for *video*, *audio*, *document* etc.
+`resourceTypeID` : id of the resource type from primary database 
+`ol_resource_type` table, used to provide facet search for *video*, 
+*audio*, *document* etc.
 
 
 ## Pubmed Notes
 
-The Pubmed query that fetches the article abstract (efetch) supports XML and *not* JSON. Go can access nested XML 
-fields nicely so this works well.
+The Pubmed query that fetches the article abstract (efetch) supports XML 
+and *not* JSON. Go can access nested XML fields nicely so this works well.
 
 Here's an example:
 https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pubmed&id=17284678&retmode=xml&rettype=abstract

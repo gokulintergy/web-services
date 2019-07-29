@@ -131,15 +131,11 @@ type AuthData struct {
 	ExpiresAt time.Time
 }
 
-// Universal token for accessing API
 var token string
-
-// Batch size - ie how many to process at a time
 var batchSize int
 
-// init the env vars
 func init() {
-	envr.New("algrEnv", []string{
+	envr.New("pubmedrEnv", []string{
 		"MAPPCPD_ADMIN_USER",
 		"MAPPCPD_ADMIN_PASS",
 		"MAPPCPD_API_URL",
@@ -147,18 +143,15 @@ func init() {
 		"MAPPCPD_PUBMED_BATCH_FILE",
 	}).Auto()
 
-	// Initialise the batchSize based on PUBMED_RETMAX
 	var err error
 	batchSize, err = strconv.Atoi(os.Getenv("MAPPCPD_PUBMED_RETMAX"))
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	// set api strings
 	api = os.Getenv("MAPPCPD_API_URL")
 	apiAuth = api + "/v1/auth/admin"
 	apiResource = api + "/v1/a/batch/resources"
-
 }
 
 func main() {
@@ -174,15 +167,10 @@ func main() {
 	testAPI()
 	authAPI()
 
-	// run the jobs...
 	fmt.Println("Pubmed Jobs:")
 	for i, v := range pubmedBatch {
 		fmt.Println("\n####################################################################")
 		fmt.Println("Job ", i, "- Category:", v.Category)
-
-		// override for debug
-		// todo remove this
-		v.RelDate = 90
 
 		if v.Run == false {
 			fmt.Println("Run = false ...skipping job")
@@ -336,16 +324,16 @@ func pubmedCount(searchTerm string, relDate, startAt int) int {
 	return count
 }
 
-// fetchIDs queries the pubmed api and returns a maximum number of ids specified in env var PUBMED_RETMAX, based on the
-// search term specified in PUBMED_TERM
+// fetchIDs queries the pubmed api and returns a maximum number of ids specified
+// in env var PUBMED_RETMAX, based on the search term specified in PUBMED_TERM
 func (ps *PubMedSearch) fetchIDs(searchTerm string, relDate, startAt int) {
+
 	// Add the return max and search term to the api url...
 	url := fmt.Sprintf(pubmedSearch,
 		os.Getenv("MAPPCPD_PUBMED_RETMAX"),
 		startAt,
 		relDate,
 		searchTerm)
-
 	r, err := httpClient.Get(url)
 	if err != nil {
 		log.Fatalln(err)
@@ -376,8 +364,6 @@ func (ps *PubMedSearch) getSummaries(pa *PubMedArticleSet) {
 
 	// This might be too long for GET request so need to use POST!
 	u := pubMedFetch + idString
-
-	//emptyBody := bytes.Buffer{}
 	r, err := httpClient.Get(u)
 	if err != nil {
 		log.Fatalln(err)
@@ -396,27 +382,25 @@ func (ps *PubMedSearch) getSummaries(pa *PubMedArticleSet) {
 	}
 }
 
-// indexSummaries adds the resources records to the MappCPD MySQL database via the API.
-// These will subsequently be updated to MongoDB and then to Algolia indexes via mongr and algr services.
-// Note that any double quotes INSIDE strings are replaced with single quotes so it will play with MySQL
-// nicely... this seems better than escaping the double quotes!
+// indexSummaries adds the resources records to the MappCPD MySQL database via
+// the API. Note that any double quotes INSIDE strings are replaced with single
+// quotes so it will play with MySQL nicely... this seems better than escaping
+// the double quotes!
 func (pa PubMedArticleSet) indexSummaries(attributes map[string]interface{}) {
 
-	// We post the articles as a batch - ie an array of article objects, so convert them to JSON here...
+	// Articles are POST'd to the API as a batch - an array of article objects
 	var js string
-
 	for i, v := range pa.Articles {
 
 		var err error
 
-		// Initialise a resource value
 		r := Resource{}
 		r.CreatedAt = time.Now()
 		r.UpdatedAt = time.Now()
 		r.Primary = true
 		r.TypeID = resourceTypeID
 
-		// Set dates
+		// Tries to find the best date value as they vary in Pubmed data
 		r.bestDate(v)
 
 		// Replace double quotes with single quotes in title
@@ -497,30 +481,14 @@ func (pa PubMedArticleSet) indexSummaries(attributes map[string]interface{}) {
 	addResources(js)
 }
 
-// todo make pubmed package ... originally was trying to export this func however the entire package is 'main'
-// so cannot use it elsewhere
-// pubmedArticle fetches a single article from pubmed by id, and returns a PubMedArticle value.
-// Note: To save work this uses the 'efetch' endpoint which returns a set of XML articles - we only want one
-//func PubMedArticle(pubmedID string) PubMedArticle {
-//
-//	// Results are a set, in this case with one member
-//	xpa := PubMedArticleSet{}
-//
-//	// PubMedSearch with one ID - the article of interest
-//	ps := PubMedSearch{}
-//	ps.Result.IDs = []string{pubmedID}
-//	ps.getSummaries(&xpa)
-//
-//	return xpa.Articles[0]
-//}
-
-// bestDate attempts to set date fields based on data PubMedArticle value. this is a workaround for the occasional
-// record that has missing or different date fields int the returns Pubmed XML.
+// bestDate attempts to set date fields based on data PubMedArticle value.
+// This is a workaround for the occasional record that has missing or different
+// date fields in the returned XML.
 func (r *Resource) bestDate(article PubMedArticle) {
 
 	var err error
 
-	// Day is often missing from the Pubmed data, set to 1 so we can create time values.
+	// Day value is often missing so set to 1 to allow creation of Time value.
 	// However, leave the original value empty for the descriptive PubDate in attributes below.
 	day := article.PubDay
 	if day == "" {
