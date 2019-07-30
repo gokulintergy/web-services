@@ -1,10 +1,12 @@
 # fixr
 
-A general utility for checking and fixing various data issues. Performs the following tasks:
+A general utility for checking and fixing various data issues. 
+
+Performs the following tasks:
 
 1. Sets the short url field in the primary data store (`ol_resource.short_url`), and the corresponding doc in the `Links`
 collection, to ensure short link redirection will work.
-1. Synchronises the `old_resource.active` field from primary db with `active` fields in `Resources` and `Links` collections.
+1. Synchronises the `ol_resource.active` field from primary db with `active` fields in `Resources` and `Links` collections.
 1. Removes docs in `Resources` and `Links` collections that have been hard-deleted from primary db.
 
 
@@ -55,3 +57,13 @@ $ fixr -b 365 -t "fixResources"
 # update all Pubmed data
 $ fixr -b 100000 -t "pubmedData"
 ```
+
+## Pubmed Rate Limits
+
+Note that from Dec 2018 Pubmed imposed rate limits of 3 requests per second 
+without an API Key, or 10 requests per second _with_ an API key. See 
+[API Keys section](https://www.ncbi.nlm.nih.gov/books/NBK25497/).
+
+_**A delay of 100 milliseconds has been hard-coded into this script**_ 
+
+ 

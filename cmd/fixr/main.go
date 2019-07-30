@@ -54,6 +54,9 @@ type attributes struct {
 	SourcePages      string `json:"sourcePages"`
 }
 
+// used to fetch article data from pubmed
+const pubmedURL = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pubmed&id=%s&retmode=json&api_key=%s"
+
 // backdays specifies how far back to include records in whatever task is being performed
 var backdays int
 
@@ -73,6 +76,7 @@ func init() {
 		"MAPPCPD_MONGO_URL",
 		"MAPPCPD_MYSQL_DESC",
 		"MAPPCPD_MYSQL_URL",
+		"MAPPCPD_PUBMED_API_KEY",
 	}).Auto()
 
 	// flags
@@ -446,7 +450,7 @@ func setLinksActiveField(ids []int, active bool) error {
 	return nil
 }
 
-// updatePubmedData checks and updates the ol_resources record for resources that were sourced from Pubmed
+// updatePubmedData checks and updates ol_resources records that were sourced from Pubmed
 func updatePubmedData() {
 
 	// fetch pubmed resources
@@ -462,16 +466,19 @@ func updatePubmedData() {
 		// last keyword in ol_resource.keywords is the pubmed article id
 		pubmedId, err := strconv.Atoi(lastKeyword(r.Keywords))
 		if err != nil {
-			fmt.Println("Last keyword does not appear to be an id")
-			os.Exit(1)
+			log.Printf("Error: Last keyword for resource id %v does not appear to be a pubmed id - skipping this record\n", r.ID)
+			continue
 		}
 
-		// set Attributes related to pubmed data
+		// set Attributes related to pubmed data, as this does a pubmed api request
+		// use a slight delay to ensure rate limit of 10 requests per second
+		time.Sleep(100 * time.Millisecond)
 		r.pubmedData(strconv.Itoa(pubmedId))
 	}
 }
 
-// resourceByAttribute fetches resourceData records that have a string LIKE 'pattern' in the ol_resource.Attributes field
+// resourceByAttribute fetches resourceData records that have a string LIKE
+// 'pattern' in the ol_resource.Attributes field
 func resourcesByAttribute(pattern string) ([]resourceData, error) {
 
 	var xr []resourceData
@@ -492,7 +499,6 @@ func resourcesByAttribute(pattern string) ([]resourceData, error) {
 			return xr, err
 		}
 
-		// Unmarshal attributes JSOn string, into Attributes value
 		json.Unmarshal(attributes, &r.Attributes)
 
 		xr = append(xr, r)
@@ -509,7 +515,8 @@ func lastKeyword(list string) string {
 
 // updatePubmedData fetches data for an article by Pubmed id
 //
-// The JSON response from Pubmed is shaped as shown below, ie the field of interest is named after the id of the article.
+// The JSON response from Pubmed is shaped as shown below.
+// The field of interest is named after the id of the article.
 // Hence, it is easiest to unmarshal the response into a map[string]interface{}
 //
 //  {
@@ -525,71 +532,71 @@ func lastKeyword(list string) string {
 //  }
 //
 // Example: https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pubmed&id=25963440&retmode=json
-func (r *resourceData) pubmedData(articleID string) {
+//
+// Note: Since Dec 2018 this is rate limited to 3 requests per second without an API key.
+func (r *resourceData) pubmedData(articleID string) error {
 
-	url := fmt.Sprintf("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pubmed&id=%s&retmode=json", articleID)
+	url := fmt.Sprintf(pubmedURL, articleID, os.Getenv("MAPPCPD_PUBMED_API_KEY"))
 	res, err := http.Get(url)
 	if err != nil {
-		fmt.Println("Could not GET", url)
+		return fmt.Errorf("http.Get() err = %s", err)
 	}
 	defer res.Body.Close()
 
 	xb, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		fmt.Println("Could not read response body")
+		return fmt.Errorf("ioutil.ReadAll() err = %s, request url = %s", err, url)
 	}
 
-	// unmarshall the entire response body
-	rb := make(map[string]interface{})
-	json.Unmarshal(xb, &rb)
+	body := make(map[string]interface{})
+	err = json.Unmarshal(xb, &body)
+	if err != nil {
+		return fmt.Errorf("json.Unmarshal() err = %s", err)
+	}
 
-	// assert "result" field
-	rsf := rb["result"].(map[string]interface{})
+	// "result" field is the one of interest...
+	resultField, ok := body["result"].(map[string]interface{})
+	if !ok {
+		return fmt.Errorf("failed to assert result field for article id %v, query %s", articleID, url)
+	}
 
-	// assert the field with name equal to the id of the article
-	idf := rsf[articleID].(map[string]interface{})
+	// then the field named with the article id...
+	idField, ok := resultField[articleID].(map[string]interface{})
+	if !ok {
+		return fmt.Errorf("failed to assert article id field for article id %v, query %s", articleID, url)
+	}
 
 	// set required fields
 	r.Attributes.SourceID = articleID
-
-	v, ok := idf["fulljournalname"].(string)
+	v, ok := idField["fulljournalname"].(string)
 	if ok {
 		r.Attributes.SourceName = v
 	}
-
-	v, ok = idf["source"].(string)
+	v, ok = idField["source"].(string)
 	if ok {
 		r.Attributes.SourceNameAbbrev = v
 	}
-
-	v, ok = idf["volume"].(string)
+	v, ok = idField["volume"].(string)
 	if ok {
 		r.Attributes.SourceVolume = v
 	}
-
-	v, ok = idf["issue"].(string)
+	v, ok = idField["issue"].(string)
 	if ok {
 		r.Attributes.SourceIssue = v
 	}
-
-	v, ok = idf["pages"].(string)
+	v, ok = idField["pages"].(string)
 	if ok {
 		r.Attributes.SourcePages = v
 	}
-
-	v, ok = idf["pubdate"].(string)
+	v, ok = idField["pubdate"].(string)
 	if ok {
 		r.Attributes.SourcePubDate = v
 	}
 
-	// Need to sort out the date... the ACTUAL date
-	r.bestDate(idf)
+	// Tries to determine a suitable date
+	r.bestDate(idField)
 
-	// update the main record
-	err = updateResource(*r)
-	if err != nil {
-		fmt.Println("Error updating the record:", err)
-	}
+	return updateResource(*r)
 }
 
 // bestDate attempts to find the best publish date fromt he available data
