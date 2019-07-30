@@ -593,19 +593,43 @@ func (r *resourceData) pubmedData(articleID string) error {
 		r.Attributes.SourcePubDate = v
 	}
 
-	// Tries to determine a suitable date
-	err = r.bestDate(idField)
-	if err != nil {
-		log.Printf("bestDate() err = %s\n", err)
+	// Two fields for published date (in order of preference) -  "pubdate" and "epubdate"
+	// "epubdate" is usually a bit earlier than "pubdate". There is a lot of variation
+	// in date strings so this func tries to find something that works.
+	var pubdateOk, epubdateOk bool
+
+	pubdate, ok := idField["pubdate"].(string)
+	if ok {
+		err = r.dateFromString(pubdate)
+		if err != nil {
+			log.Printf("dateFromString(%q) err = %s - pubdate value not usable\n", pubdate, err)
+		} else {
+			pubdateOk = true
+		}
+	}
+
+	if !pubdateOk {
+		epubdate, ok := idField["epubdate"].(string)
+		if ok {
+			err = r.dateFromString(epubdate)
+			if err != nil {
+				log.Printf("dateFromString(%q) err = %s - epubdate value not usable\n", epubdate, err)
+			} else {
+				epubdateOk = true
+			}
+		}
+	}
+
+	if !pubdateOk && !epubdateOk {
 		log.Printf("Could not determine a suitable published date for for article id %v, query %s. ", articleID, url)
-		log.Printf("Article %s will be updated anyway, but without a suitable date. ", articleID)
+		log.Printf("Article %s will have its attributes updated but may have a bung published date. ", articleID)
 	}
 
 	return updateResource(*r)
 }
 
-// bestDate attempts to find the best publish date from the available data
-func (r *resourceData) bestDate(data map[string]interface{}) error {
+// dateFromString attempts to create a valid date from the string provided
+func (r *resourceData) dateFromString(date string) error {
 
 	// Month in Pubmed data is *usually* a 3 character string, eg 'May', but sometimes it is a two-character
 	// number, eg '05'. So this hack is to determine which prior to creating time value.
@@ -614,21 +638,18 @@ func (r *resourceData) bestDate(data map[string]interface{}) error {
 		"Jul": "7", "Aug": "8", "Sep": "9", "Oct": "10", "Nov": "11", "Dec": "12",
 	}
 
-	// first 'best' options are "pubdate" and "epubdate" - "epubdate" is usually a bit earlier than "pubdate"
-	pubdate, ok := data["pubdate"].(string)
-	if ok {
-		xs := strings.Split(pubdate, " ")
+	xs := strings.Split(date, " ")
 
-		if len(xs) == 3 {
-			r.PubYear, r.PubMonth, r.PubDay = xs[0], xs[1], xs[2]
-		}
-
-		if len(xs) == 2 {
-			r.PubYear, r.PubMonth = xs[0], xs[1]
-		}
+	if len(xs) == 3 {
+		r.PubYear, r.PubMonth, r.PubDay = xs[0], xs[1], xs[2]
 	}
 
-	// If the month value is a key in the months array, set it to a 'numerical' value ie '5' instead of 'May'
+	if len(xs) == 2 {
+		r.PubYear, r.PubMonth = xs[0], xs[1]
+	}
+
+	// If the month value is a key in the months array, set it to a 'numerical'
+	// value ie '5' instead of 'May'
 	m, ok := months[r.PubMonth]
 	if ok {
 		r.PubMonth = m
