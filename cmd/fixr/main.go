@@ -594,15 +594,18 @@ func (r *resourceData) pubmedData(articleID string) error {
 	}
 
 	// Tries to determine a suitable date
-	r.bestDate(idField)
+	err = r.bestDate(idField)
+	if err != nil {
+		log.Printf("bestDate() err = %s\n", err)
+		log.Printf("Could not determine a suitable published date for for article id %v, query %s. ", articleID, url)
+		log.Printf("Article %s will be updated anyway, but without a suitable date. ", articleID)
+	}
 
 	return updateResource(*r)
 }
 
-// bestDate attempts to find the best publish date fromt he available data
-func (r *resourceData) bestDate(data map[string]interface{}) {
-
-	fmt.Println("Looking for best date...")
+// bestDate attempts to find the best publish date from the available data
+func (r *resourceData) bestDate(data map[string]interface{}) error {
 
 	// Month in Pubmed data is *usually* a 3 character string, eg 'May', but sometimes it is a two-character
 	// number, eg '05'. So this hack is to determine which prior to creating time value.
@@ -612,11 +615,8 @@ func (r *resourceData) bestDate(data map[string]interface{}) {
 	}
 
 	// first 'best' options are "pubdate" and "epubdate" - "epubdate" is usually a bit earlier than "pubdate"
-	fmt.Print("Try pubdate: ")
-
 	pubdate, ok := data["pubdate"].(string)
 	if ok {
-		fmt.Println(pubdate)
 		xs := strings.Split(pubdate, " ")
 
 		if len(xs) == 3 {
@@ -643,12 +643,11 @@ func (r *resourceData) bestDate(data map[string]interface{}) {
 	ts := r.PubYear + "-" + r.PubMonth + "-" + r.PubDay
 	_, err := time.Parse("2006-1-2", ts)
 	if err != nil {
-		fmt.Println("Error parsing date -", err)
-		return
+		return fmt.Errorf("time.Parse() err = %s", err)
 	}
 
 	r.PubDate = ts
-	fmt.Println("Best publish date:", r.PubDate)
+	return nil
 }
 
 // updateResource updates the ol_resource record
