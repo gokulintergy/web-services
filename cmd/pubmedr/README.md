@@ -1,16 +1,12 @@
 # pubmedr
 
 MappCPD worker that fetches articles from [Pubmed](https://www.ncbi.nlm.nih.gov/pubmed/) 
-and inserts them into the primary MappCPD resources table.
+and inserts them into the primary database table: `ol_resource`. From there they will 
+be picked up by `mongr` -> `algr` and then visible in the Resource library search.
 
 ![resources](https://docs.google.com/drawings/d/1zJ4pQCb94syzpCvoqRBXwbMUvs8LhpFlFE2Gax6LTfM/pub?w=691&h=431)
 
-See [MappCPD Architecture](https://github.com/mappcpd/architecture/wiki) for more info.
-
-
 ## Configuration
-
-**Note:** As the web services are deployed together, and there are overlapping env vars for each of the services, the environment can be configured globally. See [web services configuration](/web-services#configuration).  
 
 **Env vars**
 
@@ -63,6 +59,32 @@ or more Pubmed fetch configurations, eg:
 ]
 ```
 
+The intention was to be able to change the configuration without having to commit 
+a code update. However, it is a bit awkward to update so a local `pubmed.json` was 
+added to the _root_ dir of the repo.
+
+**Note: The `pubmed.json` is hard-coded and should be accessed via a flag. 
+See issue #72.
+
+As the time of writing it looks like this:
+
+```json
+[
+  {
+    "run": true,
+    "category": "Cardiology",
+    "searchTerm": "loattrfree%20full%20text%5BFilter%5D%20AND%20(%22Am%20Heart%20J%22%5Bjour%5D%20OR%20%22Am%20J%20Cardiol%22%5Bjour%5D%20OR%20%22Arterioscler%20Thromb%20Vasc%20Biol%22%5Bjour%5D%20OR%20%22Atherosclerosis%22%5Bjour%5D%20OR%20%22Basic%20Res%20Cardiol%22%5Bjour%5D%20OR%20%22Cardiovasc%20Res%22%5Bjour%5D%20OR%20%22Chest%22%5Bjour%5D%20OR%20%22Circulation%22%5Bjour%5D%20OR%20%22Circ%20Arrhythm%20Electrophysiol%22%5Bjour%5D%20OR%20%22Circ%20Cardiovasc%20Genet%22%5Bjour%5D%20OR%20%22Circ%20Cardiovasc%20Imaging%22%5Bjour%5D%20OR%20%22Circ%20Cardiovasc%20Qual%20Outcomes%22%5Bjour%5D%20OR%20%22Circ%20Cardiovasc%20Interv%22%5Bjour%5D%20OR%20%22Circ%20Heart%20Fail%22%5Bjour%5D%20OR%20%22Circ%20Res%22%5Bjour%5D%20OR%20%22ESC%20Heart%20Fail%22%5Bjour%5D%20OR%20%22Eur%20Heart%20J%22%5Bjour%5D%20OR%20%22Eur%20Heart%20J%20Cardiovasc%20Imaging%22%5Bjour%5D%20OR%20%22Eur%20Heart%20J%20Acute%20Cardiovasc%20Care%22%5Bjour%5D%20OR%20%22Eur%20Heart%20J%20Cardiovasc%20Pharmacother%22%5Bjour%5D%20OR%20%22Eur%20Heart%20J%20Qual%20Care%20Clin%20Outcomes%22%5Bjour%5D%20OR%20%22Eur%20J%20Heart%20Fail%22%5Bjour%5D%20OR%20%22Eur%20J%20Vasc%20Endovasc%20Surg%22%5Bjour%5D%20OR%20%22Europace%22%5Bjour%5D%20OR%20%22Heart%22%5Bjour%5D%20OR%20%22Heart%20Lung%20Circ%22%5Bjour%5D%20OR%20%22Heart%20Rhythm%22%5Bjour%5D%20OR%20%22JACC%20Cardiovasc%20Interv%22%5Bjour%5D%20OR%20%22JACC%20Cardiovasc%20Imaging%22%5Bjour%5D%20OR%20%22JACC%20Heart%20Fail%22%5Bjour%5D%20OR%20%22J%20Am%20Coll%20Cardiol%22%5Bjour%5D%20OR%20%22J%20Am%20Heart%20Assoc%22%5Bjour%5D%20OR%20%22J%20Am%20Soc%20Echocardiogr%22%5Bjour%5D%20OR%20%22J%20Card%20Fail%22%5Bjour%5D%20OR%20%22J%20Cardiovasc%20Electrophysiol%22%5Bjour%5D%20OR%20%22J%20Cardiovasc%20Magn%20Reson%22%5Bjour%5D%20OR%20%22J%20Heart%20Lung%20Transplant%22%5Bjour%5D%20OR%20%22J%20Hypertens%22%5Bjour%5D%20OR%20%22J%20Mol%20Cell%20Cardiol%22%5Bjour%5D%20OR%20%22J%20Thorac%20Cardiovasc%20Surg%22%5Bjour%5D%20OR%20%22J%20Vasc%20Surg%22%5Bjour%5D%20OR%20%22Nat%20Rev%20Cardiol%22%5Bjour%5D%20OR%20%22Prog%20Cardiovasc%20Dis%22%5Bjour%5D%20OR%20%22Resuscitation%22%5Bjour%5D%20OR%20%22Stroke%22%5Bjour%5D)",
+    "relDate": 1000,
+    "attributes": {
+      "free": true,
+      "public": true,
+      "source": "Pubmed"
+    },
+    "resourceTypeID": 80
+  }
+]
+```
+
 Fields in the config:
 
 `run` : `true/false` - switch on or off
@@ -80,6 +102,62 @@ should be included for multi-category resource libraries
 `ol_resource_type` table, used to provide facet search for *video*, 
 *audio*, *document* etc.
 
+The search term in the json above extracts articles from a specific set of 
+journals (see below).
+
+The journals have been primarily selected from the highest ranking cardiology 
+journals at <https://www.scimagojr.com/se>.
+
+The search terms use the pubmed journal names in abbreviated form (journal codes). 
+A complete list can be found at <https://www.ncbi.nlm.nih.gov/books/NBK3827/table/pubmedhelp.T.journal_lists/>
+
+The current list:
+
+- American heart journal (Am Heart J)
+- The American journal of cardiology (Am J Cardiol)
+- Arteriosclerosis, thrombosis, and vascular biology (Arterioscler Thromb Vasc Biol)
+- Atherosclerosis (Atherosclerosis)
+- Basic research in cardiology (Basic Res Cardiol)
+- Cardiovascular research (Cardiovasc Res)
+- Chest (Chest)
+- Circulation (Circulation)
+- Circulation. Arrhythmia and electrophysiology (Circ Arrhythm Electrophysiol)
+- Circulation. Cardiovascular genetics (Circ Cardiovasc Genet)
+- Circulation. Cardiovascular imaging (Circ Cardiovasc Imaging)
+- Circulation. Cardiovascular quality and outcomes (Circ Cardiovasc Qual Outcomes)
+- Circulation. Cardiovascular interventions (Circ Cardiovasc Interv)
+- Circulation. Heart failure (Circ Heart Fail)
+- Circulation research - (Circ Res)
+- ESC heart failure (ESC Heart Fail)
+- European heart journal (Eur Heart J)
+- European heart journal cardiovascular Imaging (Eur Heart J Cardiovasc Imaging)
+- European heart journal. Acute cardiovascular care (Eur Heart J Acute Cardiovasc Care)
+- European heart journal. Cardiovascular pharmacotherapy (Eur Heart J Cardiovasc Pharmacother)
+- European heart journal. Quality of care & clinical outcomes (Eur Heart J Qual Care Clin Outcomes)
+- European journal of heart failure (Eur J Heart Fail)
+- European journal of vascular and endovascular surgery : the official journal (Eur J Vasc Endovasc Surg)
+- Europace : European pacing, arrhythmias, and cardiac electrophysiology (Europace)
+- Heart - British Cardiac Society (Heart)
+- Heart, lung & circulation (Heart Lung Circ)
+- Heart rhythm (Heart Rhythm)
+- JACC. Cardiovascular interventions (JACC Cardiovasc Interv)
+- JACC. Cardiovascular imaging (JACC Cardiovasc Imaging)
+- JACC. Heart failure (JACC Heart Fail)
+- Journal of the American College of Cardiology (J Am Coll Cardiol)
+- Journal of the American Heart Association (J Am Heart Assoc)
+- Journal of the American Society of Echocardiography (J Am Soc Echocardiogr)
+- Journal of cardiac failure (J Card Fail)
+- Journal of cardiovascular electrophysiology (J Cardiovasc Electrophysiol)
+- Journal of cardiovascular magnetic resonance (J Cardiovasc Magn Reson)
+- The Journal of heart and lung transplantation (J Heart Lung Transplant)
+- Journal of hypertension (J Hypertens)
+- Journal of molecular and cellular cardiology (J Mol Cell Cardiol)
+- The Journal of thoracic and cardiovascular surgery (J Thorac Cardiovasc Surg)
+- Journal of vascular surgery (J Vasc Surg)
+- Nature reviews. Cardiology (Nat Rev Cardiol)
+- Progress in cardiovascular diseases (Prog Cardiovasc Dis)
+- Resuscitation (Resuscitation)
+- Stroke (Stroke)
 
 ## Pubmed Notes
 
